@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -45,8 +47,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun HomeScreen(
+    onHomeClick: () -> Unit = {},
     onToolsClick: () -> Unit = {},
-    onMoreClick: () -> Unit = {}
+    onMoreClick: () -> Unit = {},
+    onCalculateClick: () -> Unit = {},
+    onAssessClick: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -57,6 +62,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .navigationBarsPadding()
         ) {
 
@@ -94,14 +100,13 @@ fun HomeScreen(
                             )
                         }
 
-                        Icon(
-                            imageVector = Icons.Outlined.MoreHoriz,
-                            contentDescription = "More",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clickable { onMoreClick() }
-                        )
+                        IconButton(onClick = onMoreClick) {
+                            Icon(
+                                imageVector = Icons.Outlined.MoreHoriz,
+                                contentDescription = "More",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 
@@ -152,14 +157,16 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             title = "Calculate",
                             subtitle = "Medical calculators",
-                            icon = Icons.Outlined.Calculate
+                            icon = Icons.Outlined.Calculate,
+                            onClick = onCalculateClick
                         )
 
                         QuickAccessCard(
                             modifier = Modifier.weight(1f),
                             title = "Assess",
                             subtitle = "Clinical scores",
-                            icon = Icons.Outlined.Assessment
+                            icon = Icons.Outlined.Assessment,
+                            onClick = onAssessClick
                         )
                     }
                 }
@@ -207,6 +214,7 @@ fun HomeScreen(
             }
 
             HomeBottomNavigation(
+                onHomeClick = onHomeClick,
                 onToolsClick = onToolsClick,
                 onMoreClick = onMoreClick
             )
@@ -219,10 +227,13 @@ private fun QuickAccessCard(
     modifier: Modifier,
     title: String,
     subtitle: String,
-    icon: ImageVector
+    icon: ImageVector,
+    onClick: () -> Unit = {}
 ) {
     Card(
-        modifier = modifier.height(132.dp),
+        modifier = modifier
+            .height(132.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
@@ -313,6 +324,7 @@ private fun EmptyStateCard(text: String) {
 
 @Composable
 private fun HomeBottomNavigation(
+    onHomeClick: () -> Unit,
     onToolsClick: () -> Unit,
     onMoreClick: () -> Unit
 ) {
@@ -329,6 +341,7 @@ private fun HomeBottomNavigation(
         ) {
             Text(
                 text = "Home",
+                modifier = Modifier.clickable { onHomeClick() },
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
