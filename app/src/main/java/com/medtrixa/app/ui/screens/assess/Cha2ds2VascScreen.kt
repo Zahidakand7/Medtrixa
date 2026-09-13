@@ -1,6 +1,5 @@
 package com.medtrixa.app.ui.screens.assess
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,7 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,8 +41,6 @@ import androidx.compose.ui.text.input.KeyboardType
 fun Cha2ds2VascScreen(
     onBackClick: () -> Unit
 ) {
-    BackHandler { onBackClick() }
-
     var heartFailure by remember { mutableStateOf(false) }
     var hypertension by remember { mutableStateOf(false) }
     var diabetes by remember { mutableStateOf(false) }
@@ -64,9 +64,15 @@ fun Cha2ds2VascScreen(
             (if (vascularDisease) 1 else 0) +
             (if (femaleSex) 1 else 0)
 
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
@@ -210,6 +216,7 @@ fun Cha2ds2VascScreen(
                 }
             }
         }
+    }
     }
 }
 
