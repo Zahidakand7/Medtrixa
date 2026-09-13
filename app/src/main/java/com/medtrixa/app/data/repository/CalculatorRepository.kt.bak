@@ -1,0 +1,61 @@
+package com.medtrixa.app.data.repository
+
+import com.medtrixa.app.data.model.CalculatorInput
+import com.medtrixa.app.data.model.MedicalCalculator
+
+class CalculatorRepository {
+
+    private val calculators = mutableListOf<MedicalCalculator>()
+
+    init {
+        calculators.add(
+            MedicalCalculator(
+                id = "bmi_adult",
+                name = "Adult BMI",
+                category = "General",
+                specialty = "General Medicine",
+                description = "Body mass index for adults aged 20 years and older.",
+                inputs = listOf(
+                    CalculatorInput(
+                        id = "height_cm",
+                        label = "Height",
+                        unit = "cm"
+                    ),
+                    CalculatorInput(
+                        id = "weight_kg",
+                        label = "Weight",
+                        unit = "kg"
+                    )
+                ),
+                version = "1.0",
+                evidenceLevel = "Established clinical screening measure",
+                reference = "CDC Adult BMI Categories and Adult BMI Calculator",
+                sourceUrl = "https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html",
+                lastReviewed = "2026-09-12"
+            )
+        )
+    }
+
+    fun getAll(): List<MedicalCalculator> = calculators.toList()
+
+    fun getById(id: String): MedicalCalculator? {
+        return calculators.find { it.id == id }
+    }
+
+    fun search(query: String): List<MedicalCalculator> {
+        if (query.isBlank()) return getAll()
+
+        val normalizedQuery = query.trim().lowercase()
+
+        return calculators.filter {
+            it.name.lowercase().contains(normalizedQuery) ||
+            it.category.lowercase().contains(normalizedQuery) ||
+            it.specialty.lowercase().contains(normalizedQuery) ||
+            it.description.lowercase().contains(normalizedQuery)
+        }
+    }
+
+    fun addCalculator(calculator: MedicalCalculator) {
+        calculators.add(calculator)
+    }
+}

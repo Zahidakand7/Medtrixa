@@ -1,0 +1,224 @@
+package com.medtrixa.app.domain.calculator
+
+import android.content.Context
+import com.medtrixa.app.data.model.CalculatorResult
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import kotlin.math.ln
+import kotlin.math.pow
+
+class ChildBmiCalculator(
+    private val context: Context
+) : CalculatorEngine {
+
+    override fun calculate(
+        calculatorId: String,
+        inputs: Map<String, Double>
+    ): CalculatorResult {
+
+        require(calculatorId == "bmi_child") {
+            "Unsupported calculator: $calculatorId"
+        }
+
+        val ageYears = inputs["age_years"] ?: error("Age is required")
+        val ageMonths = inputs["age_months"] ?: 0.0
+        val sex = inputs["sex"] ?: error("Sex is required")
+
+        require(sex == 1.0 || sex == 2.0) {
+            "Sex must be 1 (Male) or 2 (Female)"
+        }
+
+        require(ageYears >= 2.0) {
+            "Child BMI is intended for ages 2 through 19 years"
+        }
+
+        require(ageMonths in 0.0..11.0) {
+            "Additional months must be between 0 and 11"
+        }
+
+        val totalAgeMonths = ageYears * 12.0 + ageMonths
+
+        require(totalAgeMonths <= 239.0) {
+            "Child BMI is intended for ages 2 through 19 years"
+        }
+
+        val heightCm = inputs["height_cm"]
+        val heightFt = inputs["height_ft"]
+        val heightIn = inputs["height_in"]
+
+        val weightKg = inputs["weight_kg"]
+        val weightLb = inputs["weight_lb"]
+
+        val finalHeightCm = when {
+            heightCm != null -> heightCm
+            heightFt != null && heightIn != null ->
+                (heightFt * 30.48) + (heightIn * 2.54)
+            else -> error("Height is required")
+        }
+
+        val finalWeightKg = when {
+            weightKg != null -> weightKg
+            weightLb != null -> weightLb * 0.45359237
+            else -> error("Weight is required")
+        }
+
+        require(finalHeightCm > 0.0) {
+            "Height must be greater than zero"
+        }
+
+        require(finalWeightKg > 0.0) {
+            "Weight must be greater than zero"
+        }
+
+        val heightM = finalHeightCm / 100.0
+        val bmi = finalWeightKg / (heightM * heightM)
+
+        val reference = loadReferenceData(
+            sex = sex.toInt(),
+            ageMonths = totalAgeMonths
+        )
+
+        val zScore = calculateZScore(
+            bmi = bmi,
+            l = reference.l,
+            m = reference.m,
+            s = reference.s
+        )
+
+        val percentile = normalCdf(zScore) * 100.0
+
+        val p95 = reference.p95
+        val severeObesityThreshold = maxOf(
+            1.20 * p95,
+            35.0
+        )
+
+        val category = when {
+            bmi >= severeObesityThreshold -> "Severe Obesity"
+            percentile >= 95.0 -> "Obesity"
+            percentile >= 85.0 -> "Overweight"
+            percentile >= 5.0 -> "Healthy Weight"
+            else -> "Underweight"
+        }
+
+        return CalculatorResult(
+            value = String.format("%.1f", bmi),
+            unit = "kg/m²",
+            interpretation = "$category • ${String.format("%.1f", percentile)}th percentile"
+        )
+    }
+
+    private data class ReferenceRow(
+        val l: Double,
+        val m: Double,
+        val s: Double,
+        val p95: Double
+    )
+
+    private fun loadReferenceData(
+        sex: Int,
+        ageMonths: Double
+    ): ReferenceRow {
+
+        val targetAge = ageMonths
+
+        val rows = context.assets
+            .open("bmiagerev_ext.csv")
+            .use { input ->
+                BufferedReader(InputStreamReader(input)).useLines { lines ->
+                    lines
+                        .drop(1)
+                        .mapNotNull { line ->
+                            val parts = line.split(",")
+
+                            if (parts.size < 16) {
+                                null
+                            } else {
+                                val rowSex = parts[0].toIntOrNull()
+                                val rowAge = parts[1].toDoubleOrNull()
+
+                                if (rowSex == sex && rowAge != null) {
+                                    Triple(
+                                        rowAge,
+                                        parts[2].toDoubleOrNull(),
+                                        parts[3].toDoubleOrNull()
+                                    )
+                                } else {
+                                    null
+                                }
+                            }
+                        }
+                        .toList()
+                }
+            }
+
+        val exact = rows.minByOrNull {
+            kotlin.math.abs(it.first - targetAge)
+        } ?: error("CDC reference data not found")
+
+        val ageRow = exact.first
+
+        val line = context.assets
+            .open("bmiagerev_ext.csv")
+            .use { input ->
+                BufferedReader(InputStreamReader(input)).useLines { lines ->
+                    lines
+                        .drop(1)
+                        .firstOrNull { raw ->
+                            val parts = raw.split(",")
+                            parts.size >= 16 &&
+                                parts[0].toIntOrNull() == sex &&
+                                parts[1].toDoubleOrNull() == ageRow
+                        }
+                }
+            } ?: error("CDC reference row not found")
+
+        val parts = line.split(",")
+
+        return ReferenceRow(
+            l = parts[2].toDouble(),
+            m = parts[3].toDouble(),
+            s = parts[4].toDouble(),
+            p95 = parts[14].toDouble()
+        )
+    }
+
+    private fun calculateZScore(
+        bmi: Double,
+        l: Double,
+        m: Double,
+        s: Double
+    ): Double {
+        return if (l != 0.0) {
+            (((bmi / m).pow(l)) - 1.0) / (l * s)
+        } else {
+            ln(bmi / m) / s
+        }
+    }
+
+    private fun normalCdf(z: Double): Double {
+        return 0.5 * (1.0 + erf(z / kotlin.math.sqrt(2.0)))
+    }
+
+    private fun erf(x: Double): Double {
+        val sign = if (x < 0) -1.0 else 1.0
+        val ax = kotlin.math.abs(x)
+
+        val a1 = 0.254829592
+        val a2 = -0.284496736
+        val a3 = 1.421413741
+        val a4 = -1.453152027
+        val a5 = 1.061405429
+        val p = 0.3275911
+
+        val t = 1.0 / (1.0 + p * ax)
+
+        val y = 1.0 - (
+            (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) *
+                t *
+                kotlin.math.exp(-ax * ax)
+            )
+
+        return sign * y
+    }
+}
