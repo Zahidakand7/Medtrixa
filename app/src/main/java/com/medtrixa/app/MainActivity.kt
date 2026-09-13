@@ -2,6 +2,7 @@ package com.medtrixa.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,6 +47,26 @@ private fun MedtrixaRoot() {
 
     val calculatorRepository = remember {
         CalculatorRepository()
+    }
+
+    // Single source of truth for system/gesture back navigation, so every
+    // screen (not just the ones that happened to add their own BackHandler)
+    // steps back to its correct parent instead of exiting the app.
+    val parentScreen = when (currentScreen) {
+        "tools" -> "home"
+        "more" -> "home"
+        "assess" -> "tools"
+        "calculators" -> "tools"
+        "curb65" -> "assess"
+        "cha2ds2vasc" -> "assess"
+        "calculator" -> "calculators"
+        else -> null
+    }
+
+    BackHandler(enabled = parentScreen != null) {
+        if (parentScreen != null) {
+            currentScreen = parentScreen
+        }
     }
 
     when (currentScreen) {
@@ -120,22 +141,40 @@ private fun MedtrixaRoot() {
 
         "more" -> {
             HomeScreen(
+                onHomeClick = {
+                    currentScreen = "home"
+                },
                 onToolsClick = {
                     currentScreen = "tools"
                 },
                 onMoreClick = {
                     currentScreen = "more"
+                },
+                onCalculateClick = {
+                    currentScreen = "calculators"
+                },
+                onAssessClick = {
+                    currentScreen = "assess"
                 }
             )
         }
 
         else -> {
             HomeScreen(
+                onHomeClick = {
+                    currentScreen = "home"
+                },
                 onToolsClick = {
                     currentScreen = "tools"
                 },
                 onMoreClick = {
                     currentScreen = "more"
+                },
+                onCalculateClick = {
+                    currentScreen = "calculators"
+                },
+                onAssessClick = {
+                    currentScreen = "assess"
                 }
             )
         }
