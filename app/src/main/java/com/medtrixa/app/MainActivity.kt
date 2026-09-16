@@ -2,7 +2,6 @@ package com.medtrixa.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -15,17 +14,34 @@ import com.medtrixa.app.data.repository.CalculatorRepository
 import com.medtrixa.app.ui.screens.CalculatorLibraryScreen
 import com.medtrixa.app.ui.screens.CalculatorScreen
 import com.medtrixa.app.ui.screens.AssessScreen
+import com.medtrixa.app.ui.screens.RiskAssessmentScreen
+import com.medtrixa.app.ui.screens.ClinicalScoresScreen
+import com.medtrixa.app.ui.screens.ComingSoonScreen
+import com.medtrixa.app.ui.screens.DrugToolsScreen
+import com.medtrixa.app.ui.screens.drugtools.InteractionCheckerScreen
+import com.medtrixa.app.ui.screens.calculators.WeightBasedDoseScreen
+import com.medtrixa.app.ui.screens.calculators.CreatinineClearanceScreen
+import com.medtrixa.app.ui.screens.calculators.PediatricDoseScreen
+import com.medtrixa.app.ui.screens.calculators.InfusionRateScreen
 import com.medtrixa.app.ui.screens.assess.Curb65Screen
 import com.medtrixa.app.ui.screens.assess.Cha2ds2VascScreen
+import com.medtrixa.app.ui.screens.assess.QsofaScreen
+import com.medtrixa.app.ui.screens.assess.HasBledScreen
+import com.medtrixa.app.ui.screens.assess.WellsDvtScreen
+import com.medtrixa.app.ui.screens.assess.WellsPeScreen
+import com.medtrixa.app.ui.screens.assess.GcsScreen
+import com.medtrixa.app.ui.screens.assess.ApgarScreen
+import com.medtrixa.app.ui.screens.assess.HeartScoreScreen
+import com.medtrixa.app.ui.screens.assess.Meld30Screen
+import com.medtrixa.app.ui.screens.assess.ChildPughScreen
+import com.medtrixa.app.ui.screens.assess.CentorScoreScreen
 import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.ToolsScreen
 import com.medtrixa.app.ui.theme.MedtrixaTheme
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContent {
             MedtrixaTheme {
                 MedtrixaRoot()
@@ -45,85 +61,105 @@ private fun MedtrixaRoot() {
         mutableStateOf("")
     }
 
+    var selectedDrugToolTitle by rememberSaveable {
+        mutableStateOf("")
+    }
+
     val calculatorRepository = remember {
         CalculatorRepository()
-    }
-
-    // Single source of truth for system/gesture back navigation, so every
-    // screen (not just the ones that happened to add their own BackHandler)
-    // steps back to its correct parent instead of exiting the app.
-    val parentScreen = when (currentScreen) {
-        "tools" -> "home"
-        "more" -> "home"
-        "assess" -> "tools"
-        "calculators" -> "tools"
-        "curb65" -> "assess"
-        "cha2ds2vasc" -> "assess"
-        "calculator" -> "calculators"
-        else -> null
-    }
-
-    BackHandler(enabled = parentScreen != null) {
-        if (parentScreen != null) {
-            currentScreen = parentScreen
-        }
     }
 
     when (currentScreen) {
 
         "tools" -> {
             ToolsScreen(
-                onHomeClick = {
-                    currentScreen = "home"
-                },
-                onMoreClick = {
-                    currentScreen = "more"
-                },
-                onCalculateClick = {
-                    currentScreen = "calculators"
-                },
-                onAssessClick = {
-                    currentScreen = "assess"
+                onHomeClick = { currentScreen = "home" },
+                onMoreClick = { currentScreen = "more" },
+                onCalculateClick = { currentScreen = "calculators" },
+                onAssessClick = { currentScreen = "assess" },
+                onDrugToolsClick = { currentScreen = "drug_tools" }
+            )
+        }
+
+        "drug_tools" -> {
+            DrugToolsScreen(
+                onBackClick = { currentScreen = "tools" },
+                onToolClick = { tool ->
+                    selectedDrugToolTitle = tool.title
+                    currentScreen = "drug_tool_detail"
                 }
             )
+        }
+
+        "drug_tool_detail" -> {
+            when (selectedDrugToolTitle) {
+                "Dosage Calculator" -> WeightBasedDoseScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
+                "Renal Dose Adjustment" -> CreatinineClearanceScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
+                "Pediatric Dosing" -> PediatricDoseScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
+                "IV Infusion Rate Calculator" -> InfusionRateScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
+                "Drug Interaction Checker" -> InteractionCheckerScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
+                else -> ComingSoonScreen(
+                    title = selectedDrugToolTitle,
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
+            }
         }
 
         "assess" -> {
             AssessScreen(
-                onBackClick = {
-                    currentScreen = "tools"
-                },
+                onBackClick = { currentScreen = "tools" },
+                onClinicalScoresClick = { currentScreen = "clinical_scores" },
+                onRiskAssessmentClick = { currentScreen = "risk_assessment" }
+            )
+        }
+
+        "clinical_scores" -> {
+            ClinicalScoresScreen(
+                onBackClick = { currentScreen = "assess" },
+                onScoreClick = { scoreId ->
+                    currentScreen = scoreId
+                }
+            )
+        }
+
+        "risk_assessment" -> {
+            RiskAssessmentScreen(
+                onBackClick = { currentScreen = "assess" },
                 onToolClick = { toolId ->
-                    when (toolId) {
-                                    "curb65" -> currentScreen = "curb65"
-                                    "cha2ds2vasc" -> currentScreen = "cha2ds2vasc"
-                                }
+                    currentScreen = toolId
                 }
             )
         }
 
-        "curb65" -> {
-            Curb65Screen(
-                onBackClick = {
-                    currentScreen = "assess"
-                }
-            )
-        }
+        "curb65" -> { Curb65Screen(onBackClick = { currentScreen = "clinical_scores" }) }
+        "heart_score" -> { HeartScoreScreen(onBackClick = { currentScreen = "clinical_scores" }) }
+        "child_pugh" -> { ChildPughScreen(onBackClick = { currentScreen = "clinical_scores" }) }
+        "centor" -> { CentorScoreScreen(onBackClick = { currentScreen = "clinical_scores" }) }
+        "meld30" -> { Meld30Screen(onBackClick = { currentScreen = "clinical_scores" }) }
+        "apgar" -> { ApgarScreen(onBackClick = { currentScreen = "clinical_scores" }) }
+        "gcs" -> { GcsScreen(onBackClick = { currentScreen = "clinical_scores" }) }
+        "qsofa" -> { QsofaScreen(onBackClick = { currentScreen = "clinical_scores" }) }
 
-        "cha2ds2vasc" -> {
-            Cha2ds2VascScreen(
-                onBackClick = {
-                    currentScreen = "assess"
-                }
-            )
-        }
+        "cha2ds2vasc" -> { Cha2ds2VascScreen(onBackClick = { currentScreen = "risk_assessment" }) }
+        "hasbled" -> { HasBledScreen(onBackClick = { currentScreen = "risk_assessment" }) }
+        "wells_dvt" -> { WellsDvtScreen(onBackClick = { currentScreen = "risk_assessment" }) }
+        "wells_pe" -> { WellsPeScreen(onBackClick = { currentScreen = "risk_assessment" }) }
+
         "calculators" -> {
             CalculatorLibraryScreen(
                 repository = calculatorRepository,
-                onBackClick = {
-                    currentScreen = "tools"
-                },
-                onCalculatorClick = { calculator: MedicalCalculator ->
+                onBackClick = { currentScreen = "tools" },
+                onCalculatorClick = { calculator ->
                     selectedCalculatorId = calculator.id
                     currentScreen = "calculator"
                 }
@@ -133,49 +169,25 @@ private fun MedtrixaRoot() {
         "calculator" -> {
             CalculatorScreen(
                 calculatorId = selectedCalculatorId,
-                onBackClick = {
-                    currentScreen = "calculators"
-                }
+                onBackClick = { currentScreen = "calculators" }
             )
         }
 
         "more" -> {
             HomeScreen(
-                onHomeClick = {
-                    currentScreen = "home"
-                },
-                onToolsClick = {
-                    currentScreen = "tools"
-                },
-                onMoreClick = {
-                    currentScreen = "more"
-                },
-                onCalculateClick = {
-                    currentScreen = "calculators"
-                },
-                onAssessClick = {
-                    currentScreen = "assess"
-                }
+                onToolsClick = { currentScreen = "tools" },
+                onMoreClick = { currentScreen = "more" },
+                onCalculateClick = { currentScreen = "calculators" },
+                onAssessClick = { currentScreen = "assess" }
             )
         }
 
         else -> {
             HomeScreen(
-                onHomeClick = {
-                    currentScreen = "home"
-                },
-                onToolsClick = {
-                    currentScreen = "tools"
-                },
-                onMoreClick = {
-                    currentScreen = "more"
-                },
-                onCalculateClick = {
-                    currentScreen = "calculators"
-                },
-                onAssessClick = {
-                    currentScreen = "assess"
-                }
+                onToolsClick = { currentScreen = "tools" },
+                onMoreClick = { currentScreen = "more" },
+                onCalculateClick = { currentScreen = "calculators" },
+                onAssessClick = { currentScreen = "assess" }
             )
         }
     }
