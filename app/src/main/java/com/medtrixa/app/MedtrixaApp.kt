@@ -1,6 +1,7 @@
 package com.medtrixa.app
 
 import android.app.Application
+import android.util.Log
 import com.medtrixa.app.data.repository.BrandNameRepository
 import com.medtrixa.app.data.repository.DrugInteractionRepository
 import kotlinx.coroutines.CoroutineScope
@@ -12,7 +13,19 @@ class MedtrixaApp : Application() {
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     override fun onCreate() {
         super.onCreate()
-        appScope.launch { DrugInteractionRepository.load(applicationContext) }
-        appScope.launch { BrandNameRepository.load(applicationContext) }
+        appScope.launch {
+            try {
+                DrugInteractionRepository.load(applicationContext)
+            } catch (e: Exception) {
+                Log.e("MedtrixaApp", "Failed to load drug interaction data", e)
+            }
+        }
+        appScope.launch {
+            try {
+                BrandNameRepository.load(applicationContext)
+            } catch (e: Exception) {
+                Log.e("MedtrixaApp", "Failed to load brand name data", e)
+            }
+        }
     }
 }
