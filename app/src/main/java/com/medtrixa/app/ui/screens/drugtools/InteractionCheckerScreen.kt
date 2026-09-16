@@ -15,7 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.medtrixa.app.data.model.DrugInteractionResult
 import com.medtrixa.app.data.repository.BrandNameRepository
@@ -56,8 +59,8 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
         }
     }
 
-    var drugAInput by remember { mutableStateOf("") }
-    var drugBInput by remember { mutableStateOf("") }
+    var drugAInput by remember { mutableStateOf(TextFieldValue("")) }
+    var drugBInput by remember { mutableStateOf(TextFieldValue("")) }
     var showSuggestionsA by remember { mutableStateOf(false) }
     var showSuggestionsB by remember { mutableStateOf(false) }
     var checked by remember { mutableStateOf(false) }
@@ -73,11 +76,11 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
         return (drugs + brands).distinct().take(6)
     }
 
-    val suggestionsA = remember(drugAInput, showSuggestionsA) {
-        if (showSuggestionsA) combinedSuggestions(drugAInput) else emptyList()
+    val suggestionsA = remember(drugAInput.text, showSuggestionsA) {
+        if (showSuggestionsA) combinedSuggestions(drugAInput.text) else emptyList()
     }
-    val suggestionsB = remember(drugBInput, showSuggestionsB) {
-        if (showSuggestionsB) combinedSuggestions(drugBInput) else emptyList()
+    val suggestionsB = remember(drugBInput.text, showSuggestionsB) {
+        if (showSuggestionsB) combinedSuggestions(drugBInput.text) else emptyList()
     }
 
     fun resolveToIngredients(input: String): List<String> {
@@ -91,8 +94,8 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
 
     fun runCheck() {
         checked = true
-        val trimmedA = drugAInput.trim()
-        val trimmedB = drugBInput.trim()
+        val trimmedA = drugAInput.text.trim()
+        val trimmedB = drugBInput.text.trim()
 
         val ingredientsA = resolveToIngredients(trimmedA)
         val ingredientsB = resolveToIngredients(trimmedB)
@@ -171,8 +174,8 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
                     checked = false
                 },
                 suggestions = suggestionsA,
-                onSuggestionSelected = {
-                    drugAInput = it
+                onSuggestionSelected = { name ->
+                    drugAInput = TextFieldValue(text = name, selection = TextRange(name.length))
                     showSuggestionsA = false
                 }
             )
@@ -188,8 +191,8 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
                     checked = false
                 },
                 suggestions = suggestionsB,
-                onSuggestionSelected = {
-                    drugBInput = it
+                onSuggestionSelected = { name ->
+                    drugBInput = TextFieldValue(text = name, selection = TextRange(name.length))
                     showSuggestionsB = false
                 }
             )
@@ -202,7 +205,7 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
                     showSuggestionsB = false
                     runCheck()
                 },
-                enabled = drugAInput.isNotBlank() && drugBInput.isNotBlank(),
+                enabled = drugAInput.text.isNotBlank() && drugBInput.text.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Check interaction")
@@ -251,8 +254,8 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
 
                 if (closeMatchesA.isNotEmpty() || closeMatchesB.isNotEmpty()) {
                     SuggestionsCard(
-                        drugA = drugAInput,
-                        drugB = drugBInput,
+                        drugA = drugAInput.text,
+                        drugB = drugBInput.text,
                         closeMatchesA = closeMatchesA,
                         closeMatchesB = closeMatchesB
                     )
@@ -273,8 +276,8 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
 @Composable
 private fun DrugField(
     label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
     suggestions: List<String>,
     onSuggestionSelected: (String) -> Unit
 ) {
@@ -364,7 +367,8 @@ private fun InteractionResultCard(result: DrugInteractionResult) {
             Text(
                 severityAdvice(result.level),
                 style = MaterialTheme.typography.bodySmall,
-                color = style.contentColor
+                color = style.contentColor,
+                textAlign = TextAlign.Justify
             )
         }
     }
