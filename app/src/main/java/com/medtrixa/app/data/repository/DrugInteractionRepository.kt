@@ -7,7 +7,7 @@ import java.io.InputStreamReader
 
 object DrugInteractionRepository {
 
-    private const val ASSET_FILE = "ddinter_merged.csv"
+    private const val ASSET_FILE = "DDInter_2.0.csv"
 
     @Volatile private var pairIndex: Map<String, DrugInteractionResult>? = null
     @Volatile private var drugNames: List<String> = emptyList()
