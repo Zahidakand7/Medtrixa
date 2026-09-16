@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,10 +46,19 @@ fun CalculatorLibraryScreen(
     onBackClick: () -> Unit,
     onCalculatorClick: (MedicalCalculator) -> Unit
 ) {
+    BackHandler { onBackClick() }
+
     var searchQuery by remember { mutableStateOf("") }
 
     val calculators = remember(searchQuery) {
         repository.search(searchQuery)
+    }
+
+    val groupedCalculators = remember(calculators) {
+        calculators
+            .groupBy { it.category }
+            .toSortedMap()
+            .mapValues { entry -> entry.value.sortedBy { it.name } }
     }
 
     Surface(
@@ -131,20 +141,56 @@ fun CalculatorLibraryScreen(
                         )
                     }
                 } else {
-                    items(
-                        items = calculators,
-                        key = { it.id }
-                    ) { calculator ->
-                        CalculatorCard(
-                            calculator = calculator,
-                            onClick = {
-                                onCalculatorClick(calculator)
-                            }
-                        )
+                    groupedCalculators.forEach { (category, calculatorsInCategory) ->
+                        item(key = "header_$category") {
+                            CategoryHeader(
+                                category = category,
+                                count = calculatorsInCategory.size
+                            )
+                        }
+
+                        items(
+                            items = calculatorsInCategory,
+                            key = { it.id }
+                        ) { calculator ->
+                            CalculatorCard(
+                                calculator = calculator,
+                                onClick = {
+                                    onCalculatorClick(calculator)
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun CategoryHeader(
+    category: String,
+    count: Int
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = category.uppercase(),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

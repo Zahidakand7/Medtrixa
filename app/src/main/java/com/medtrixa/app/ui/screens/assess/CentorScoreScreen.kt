@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -17,11 +17,11 @@ import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,7 +45,9 @@ fun CentorScoreScreen(
     var noCough by remember { mutableStateOf(false) }
     var fever by remember { mutableStateOf(false) }
 
-    var result by remember { mutableStateOf<CentorScoreCalculator.Result?>(null) }
+    var result by remember {
+        mutableStateOf<CentorScoreCalculator.Result?>(null)
+    }
 
     fun resetResult() {
         result = null
@@ -85,7 +87,7 @@ fun CentorScoreScreen(
                     )
 
                     Text(
-                        text = "Clinical prediction rule for streptococcal pharyngitis",
+                        text = "Streptococcal Pharyngitis Assessment",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -95,14 +97,14 @@ fun CentorScoreScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Clinical Criteria",
+                text = "Clinical Parameters",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            CentorSwitchRow(
+            CentorCheckRow(
                 title = "Tonsillar exudate or swelling",
                 checked = exudate,
                 onCheckedChange = {
@@ -111,7 +113,7 @@ fun CentorScoreScreen(
                 }
             )
 
-            CentorSwitchRow(
+            CentorCheckRow(
                 title = "Tender anterior cervical nodes",
                 checked = nodes,
                 onCheckedChange = {
@@ -120,7 +122,7 @@ fun CentorScoreScreen(
                 }
             )
 
-            CentorSwitchRow(
+            CentorCheckRow(
                 title = "Absence of cough",
                 checked = noCough,
                 onCheckedChange = {
@@ -129,7 +131,7 @@ fun CentorScoreScreen(
                 }
             )
 
-            CentorSwitchRow(
+            CentorCheckRow(
                 title = "Fever",
                 checked = fever,
                 onCheckedChange = {
@@ -143,7 +145,10 @@ fun CentorScoreScreen(
             Button(
                 onClick = {
                     result = CentorScoreCalculator.calculate(
-                        exudate, nodes, noCough, fever
+                        exudate,
+                        nodes,
+                        noCough,
+                        fever
                     )
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -152,7 +157,9 @@ fun CentorScoreScreen(
                     imageVector = Icons.Outlined.Assessment,
                     contentDescription = null
                 )
+
                 Spacer(modifier = Modifier.padding(start = 4.dp))
+
                 Text("Calculate Centor Score")
             }
 
@@ -202,7 +209,7 @@ fun CentorScoreScreen(
 }
 
 @Composable
-private fun CentorSwitchRow(
+private fun CentorCheckRow(
     title: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
@@ -210,19 +217,17 @@ private fun CentorSwitchRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f)
-        )
-
-        Switch(
+        Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange
+        )
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 }

@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,6 +39,8 @@ import androidx.compose.ui.unit.dp
 fun Curb65Screen(
     onBackClick: () -> Unit
 ) {
+    BackHandler { onBackClick() }
+
     var confusion by remember { mutableStateOf(false) }
     var ureaHigh by remember { mutableStateOf(false) }
     var respiratoryRate by remember { mutableStateOf("") }

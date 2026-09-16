@@ -1,15 +1,16 @@
 package com.medtrixa.app.ui.screens.assess
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -17,12 +18,12 @@ import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,6 +47,7 @@ fun Meld30Screen(
     var inr by remember { mutableStateOf("") }
     var creatinine by remember { mutableStateOf("") }
     var albumin by remember { mutableStateOf("") }
+
     var female by remember { mutableStateOf(false) }
     var dialysis by remember { mutableStateOf(false) }
     var cvvhd by remember { mutableStateOf(false) }
@@ -56,11 +58,11 @@ fun Meld30Screen(
         result = null
     }
 
-    val b = bilirubin.toDoubleOrNull()
-    val s = sodium.toDoubleOrNull()
-    val i = inr.toDoubleOrNull()
-    val c = creatinine.toDoubleOrNull()
-    val a = albumin.toDoubleOrNull()
+    val bilirubinValue = bilirubin.toDoubleOrNull()
+    val sodiumValue = sodium.toDoubleOrNull()
+    val inrValue = inr.toDoubleOrNull()
+    val creatinineValue = creatinine.toDoubleOrNull()
+    val albuminValue = albumin.toDoubleOrNull()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -96,7 +98,7 @@ fun Meld30Screen(
                     )
 
                     Text(
-                        text = "Severity and mortality assessment in advanced liver disease",
+                        text = "Liver Disease Severity Assessment",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -106,7 +108,7 @@ fun Meld30Screen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Clinical Parameters",
+                text = "Laboratory Parameters",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -121,64 +123,74 @@ fun Meld30Screen(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("Bilirubin (mg/dL)") }
+                label = { Text("Bilirubin") },
+                suffix = { Text("mg/dL") }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            OutlinedTextField(
-                value = sodium,
-                onValueChange = {
-                    sodium = it
-                    resetResult()
-                },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Sodium (mmol/L)") }
-            )
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedTextField(
+                    value = sodium,
+                    onValueChange = {
+                        sodium = it
+                        resetResult()
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("Sodium") },
+                    suffix = { Text("mmol/L") }
+                )
+
+                OutlinedTextField(
+                    value = inr,
+                    onValueChange = {
+                        inr = it
+                        resetResult()
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("INR") }
+                )
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            OutlinedTextField(
-                value = inr,
-                onValueChange = {
-                    inr = it
-                    resetResult()
-                },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("INR") }
-            )
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedTextField(
+                    value = creatinine,
+                    onValueChange = {
+                        creatinine = it
+                        resetResult()
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("Creatinine") },
+                    suffix = { Text("mg/dL") }
+                )
 
-            Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = albumin,
+                    onValueChange = {
+                        albumin = it
+                        resetResult()
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("Albumin") },
+                    suffix = { Text("g/dL") }
+                )
+            }
 
-            OutlinedTextField(
-                value = creatinine,
-                onValueChange = {
-                    creatinine = it
-                    resetResult()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Creatinine (mg/dL)") }
-            )
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            OutlinedTextField(
-                value = albumin,
-                onValueChange = {
-                    albumin = it
-                    resetResult()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Albumin (g/dL)") }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Meld30SwitchRow(
+            MeldCheckboxRow(
                 title = "Female",
                 checked = female,
                 onCheckedChange = {
@@ -187,7 +199,7 @@ fun Meld30Screen(
                 }
             )
 
-            Meld30SwitchRow(
+            MeldCheckboxRow(
                 title = "Dialysis ≥2 times in last 7 days",
                 checked = dialysis,
                 onCheckedChange = {
@@ -196,7 +208,7 @@ fun Meld30Screen(
                 }
             )
 
-            Meld30SwitchRow(
+            MeldCheckboxRow(
                 title = "CVVHD ≥24 hours in last 7 days",
                 checked = cvvhd,
                 onCheckedChange = {
@@ -209,24 +221,44 @@ fun Meld30Screen(
 
             Button(
                 onClick = {
-                    if (b != null && s != null && i != null && c != null && a != null) {
+                    if (
+                        bilirubinValue != null &&
+                        sodiumValue != null &&
+                        inrValue != null &&
+                        creatinineValue != null &&
+                        albuminValue != null
+                    ) {
                         result = Meld30Calculator.calculate(
-                            b, s, i, c, a, female, dialysis, cvvhd
+                            bilirubinMgDl = bilirubinValue,
+                            sodiumMmolL = sodiumValue,
+                            inr = inrValue,
+                            creatinineMgDl = creatinineValue,
+                            albuminGDl = albuminValue,
+                            female = female,
+                            dialysisTwoOrMoreTimesLast7Days = dialysis,
+                            cvvhd24HoursLast7Days = cvvhd
                         )
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = b != null && s != null && i != null && c != null && a != null
+                enabled =
+                    bilirubinValue != null &&
+                    sodiumValue != null &&
+                    inrValue != null &&
+                    creatinineValue != null &&
+                    albuminValue != null
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Assessment,
                     contentDescription = null
                 )
+
                 Spacer(modifier = Modifier.padding(start = 4.dp))
+
                 Text("Calculate MELD 3.0")
             }
 
-            result?.let {
+            result?.let { meldResult ->
                 Spacer(modifier = Modifier.height(18.dp))
 
                 Card(
@@ -252,7 +284,7 @@ fun Meld30Screen(
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = it.score.toString(),
+                            text = meldResult.score.toString(),
                             style = MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -264,7 +296,7 @@ fun Meld30Screen(
 }
 
 @Composable
-private fun Meld30SwitchRow(
+private fun MeldCheckboxRow(
     title: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
@@ -272,19 +304,17 @@ private fun Meld30SwitchRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f)
-        )
-
-        Switch(
+        Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange
+        )
+
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 }

@@ -1,15 +1,16 @@
 package com.medtrixa.app.ui.screens.assess
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,19 +47,18 @@ fun HeartScoreScreen(
     var age by remember { mutableStateOf("") }
     var riskFactors by remember { mutableStateOf("") }
     var troponin by remember { mutableStateOf("") }
-    val atherosclerotic by remember { mutableStateOf(false) }
-
+    var atherosclerotic by remember { mutableStateOf(false) }
     var result by remember { mutableStateOf<HeartScoreCalculator.Result?>(null) }
 
     fun resetResult() {
         result = null
     }
 
-    val h = history.toIntOrNull()
-    val e = ecg.toIntOrNull()
-    val a = age.toIntOrNull()
-    val r = riskFactors.toIntOrNull()
-    val t = troponin.toDoubleOrNull()
+    val historyValue = history.toIntOrNull()
+    val ecgValue = ecg.toIntOrNull()
+    val ageValue = age.toIntOrNull()
+    val riskValue = riskFactors.toIntOrNull()
+    val troponinValue = troponin.toDoubleOrNull()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -93,7 +94,7 @@ fun HeartScoreScreen(
                     )
 
                     Text(
-                        text = "Risk stratification for patients with chest pain",
+                        text = "Acute Chest Pain Risk Assessment",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -113,84 +114,135 @@ fun HeartScoreScreen(
             OutlinedTextField(
                 value = history,
                 onValueChange = {
-                    history = it
+                    history = it.filter(Char::isDigit)
                     resetResult()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text("History (0–2)") }
+                label = { Text("History") },
+                suffix = { Text("0–2") }
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            OutlinedTextField(
-                value = ecg,
-                onValueChange = {
-                    ecg = it
-                    resetResult()
-                },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("ECG (0–2)") }
-            )
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedTextField(
+                    value = ecg,
+                    onValueChange = {
+                        ecg = it.filter(Char::isDigit)
+                        resetResult()
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("ECG") },
+                    suffix = { Text("0–2") }
+                )
+
+                OutlinedTextField(
+                    value = age,
+                    onValueChange = {
+                        age = it.filter(Char::isDigit)
+                        resetResult()
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("Age") },
+                    suffix = { Text("years") }
+                )
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            OutlinedTextField(
-                value = age,
-                onValueChange = {
-                    age = it
-                    resetResult()
-                },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Age (years)") }
-            )
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedTextField(
+                    value = riskFactors,
+                    onValueChange = {
+                        riskFactors = it.filter(Char::isDigit)
+                        resetResult()
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("Risk Factors") },
+                    suffix = { Text("count") }
+                )
 
-            Spacer(modifier = Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = troponin,
+                    onValueChange = {
+                        troponin = it
+                        resetResult()
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text("Troponin") },
+                    suffix = { Text("× normal") }
+                )
+            }
 
-            OutlinedTextField(
-                value = riskFactors,
-                onValueChange = {
-                    riskFactors = it
-                    resetResult()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Risk factors (0 or more)") }
-            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = atherosclerotic,
+                    onCheckedChange = {
+                        atherosclerotic = it
+                        resetResult()
+                    }
+                )
 
-            OutlinedTextField(
-                value = troponin,
-                onValueChange = {
-                    troponin = it
-                    resetResult()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Troponin (× normal)") }
-            )
+                Text(
+                    text = "Known atherosclerotic disease",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Button(
                 onClick = {
-                    if (h != null && e != null && a != null && r != null && t != null) {
+                    if (
+                        historyValue != null &&
+                        ecgValue != null &&
+                        ageValue != null &&
+                        riskValue != null &&
+                        troponinValue != null
+                    ) {
                         result = HeartScoreCalculator.calculate(
-                            h, e, a, r, atherosclerotic, t
+                            historyValue,
+                            ecgValue,
+                            ageValue,
+                            riskValue,
+                            atherosclerotic,
+                            troponinValue
                         )
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = h != null && e != null && a != null && r != null && t != null
+                enabled =
+                    historyValue != null &&
+                    ecgValue != null &&
+                    ageValue != null &&
+                    riskValue != null &&
+                    troponinValue != null
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Assessment,
                     contentDescription = null
                 )
+
                 Spacer(modifier = Modifier.padding(start = 4.dp))
+
                 Text("Calculate HEART Score")
             }
 

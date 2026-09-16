@@ -2,6 +2,8 @@ package com.medtrixa.app.ui.screens.calculators
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,6 +44,8 @@ import com.medtrixa.app.domain.calculator.CreatinineClearanceCalculator
 fun CreatinineClearanceScreen(
     onBackClick: () -> Unit
 ) {
+    BackHandler { onBackClick() }
+
     var age by remember { mutableStateOf("") }
     var sex by remember { mutableStateOf("male") }
     var weight by remember { mutableStateOf("") }
@@ -61,6 +66,7 @@ fun CreatinineClearanceScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .padding(horizontal = 20.dp)

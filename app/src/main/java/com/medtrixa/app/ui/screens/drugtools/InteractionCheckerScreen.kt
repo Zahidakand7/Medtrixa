@@ -272,14 +272,6 @@ private fun InteractionResultCard(result: DrugInteractionResult) {
                 style = MaterialTheme.typography.bodySmall,
                 color = style.contentColor
             )
-            if (result.rxcuiA != null || result.rxcuiB != null) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    "RxCUI: ${result.rxcuiA ?: "—"} / ${result.rxcuiB ?: "—"}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = style.contentColor
-                )
-            }
         }
     }
 }

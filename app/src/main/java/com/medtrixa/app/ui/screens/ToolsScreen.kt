@@ -45,7 +45,8 @@ fun ToolsScreen(
     onHomeClick: () -> Unit,
     onMoreClick: () -> Unit,
     onCalculateClick: () -> Unit,
-    onAssessClick: () -> Unit
+    onAssessClick: () -> Unit,
+    onDrugToolsClick: () -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -77,9 +78,7 @@ fun ToolsScreen(
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold
                         )
-
                         Spacer(modifier = Modifier.height(4.dp))
-
                         Text(
                             text = "Your clinical toolkit",
                             style = MaterialTheme.typography.bodyMedium,
@@ -129,7 +128,8 @@ fun ToolsScreen(
                     ToolSection(
                         title = "Drug Tools",
                         description = "Dosing, adjustment and medication tools",
-                        icon = Icons.Outlined.LocalPharmacy
+                        icon = Icons.Outlined.LocalPharmacy,
+                        onClick = onDrugToolsClick
                     )
                 }
 
@@ -202,9 +202,7 @@ private fun ToolSection(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-
                 Spacer(modifier = Modifier.height(3.dp))
-
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,

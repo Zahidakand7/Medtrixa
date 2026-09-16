@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
@@ -41,6 +42,8 @@ import androidx.compose.ui.text.input.KeyboardType
 fun Cha2ds2VascScreen(
     onBackClick: () -> Unit
 ) {
+    BackHandler { onBackClick() }
+
     var heartFailure by remember { mutableStateOf(false) }
     var hypertension by remember { mutableStateOf(false) }
     var diabetes by remember { mutableStateOf(false) }

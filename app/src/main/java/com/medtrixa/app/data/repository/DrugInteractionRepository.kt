@@ -7,7 +7,7 @@ import java.io.InputStreamReader
 
 object DrugInteractionRepository {
 
-    private const val ASSET_FILE = "ddinter_with_rxcui.csv"
+    private const val ASSET_FILE = "ddinter_merged.csv"
 
     @Volatile private var pairIndex: Map<String, DrugInteractionResult>? = null
     @Volatile private var drugNames: List<String> = emptyList()
@@ -34,22 +34,14 @@ object DrugInteractionRepository {
                         }
 
                         val fields = parseCsvLine(line)
-                        if (fields.size < 7) return@forEachLine
+                        if (fields.size < 5) return@forEachLine
 
                         val drugA = fields[1].trim()
-                        val rxcuiA = fields[2].trim().ifEmpty { null }
-                        val drugB = fields[4].trim()
-                        val rxcuiB = fields[5].trim().ifEmpty { null }
-                        val level = fields[6].trim()
+                        val drugB = fields[3].trim()
+                        val level = fields[4].trim()
                         if (drugA.isEmpty() || drugB.isEmpty()) return@forEachLine
 
-                        index[pairKey(drugA, drugB)] = DrugInteractionResult(
-                            drugA = drugA,
-                            drugB = drugB,
-                            level = level,
-                            rxcuiA = rxcuiA,
-                            rxcuiB = rxcuiB
-                        )
+                        index[pairKey(drugA, drugB)] = DrugInteractionResult(drugA, drugB, level)
                         names.add(drugA)
                         names.add(drugB)
                     }
