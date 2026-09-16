@@ -37,8 +37,8 @@ object DrugInteractionRepository {
                         if (fields.size < 5) return@forEachLine
 
                         val drugA = fields[1].trim()
-                        val drugB = fields[3].trim()
-                        val level = fields[4].trim()
+                        val drugB = fields[4].trim()
+                        val level = fields[6].trim()
                         if (drugA.isEmpty() || drugB.isEmpty()) return@forEachLine
 
                         index[pairKey(drugA, drugB)] = DrugInteractionResult(drugA, drugB, level)
