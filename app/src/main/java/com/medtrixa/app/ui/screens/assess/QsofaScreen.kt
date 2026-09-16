@@ -1,0 +1,173 @@
+package com.medtrixa.app.ui.screens.assess
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Assessment
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun QsofaScreen(
+    onBackClick: () -> Unit
+) {
+    BackHandler { onBackClick() }
+
+    var alteredMentation by remember { mutableStateOf(false) }
+    var respiratoryRate by remember { mutableStateOf("") }
+    var systolicBp by remember { mutableStateOf("") }
+    var calculated by remember { mutableStateOf(false) }
+
+    fun resetResult() { calculated = false }
+
+    val rr = respiratoryRate.toIntOrNull()
+    val sbp = systolicBp.toIntOrNull()
+
+    val score = (if (alteredMentation) 1 else 0) +
+        (if (rr != null && rr >= 22) 1 else 0) +
+        (if (sbp != null && sbp <= 100) 1 else 0)
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .verticalScroll(rememberScrollState())
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
+                }
+                Column(modifier = Modifier.padding(start = 4.dp)) {
+                    Text("qSOFA", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    Text("Quick Sequential Organ Failure Assessment", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text("Clinical Criteria", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(10.dp))
+
+            AssessSwitchRow(
+                title = "Altered Mentation",
+                description = "GCS < 15",
+                checked = alteredMentation,
+                onCheckedChange = { alteredMentation = it; resetResult() }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedTextField(
+                value = respiratoryRate,
+                onValueChange = { respiratoryRate = it.filter(Char::isDigit); resetResult() },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("Respiratory Rate") },
+                suffix = { Text("/min") }
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            OutlinedTextField(
+                value = systolicBp,
+                onValueChange = { systolicBp = it.filter(Char::isDigit); resetResult() },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("Systolic BP") },
+                suffix = { Text("mmHg") }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { calculated = true },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = rr != null && sbp != null
+            ) {
+                Icon(Icons.Outlined.Assessment, contentDescription = null)
+                Spacer(modifier = Modifier.padding(start = 4.dp))
+                Text("Calculate qSOFA")
+            }
+
+            if (calculated) {
+                Spacer(modifier = Modifier.height(18.dp))
+
+                val risk = if (score >= 2) "High risk — consider sepsis workup" else "Low risk"
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("qSOFA Score", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text("$score / 3", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(risk, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+internal fun AssessSwitchRow(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
