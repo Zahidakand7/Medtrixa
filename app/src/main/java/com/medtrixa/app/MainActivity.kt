@@ -37,6 +37,8 @@ import com.medtrixa.app.ui.screens.assess.ChildPughScreen
 import com.medtrixa.app.ui.screens.assess.CentorScoreScreen
 import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.ToolsScreen
+import com.medtrixa.app.ui.screens.ReferenceScreen
+import com.medtrixa.app.ui.screens.AntibioticDosingGuideScreen
 import com.medtrixa.app.ui.theme.MedtrixaTheme
 
 class MainActivity : ComponentActivity() {
@@ -77,7 +79,8 @@ private fun MedtrixaRoot() {
                 onMoreClick = { currentScreen = "more" },
                 onCalculateClick = { currentScreen = "calculators" },
                 onAssessClick = { currentScreen = "assess" },
-                onDrugToolsClick = { currentScreen = "drug_tools" }
+                onDrugToolsClick = { currentScreen = "drug_tools" },
+                onReferenceClick = { currentScreen = "reference" }
             )
         }
 
@@ -108,11 +111,31 @@ private fun MedtrixaRoot() {
                 "Drug Interaction Checker" -> InteractionCheckerScreen(
                     onBackClick = { currentScreen = "drug_tools" }
                 )
+                "Antibiotic Dosing Guide" -> AntibioticDosingGuideScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
                 else -> ComingSoonScreen(
                     title = selectedDrugToolTitle,
                     onBackClick = { currentScreen = "drug_tools" }
                 )
             }
+        }
+
+        "reference" -> {
+            ReferenceScreen(
+                onBackClick = { currentScreen = "home" },
+                onReferenceClick = { referenceId ->
+                    if (referenceId == "antibiotic_dosing") {
+                        currentScreen = "antibiotic_dosing"
+                    }
+                }
+            )
+        }
+
+        "antibiotic_dosing" -> {
+            AntibioticDosingGuideScreen(
+                onBackClick = { currentScreen = "reference" }
+            )
         }
 
         "assess" -> {
@@ -178,7 +201,8 @@ private fun MedtrixaRoot() {
                 onToolsClick = { currentScreen = "tools" },
                 onMoreClick = { currentScreen = "more" },
                 onCalculateClick = { currentScreen = "calculators" },
-                onAssessClick = { currentScreen = "assess" }
+                onAssessClick = { currentScreen = "assess" },
+                onReferenceClick = { currentScreen = "reference" }
             )
         }
 
@@ -187,7 +211,8 @@ private fun MedtrixaRoot() {
                 onToolsClick = { currentScreen = "tools" },
                 onMoreClick = { currentScreen = "more" },
                 onCalculateClick = { currentScreen = "calculators" },
-                onAssessClick = { currentScreen = "assess" }
+                onAssessClick = { currentScreen = "assess" },
+                onReferenceClick = { currentScreen = "reference" }
             )
         }
     }
