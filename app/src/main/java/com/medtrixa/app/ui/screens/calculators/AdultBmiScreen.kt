@@ -390,7 +390,7 @@ fun AdultBmiScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text(if (isCalculated) "New Calculation" else "Calculate BMI")
+                Text(if (isCalculated) "New Calculation" else "Calculate")
             }
 
             if (errorMessage != null) {

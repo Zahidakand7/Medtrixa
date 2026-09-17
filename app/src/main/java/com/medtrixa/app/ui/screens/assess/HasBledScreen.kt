@@ -104,7 +104,7 @@ fun HasBledScreen(
             ) {
                 Icon(Icons.Outlined.Assessment, contentDescription = null)
                 Spacer(modifier = Modifier.padding(start = 4.dp))
-                Text("Calculate HAS-BLED")
+                Text("Calculate")
             }
 
             if (calculated) {

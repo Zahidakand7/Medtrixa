@@ -51,7 +51,8 @@ fun HomeScreen(
     onToolsClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
     onCalculateClick: () -> Unit = {},
-    onAssessClick: () -> Unit = {}
+    onAssessClick: () -> Unit = {},
+    onReferenceClick: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -187,7 +188,8 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             title = "Reference",
                             subtitle = "Guidelines & sources",
-                            icon = Icons.Outlined.MenuBook
+                            icon = Icons.Outlined.MenuBook,
+                            onClick = onReferenceClick
                         )
                     }
                 }

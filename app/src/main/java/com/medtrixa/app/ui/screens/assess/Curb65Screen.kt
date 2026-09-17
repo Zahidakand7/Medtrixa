@@ -209,7 +209,7 @@ fun Curb65Screen(
                     contentDescription = null
                 )
                 Spacer(modifier = Modifier.padding(start = 4.dp))
-                Text("Calculate CURB-65")
+                Text("Calculate")
             }
 
             if (calculated) {

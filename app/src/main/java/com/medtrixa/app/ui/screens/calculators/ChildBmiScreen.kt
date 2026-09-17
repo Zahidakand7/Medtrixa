@@ -414,7 +414,7 @@ fun ChildBmiScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text("Calculate BMI-for-Age")
+                Text("Calculate")
             }
 
             errorMessage?.let {

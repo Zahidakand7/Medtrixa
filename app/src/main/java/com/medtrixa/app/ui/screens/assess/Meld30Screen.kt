@@ -255,7 +255,7 @@ fun Meld30Screen(
 
                 Spacer(modifier = Modifier.padding(start = 4.dp))
 
-                Text("Calculate MELD 3.0")
+                Text("Calculate")
             }
 
             result?.let { meldResult ->

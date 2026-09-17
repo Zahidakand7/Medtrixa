@@ -253,7 +253,7 @@ fun CreatinineClearanceScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text("Calculate Clearance")
+                Text("Calculate")
             }
 
             errorMessage?.let {

@@ -108,7 +108,7 @@ fun WellsDvtScreen(
             ) {
                 Icon(Icons.Outlined.Assessment, contentDescription = null)
                 Spacer(modifier = Modifier.padding(start = 4.dp))
-                Text("Calculate Wells Score")
+                Text("Calculate")
             }
 
             if (calculated) {

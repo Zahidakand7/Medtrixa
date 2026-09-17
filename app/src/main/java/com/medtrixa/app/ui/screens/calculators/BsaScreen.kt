@@ -311,7 +311,7 @@ fun BsaScreen(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text("Calculate BSA")
+                Text("Calculate")
             }
 
             errorMessage?.let {

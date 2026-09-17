@@ -243,7 +243,7 @@ fun HeartScoreScreen(
 
                 Spacer(modifier = Modifier.padding(start = 4.dp))
 
-                Text("Calculate HEART Score")
+                Text("Calculate")
             }
 
             result?.let {

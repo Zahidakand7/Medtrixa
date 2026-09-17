@@ -46,7 +46,8 @@ fun ToolsScreen(
     onMoreClick: () -> Unit,
     onCalculateClick: () -> Unit,
     onAssessClick: () -> Unit,
-    onDrugToolsClick: () -> Unit
+    onDrugToolsClick: () -> Unit,
+    onReferenceClick: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
@@ -137,7 +138,8 @@ fun ToolsScreen(
                     ToolSection(
                         title = "Reference",
                         description = "Guidelines, evidence and medical references",
-                        icon = Icons.Outlined.MenuBook
+                        icon = Icons.Outlined.MenuBook,
+                        onClick = onReferenceClick
                     )
                 }
             }

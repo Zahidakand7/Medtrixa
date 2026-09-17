@@ -39,6 +39,7 @@ import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.ToolsScreen
 import com.medtrixa.app.ui.screens.ReferenceScreen
 import com.medtrixa.app.ui.screens.AntibioticDosingGuideScreen
+import com.medtrixa.app.ui.screens.AntibioticDosingGuidelinesScreen
 import com.medtrixa.app.ui.theme.MedtrixaTheme
 
 class MainActivity : ComponentActivity() {
@@ -65,6 +66,10 @@ private fun MedtrixaRoot() {
 
     var selectedDrugToolTitle by rememberSaveable {
         mutableStateOf("")
+    }
+
+    var antibioticGuidelinesReturnTo by rememberSaveable {
+        mutableStateOf("antibiotic_dosing")
     }
 
     val calculatorRepository = remember {
@@ -112,7 +117,11 @@ private fun MedtrixaRoot() {
                     onBackClick = { currentScreen = "drug_tools" }
                 )
                 "Antibiotic Dosing Guide" -> AntibioticDosingGuideScreen(
-                    onBackClick = { currentScreen = "drug_tools" }
+                    onBackClick = { currentScreen = "drug_tools" },
+                    onGuidelinesClick = {
+                        antibioticGuidelinesReturnTo = "drug_tool_detail"
+                        currentScreen = "antibiotic_dosing_guidelines"
+                    }
                 )
                 else -> ComingSoonScreen(
                     title = selectedDrugToolTitle,
@@ -134,7 +143,17 @@ private fun MedtrixaRoot() {
 
         "antibiotic_dosing" -> {
             AntibioticDosingGuideScreen(
-                onBackClick = { currentScreen = "reference" }
+                onBackClick = { currentScreen = "reference" },
+                onGuidelinesClick = {
+                    antibioticGuidelinesReturnTo = "antibiotic_dosing"
+                    currentScreen = "antibiotic_dosing_guidelines"
+                }
+            )
+        }
+
+        "antibiotic_dosing_guidelines" -> {
+            AntibioticDosingGuidelinesScreen(
+                onBackClick = { currentScreen = antibioticGuidelinesReturnTo }
             )
         }
 

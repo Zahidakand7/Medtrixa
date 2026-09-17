@@ -160,7 +160,7 @@ fun CentorScoreScreen(
 
                 Spacer(modifier = Modifier.padding(start = 4.dp))
 
-                Text("Calculate Centor Score")
+                Text("Calculate")
             }
 
             result?.let {

@@ -163,7 +163,7 @@ fun Cha2ds2VascScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Calculate CHA₂DS₂-VASc")
+                Text("Calculate")
             }
         } else {
             Button(

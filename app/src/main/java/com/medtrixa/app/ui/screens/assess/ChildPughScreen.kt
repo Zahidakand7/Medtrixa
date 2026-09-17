@@ -217,7 +217,7 @@ fun ChildPughScreen(
 
                 Spacer(modifier = Modifier.padding(start = 4.dp))
 
-                Text("Calculate Child-Pugh")
+                Text("Calculate")
             }
 
             result?.let {

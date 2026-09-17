@@ -124,7 +124,7 @@ fun QsofaScreen(
             ) {
                 Icon(Icons.Outlined.Assessment, contentDescription = null)
                 Spacer(modifier = Modifier.padding(start = 4.dp))
-                Text("Calculate qSOFA")
+                Text("Calculate")
             }
 
             if (calculated) {
