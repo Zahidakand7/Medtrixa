@@ -444,7 +444,7 @@ fun AntibioticDosingGuidelinesScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Latest renowned empiric antibiotic selection and dosing by indication",
+                        text = "Renowned empiric antibiotic selection and dosing by indication",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

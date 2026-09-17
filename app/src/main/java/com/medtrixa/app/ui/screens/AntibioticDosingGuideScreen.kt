@@ -106,7 +106,7 @@ fun AntibioticDosingGuideScreen(
                     ReferenceCategoryTile(
                         icon = Icons.Outlined.Medication,
                         title = "Antibiotic Dosing Guidelines",
-                        subtitle = "Latest renowned IDSA dosing guidelines by indication and organism",
+                        subtitle = "Renowned IDSA dosing guidelines by indication and organism",
                         onClick = onGuidelinesClick
                     )
                 }
