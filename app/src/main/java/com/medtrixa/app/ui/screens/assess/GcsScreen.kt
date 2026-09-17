@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -100,17 +101,28 @@ fun GcsScreen(
 
             GcsSection("Eye Opening (E)", eyeOptions, eyeScore) { eyeScore = it }
             Spacer(modifier = Modifier.height(16.dp))
-            GcsSection("Verbal Response (V)", verbalOptions, verbalScore) { verbalScore = it }
+            GcsSection(
+                "Verbal Response (V)",
+                verbalOptions,
+                verbalScore,
+                singleLineLabels = setOf("Incomprehensible sounds")
+            ) { verbalScore = it }
             Spacer(modifier = Modifier.height(16.dp))
-            GcsSection("Motor Response (M)", motorOptions, motorScore) { motorScore = it }
+            GcsSection(
+                "Motor Response (M)",
+                motorOptions,
+                motorScore,
+                singleLineLabels = setOf("Abnormal flexion")
+            ) { motorScore = it }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             val severity = when {
-                total <= 8 -> "Severe brain injury"
-                total <= 12 -> "Moderate brain injury"
-                else -> "Mild brain injury"
+                total <= 8 -> "Severe Brain Injury"
+                total <= 12 -> "Moderate Brain Injury"
+                else -> "Mild Brain Injury"
             }
+            val severityColor = if (total <= 8) Color.Red else MaterialTheme.colorScheme.onSurface
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -124,20 +136,17 @@ fun GcsScreen(
                     if (allSelected) {
                         Text("$total / 15", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("E$eyeScore V$verbalScore M$motorScore", style = MaterialTheme.typography.bodyMedium)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(severity, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "E$eyeScore V$verbalScore M$motorScore  •  $severity",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = severityColor
+                        )
                     } else {
                         Text("— / 15", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "E${eyeScore ?: "-"} V${verbalScore ?: "-"} M${motorScore ?: "-"}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            "Select all three categories",
+                            "E${eyeScore ?: "-"} V${verbalScore ?: "-"} M${motorScore ?: "-"}  •  Select all three categories",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -155,19 +164,43 @@ private fun GcsSection(
     title: String,
     options: List<GcsOption>,
     selected: Int?,
+    singleLineLabels: Set<String> = emptySet(),
     onSelect: (Int) -> Unit
 ) {
     Column {
         Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            options.chunked(2).forEach { rowOptions ->
+            val rows = mutableListOf<List<GcsOption>>()
+            var i = 0
+            while (i < options.size) {
+                val option = options[i]
+                if (option.label in singleLineLabels) {
+                    rows.add(listOf(option))
+                    i++
+                } else if (i + 1 < options.size && options[i + 1].label !in singleLineLabels) {
+                    rows.add(listOf(option, options[i + 1]))
+                    i += 2
+                } else {
+                    rows.add(listOf(option))
+                    i++
+                }
+            }
+
+            rows.forEach { rowOptions ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     rowOptions.forEach { option ->
+                        val isWide = option.label in singleLineLabels
                         FilterChip(
                             selected = selected == option.points,
                             onClick = { onSelect(option.points) },
-                            label = { Text("${option.points} — ${option.label}") }
+                            label = {
+                                Text(
+                                    "${option.points} — ${option.label}",
+                                    maxLines = 1
+                                )
+                            },
+                            modifier = if (isWide) Modifier.fillMaxWidth() else Modifier
                         )
                     }
                 }

@@ -41,7 +41,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AntibioticDosingGuideScreen(
     onBackClick: () -> Unit,
-    onGuidelinesClick: () -> Unit
+    onGuidelinesClick: () -> Unit,
+    onBacterialAtlasClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -99,7 +100,7 @@ fun AntibioticDosingGuideScreen(
                         icon = Icons.Outlined.Biotech,
                         title = "Bacterial Atlas",
                         subtitle = "Searchable Organism Reference and Identification",
-                        onClick = { }
+                        onClick = onBacterialAtlasClick
                     )
                 }
                 item {

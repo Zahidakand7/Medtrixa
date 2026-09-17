@@ -39,6 +39,7 @@ import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.ToolsScreen
 import com.medtrixa.app.ui.screens.ReferenceScreen
 import com.medtrixa.app.ui.screens.AntibioticDosingGuideScreen
+import com.medtrixa.app.ui.screens.BacterialAtlasScreen
 import com.medtrixa.app.ui.screens.AntibioticDosingGuidelinesScreen
 import com.medtrixa.app.ui.theme.MedtrixaTheme
 
@@ -69,6 +70,10 @@ private fun MedtrixaRoot() {
     }
 
     var antibioticGuidelinesReturnTo by rememberSaveable {
+        mutableStateOf("antibiotic_dosing")
+    }
+
+    var bacterialAtlasReturnTo by rememberSaveable {
         mutableStateOf("antibiotic_dosing")
     }
 
@@ -118,7 +123,8 @@ private fun MedtrixaRoot() {
                 )
                 "Antibiotic Dosing Guide" -> AntibioticDosingGuideScreen(
                     onBackClick = { currentScreen = "drug_tools" },
-                    onGuidelinesClick = {
+                    onBacterialAtlasClick = { currentScreen = "bacterial_atlas" },
+                onGuidelinesClick = {
                         antibioticGuidelinesReturnTo = "drug_tool_detail"
                         currentScreen = "antibiotic_dosing_guidelines"
                     }
@@ -144,6 +150,7 @@ private fun MedtrixaRoot() {
         "antibiotic_dosing" -> {
             AntibioticDosingGuideScreen(
                 onBackClick = { currentScreen = "reference" },
+                onBacterialAtlasClick = { currentScreen = "bacterial_atlas" },
                 onGuidelinesClick = {
                     antibioticGuidelinesReturnTo = "antibiotic_dosing"
                     currentScreen = "antibiotic_dosing_guidelines"
@@ -154,6 +161,12 @@ private fun MedtrixaRoot() {
         "antibiotic_dosing_guidelines" -> {
             AntibioticDosingGuidelinesScreen(
                 onBackClick = { currentScreen = antibioticGuidelinesReturnTo }
+            )
+        }
+
+        "bacterial_atlas" -> {
+            BacterialAtlasScreen(
+                onBackClick = { currentScreen = bacterialAtlasReturnTo }
             )
         }
 
