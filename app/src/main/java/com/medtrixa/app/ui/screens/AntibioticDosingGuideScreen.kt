@@ -1,10 +1,12 @@
 package com.medtrixa.app.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,10 +15,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Biotech
+import androidx.compose.material.icons.outlined.Medication
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -458,7 +466,8 @@ fun AntibioticDosingGuideScreen(
             ) {
 item {
     ClinicalGuidelineCard(
-        title = "🦠 Bacterial Atlas",
+        icon = Icons.Outlined.Biotech,
+        title = "Bacterial Atlas",
         subtitle = "Searchable organism reference — identification, laboratory characteristics, clinical syndromes, resistance and taxonomy",
         sections = listOf(
             "How it will work" to
@@ -474,7 +483,8 @@ item {
 }
 item {
     ClinicalGuidelineCard(
-        title = "💊 Antibiotic Explorer",
+        icon = Icons.Outlined.Medication,
+        title = "Antibiotic Explorer",
         subtitle = "Drug-focused reference linked conceptually to organism and guideline information",
         sections = listOf(
             "Each antibiotic profile" to
@@ -654,6 +664,7 @@ item {
 
 @Composable
 private fun ClinicalGuidelineCard(
+    icon: ImageVector,
     title: String,
     subtitle: String,
     sections: List<Pair<String, String>>,
@@ -662,6 +673,7 @@ private fun ClinicalGuidelineCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -670,14 +682,35 @@ private fun ClinicalGuidelineCard(
         )
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             Text(
                 text = subtitle,
