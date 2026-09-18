@@ -22,10 +22,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocalPharmacy
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -43,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -95,7 +98,7 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(4.dp))
 
                             Text(
-                                text = "Your clinical toolkit",
+                                text = "A Companion for Healthcare Professionals",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -157,7 +160,7 @@ fun HomeScreen(
                         QuickAccessCard(
                             modifier = Modifier.weight(1f),
                             title = "Calculate",
-                            subtitle = "Medical calculators",
+                            subtitle = "Medical Calculators",
                             icon = Icons.Outlined.Calculate,
                             onClick = onCalculateClick
                         )
@@ -165,7 +168,7 @@ fun HomeScreen(
                         QuickAccessCard(
                             modifier = Modifier.weight(1f),
                             title = "Assess",
-                            subtitle = "Clinical scores",
+                            subtitle = "Clinical Scores",
                             icon = Icons.Outlined.Assessment,
                             onClick = onAssessClick
                         )
@@ -180,16 +183,37 @@ fun HomeScreen(
                         QuickAccessCard(
                             modifier = Modifier.weight(1f),
                             title = "Drug Tools",
-                            subtitle = "Dosing & more",
+                            subtitle = "Dosing & More",
                             icon = Icons.Outlined.LocalPharmacy
                         )
 
                         QuickAccessCard(
                             modifier = Modifier.weight(1f),
                             title = "Reference",
-                            subtitle = "Guidelines & sources",
+                            subtitle = "Guidelines & Sources",
                             icon = Icons.Outlined.MenuBook,
                             onClick = onReferenceClick
+                        )
+                    }
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        QuickAccessCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Evidence-Based AI",
+                            subtitle = "AI-Powered Clinical Insights",
+                            icon = Icons.Outlined.Info
+                        )
+
+                        QuickAccessCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Healthcare Insights",
+                            subtitle = "Important Facts & Clinical Pearls",
+                            icon = Icons.Outlined.Star
                         )
                     }
                 }
@@ -245,8 +269,11 @@ private fun QuickAccessCard(
         )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Box(
                 modifier = Modifier
@@ -264,11 +291,14 @@ private fun QuickAccessCard(
                 )
             }
 
-            Column {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
 
                 Spacer(modifier = Modifier.height(2.dp))
@@ -276,7 +306,8 @@ private fun QuickAccessCard(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
                 )
             }
         }

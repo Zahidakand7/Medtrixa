@@ -78,14 +78,7 @@ private val drugTools = listOf(
         title = "Anticoagulation Dosing",
         description = "Warfarin and heparin nomogram support",
         icon = Icons.Outlined.Bloodtype
-    ),
-    DrugTool(
-        id = "antibiotic_guide",
-        title = "Antibiotic Dosing Guide",
-        description = "Empiric dosing by indication and organism",
-        icon = Icons.Outlined.MenuBook
-    )
-)
+    ))
 
 @Composable
 fun DrugToolsScreen(

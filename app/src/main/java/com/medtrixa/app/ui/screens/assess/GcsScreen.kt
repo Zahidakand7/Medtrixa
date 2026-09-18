@@ -31,8 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 
 private data class GcsOption(val points: Int, val label: String)
@@ -122,7 +125,7 @@ fun GcsScreen(
                 total <= 12 -> "Moderate Brain Injury"
                 else -> "Mild Brain Injury"
             }
-            val severityColor = if (total <= 8) Color.Red else MaterialTheme.colorScheme.onSurface
+            val isSevere = total <= 8
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -130,25 +133,38 @@ fun GcsScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(modifier = Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Total GCS", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Column(
+                    modifier = Modifier.padding(18.dp).fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Total GCS", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     Spacer(modifier = Modifier.height(6.dp))
                     if (allSelected) {
-                        Text("$total / 15", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                        Text("$total / 15", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "E$eyeScore V$verbalScore M$motorScore  •  $severity",
+                            text = buildAnnotatedString {
+                                append("E$eyeScore V$verbalScore M$motorScore  •  ")
+                                if (isSevere) {
+                                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.error)) {
+                                        append(severity)
+                                    }
+                                } else {
+                                    append(severity)
+                                }
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = severityColor
+                            textAlign = TextAlign.Center
                         )
                     } else {
-                        Text("— / 15", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("— / 15", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             "E${eyeScore ?: "-"} V${verbalScore ?: "-"} M${motorScore ?: "-"}  •  Select all three categories",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }

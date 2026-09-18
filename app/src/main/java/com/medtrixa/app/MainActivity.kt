@@ -121,14 +121,6 @@ private fun MedtrixaRoot() {
                 "Drug Interaction Checker" -> InteractionCheckerScreen(
                     onBackClick = { currentScreen = "drug_tools" }
                 )
-                "Antibiotic Dosing Guide" -> AntibioticDosingGuideScreen(
-                    onBackClick = { currentScreen = "drug_tools" },
-                    onBacterialAtlasClick = { currentScreen = "bacterial_atlas" },
-                onGuidelinesClick = {
-                        antibioticGuidelinesReturnTo = "drug_tool_detail"
-                        currentScreen = "antibiotic_dosing_guidelines"
-                    }
-                )
                 else -> ComingSoonScreen(
                     title = selectedDrugToolTitle,
                     onBackClick = { currentScreen = "drug_tools" }
