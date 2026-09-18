@@ -55,6 +55,7 @@ fun HomeScreen(
     onMoreClick: () -> Unit = {},
     onCalculateClick: () -> Unit = {},
     onAssessClick: () -> Unit = {},
+    onDrugToolsClick: () -> Unit = {},
     onReferenceClick: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
@@ -184,7 +185,8 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             title = "Drug Tools",
                             subtitle = "Dosing & More",
-                            icon = Icons.Outlined.LocalPharmacy
+                            icon = Icons.Outlined.LocalPharmacy,
+                            onClick = onDrugToolsClick
                         )
 
                         QuickAccessCard(
