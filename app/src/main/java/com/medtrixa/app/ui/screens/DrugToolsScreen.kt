@@ -21,13 +21,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Bloodtype
-import androidx.compose.material.icons.outlined.ChildCare
-import androidx.compose.material.icons.outlined.Medication
-import androidx.compose.material.icons.outlined.MenuBook
-import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material.icons.outlined.Biotech
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.CompareArrows
+import androidx.compose.material.icons.outlined.HealthAndSafety
+import androidx.compose.material.icons.outlined.PregnantWoman
+import androidx.compose.material.icons.outlined.ReportProblem
+import androidx.compose.material.icons.outlined.Science
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -44,40 +49,76 @@ import com.medtrixa.app.data.model.DrugTool
 
 private val drugTools = listOf(
     DrugTool(
-        id = "dosage_calculator",
-        title = "Dosage Calculator",
-        description = "Weight- and BSA-based dose calculations",
-        icon = Icons.Outlined.Medication
-    ),
-    DrugTool(
-        id = "renal_adjustment",
-        title = "Renal Dose Adjustment",
-        description = "Cockcroft-Gault and CKD-EPI based adjustments",
-        icon = Icons.Outlined.MonitorHeart
-    ),
-    DrugTool(
         id = "interaction_checker",
         title = "Drug Interaction Checker",
         description = "Check interactions between two or more drugs",
         icon = Icons.Outlined.Warning
     ),
     DrugTool(
-        id = "pediatric_dosing",
-        title = "Pediatric Dosing",
-        description = "Weight-based pediatric dose ranges",
-        icon = Icons.Outlined.ChildCare
+        id = "drug_comparison",
+        title = "Drug Comparison",
+        description = "Compare 2–4 drugs side-by-side",
+        icon = Icons.Outlined.CompareArrows
     ),
     DrugTool(
-        id = "iv_infusion",
-        title = "IV Infusion Rate Calculator",
-        description = "Convert dose, rate, and concentration",
-        icon = Icons.Outlined.WaterDrop
+        id = "drug_class_finder",
+        title = "Drug Class Finder",
+        description = "Identify or classify a drug",
+        icon = Icons.Outlined.Category
     ),
     DrugTool(
-        id = "anticoagulation",
-        title = "Anticoagulation Dosing",
-        description = "Warfarin and heparin nomogram support",
-        icon = Icons.Outlined.Bloodtype
+        id = "mechanism_explorer",
+        title = "Mechanism Explorer",
+        description = "Drug → target → mechanism",
+        icon = Icons.Outlined.Biotech
+    ),
+    DrugTool(
+        id = "brand_generic_finder",
+        title = "Brand–Generic Finder",
+        description = "Brand ↔ generic lookup",
+        icon = Icons.Outlined.SwapHoriz
+    ),
+    DrugTool(
+        id = "generic_brand_finder",
+        title = "Generic–Brand Finder",
+        description = "Reverse lookup: generic ↔ brand",
+        icon = Icons.Outlined.SyncAlt
+    ),
+    DrugTool(
+        id = "drug_search",
+        title = "Drug Search",
+        description = "Quick medicine lookup",
+        icon = Icons.Outlined.Search
+    ),
+    DrugTool(
+        id = "formulation_finder",
+        title = "Formulation & Strength Finder",
+        description = "Available strengths and forms",
+        icon = Icons.Outlined.Science
+    ),
+    DrugTool(
+        id = "pregnancy_lactation_checker",
+        title = "Pregnancy & Lactation Checker",
+        description = "Drug-specific safety information",
+        icon = Icons.Outlined.PregnantWoman
+    ),
+    DrugTool(
+        id = "renal_hepatic_considerations",
+        title = "Renal/Hepatic Considerations",
+        description = "Drug-specific precautions and adjustment information",
+        icon = Icons.Outlined.HealthAndSafety
+    ),
+    DrugTool(
+        id = "adverse_effect_finder",
+        title = "Adverse Effect Finder",
+        description = "Common and important adverse effects",
+        icon = Icons.Outlined.ReportProblem
+    ),
+    DrugTool(
+        id = "contraindication_checker",
+        title = "Contraindication Checker",
+        description = "Important contraindications and warnings",
+        icon = Icons.Outlined.Block
     ))
 
 @Composable
@@ -121,7 +162,7 @@ fun DrugToolsScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Dosing, adjustment and medication tools",
+                                text = "Work with a specific medicine",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
