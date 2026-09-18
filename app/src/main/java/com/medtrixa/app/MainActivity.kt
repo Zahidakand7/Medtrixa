@@ -90,7 +90,6 @@ private fun MedtrixaRoot() {
                 onCalculateClick = { currentScreen = "calculators" },
                 onAssessClick = { currentScreen = "assess" },
                 onDrugToolsClick = { currentScreen = "drug_tools" },
-                onDrugToolsClick = { currentScreen = "drug_tools" },
                 onReferenceClick = { currentScreen = "reference" }
             )
         }
