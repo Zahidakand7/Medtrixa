@@ -207,14 +207,14 @@ fun HomeScreen(
                         QuickAccessCard(
                             modifier = Modifier.weight(1f),
                             title = "Evidence-Based AI",
-                            subtitle = "AI-Powered Clinical Insights",
+                            subtitle = "AI Insights",
                             icon = Icons.Outlined.Info
                         )
 
                         QuickAccessCard(
                             modifier = Modifier.weight(1f),
                             title = "Healthcare Insights",
-                            subtitle = "Important Facts & Clinical Pearls",
+                            subtitle = "Facts & Pearls",
                             icon = Icons.Outlined.Star
                         )
                     }
