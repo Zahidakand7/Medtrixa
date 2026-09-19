@@ -121,6 +121,9 @@ private fun MedtrixaRoot() {
                 "Drug Interaction Checker" -> InteractionCheckerScreen(
                     onBackClick = { currentScreen = "drug_tools" }
                 )
+                    "Drug Search" -> DrugSearchScreen(
+                        onBackClick = { currentScreen = "drug_tools" }
+                    )
                 else -> ComingSoonScreen(
                     title = selectedDrugToolTitle,
                     onBackClick = { currentScreen = "drug_tools" }
