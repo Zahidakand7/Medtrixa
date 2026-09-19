@@ -21,17 +21,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Biotech
 import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.Category
-import androidx.compose.material.icons.outlined.CompareArrows
-import androidx.compose.material.icons.outlined.HealthAndSafety
-import androidx.compose.material.icons.outlined.PregnantWoman
-import androidx.compose.material.icons.outlined.ReportProblem
-import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.SwapHoriz
-import androidx.compose.material.icons.outlined.SyncAlt
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,70 +40,16 @@ import com.medtrixa.app.data.model.DrugTool
 
 private val drugTools = listOf(
     DrugTool(
-        id = "interaction_checker",
-        title = "Drug Interaction Checker",
-        description = "Check interactions between two or more drugs",
-        icon = Icons.Outlined.Warning
-    ),
-    DrugTool(
-        id = "drug_comparison",
-        title = "Drug Comparison",
-        description = "Compare 2–4 drugs side-by-side",
-        icon = Icons.Outlined.CompareArrows
-    ),
-    DrugTool(
-        id = "drug_class_finder",
-        title = "Drug Class Finder",
-        description = "Identify or classify a drug",
-        icon = Icons.Outlined.Category
-    ),
-    DrugTool(
-        id = "mechanism_explorer",
-        title = "Mechanism Explorer",
-        description = "Drug → target → mechanism",
-        icon = Icons.Outlined.Biotech
-    ),
-    DrugTool(
-        id = "brand_generic_finder",
-        title = "Brand–Generic Finder",
-        description = "Brand ↔ generic lookup",
-        icon = Icons.Outlined.SwapHoriz
-    ),
-    DrugTool(
-        id = "generic_brand_finder",
-        title = "Generic–Brand Finder",
-        description = "Reverse lookup: generic ↔ brand",
-        icon = Icons.Outlined.SyncAlt
-    ),
-    DrugTool(
         id = "drug_search",
         title = "Drug Search",
         description = "Quick medicine lookup",
         icon = Icons.Outlined.Search
     ),
     DrugTool(
-        id = "formulation_finder",
-        title = "Formulation & Strength Finder",
-        description = "Available strengths and forms",
-        icon = Icons.Outlined.Science
-    ),
-    DrugTool(
-        id = "pregnancy_lactation_checker",
-        title = "Pregnancy & Lactation Checker",
-        description = "Drug-specific safety information",
-        icon = Icons.Outlined.PregnantWoman
-    ),
-    DrugTool(
-        id = "renal_hepatic_considerations",
-        title = "Renal/Hepatic Considerations",
-        description = "Drug-specific precautions and adjustment information",
-        icon = Icons.Outlined.HealthAndSafety
-    ),
-    DrugTool(
-        id = "adverse_effect_finder",
-        title = "Adverse Effect Finder",
-        description = "Common and important adverse effects",
-        icon = Icons.Outlined.ReportProblem
+        id = "interaction_checker",
+        title = "Drug Interaction Checker",
+        description = "Check interactions between two or more drugs",
+        icon = Icons.Outlined.Warning
     ),
     DrugTool(
         id = "contraindication_checker",
