@@ -3,6 +3,7 @@ package com.medtrixa.app
 import android.app.Application
 import android.util.Log
 import com.medtrixa.app.data.repository.DrugInteractionRepository
+import com.medtrixa.app.data.repository.ContraindicationRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,6 +18,13 @@ class MedtrixaApp : Application() {
                 DrugInteractionRepository.load(applicationContext)
             } catch (e: Exception) {
                 Log.e("MedtrixaApp", "Failed to load drug interaction data", e)
+            }
+        }
+        appScope.launch {
+            try {
+                ContraindicationRepository.load(applicationContext)
+            } catch (e: Exception) {
+                Log.e("MedtrixaApp", "Failed to load contraindication data", e)
             }
         }
     }
