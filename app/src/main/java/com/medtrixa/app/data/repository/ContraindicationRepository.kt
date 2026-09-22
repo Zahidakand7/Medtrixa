@@ -1,25 +1,26 @@
 package com.medtrixa.app.data.repository
 
 import android.content.Context
+import com.medtrixa.app.data.model.ContraindicationResult
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-object BrandNameRepository {
+object ContraindicationRepository {
 
-    private const val ASSET_FILE = "brand_generic_map.csv"
+    private const val ASSET_FILE = "contraindications.csv"
 
-    @Volatile private var brandIndex: Map<String, List<String>>? = null
-    @Volatile private var brandNames: List<String> = emptyList()
+    @Volatile private var index: Map<String, ContraindicationResult>? = null
+    @Volatile private var drugNames: List<String> = emptyList()
 
-    fun isLoaded(): Boolean = brandIndex != null
+    fun isLoaded(): Boolean = index != null
 
     fun load(context: Context) {
-        if (brandIndex != null) return
+        if (index != null) return
         synchronized(this) {
-            if (brandIndex != null) return
+            if (index != null) return
 
-            val index = HashMap<String, List<String>>(45_000)
-            val names = mutableListOf<String>()
+            val map = HashMap<String, ContraindicationResult>(7_000)
+            val names = LinkedHashSet<String>()
 
             context.assets.open(ASSET_FILE).use { input ->
                 BufferedReader(InputStreamReader(input, Charsets.UTF_8)).use { reader ->
@@ -33,31 +34,30 @@ object BrandNameRepository {
                         }
 
                         val fields = parseCsvLine(line)
-                        if (fields.size < 2) return@forEachLine
+                        if (fields.size < 3) return@forEachLine
 
-                        val brand = fields[0].trim()
-                        val generics = fields[1].split('|').map { it.trim() }.filter { it.isNotEmpty() }
-                        if (brand.isEmpty() || generics.isEmpty()) return@forEachLine
+                        val genericName = fields[0].trim()
+                        val contraindications = fields[1].trim()
+                        val status = fields[2].trim()
+                        if (genericName.isEmpty()) return@forEachLine
 
-                        index[brand.lowercase()] = generics
-                        names.add(brand)
+                        map[genericName.lowercase()] = ContraindicationResult(genericName, contraindications, status)
+                        names.add(genericName)
                     }
                 }
             }
 
-            brandNames = names.sortedBy { it.lowercase() }
-            brandIndex = index
+            drugNames = names.sortedBy { it.lowercase() }
+            index = map
         }
     }
 
-    fun resolveExact(name: String): List<String>? = brandIndex?.get(name.trim().lowercase())
-
-    fun searchBrands(query: String, limit: Int = 20): List<String> {
+    fun searchNames(query: String, limit: Int = 20): List<String> {
         if (query.isBlank()) return emptyList()
         val q = query.trim().lowercase()
         val starts = mutableListOf<String>()
         val contains = mutableListOf<String>()
-        for (name in brandNames) {
+        for (name in drugNames) {
             val lower = name.lowercase()
             when {
                 lower.startsWith(q) -> starts.add(name)
@@ -67,6 +67,12 @@ object BrandNameRepository {
         }
         return (starts + contains).distinct().take(limit)
     }
+
+    fun getContraindications(genericName: String): ContraindicationResult? =
+        index?.get(genericName.trim().lowercase())
+
+    fun isKnownDrug(name: String): Boolean =
+        drugNames.any { it.equals(name.trim(), ignoreCase = true) }
 
     private fun parseCsvLine(line: String): List<String> {
         val fields = mutableListOf<String>()

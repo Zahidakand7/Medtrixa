@@ -5,12 +5,15 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "drugs")
 data class DrugEntity(
-    @PrimaryKey val id: String,
+    @PrimaryKey(autoGenerate = true) val uid: Long = 0,
     val genericName: String,
-    val brandName: String,
-    val drugClass: String,
-    val formulation: String,
-    val strength: String,
-    val route: String,
-    val manufacturer: String
+    val formulation: String?,
+    val strength: String?,
+    val route: String?,
+    val rxcui: String?,
+    val pharmacologicClass: String?,
+    val initialApproval: String?,
+    val company: String?,
+    val marketingDate: String?,
+    val brandName: String?
 )

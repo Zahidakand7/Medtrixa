@@ -18,7 +18,11 @@ import com.medtrixa.app.ui.screens.RiskAssessmentScreen
 import com.medtrixa.app.ui.screens.ClinicalScoresScreen
 import com.medtrixa.app.ui.screens.ComingSoonScreen
 import com.medtrixa.app.ui.screens.DrugToolsScreen
+import com.medtrixa.app.ui.screens.DrugSearchScreen
+import com.medtrixa.app.ui.screens.DrugDetailScreen
+import com.medtrixa.app.data.db.DrugEntity
 import com.medtrixa.app.ui.screens.drugtools.InteractionCheckerScreen
+import com.medtrixa.app.ui.screens.drugtools.ContraindicationCheckerScreen
 import com.medtrixa.app.ui.screens.calculators.WeightBasedDoseScreen
 import com.medtrixa.app.ui.screens.calculators.CreatinineClearanceScreen
 import com.medtrixa.app.ui.screens.calculators.PediatricDoseScreen
@@ -36,9 +40,10 @@ import com.medtrixa.app.ui.screens.assess.Meld30Screen
 import com.medtrixa.app.ui.screens.assess.ChildPughScreen
 import com.medtrixa.app.ui.screens.assess.CentorScoreScreen
 import com.medtrixa.app.ui.screens.HomeScreen
+import com.medtrixa.app.ui.screens.AiInsightsScreen
 import com.medtrixa.app.ui.screens.ToolsScreen
 import com.medtrixa.app.ui.screens.ReferenceScreen
-import com.medtrixa.app.ui.screens.AntibioticDosingGuideScreen
+import com.medtrixa.app.ui.screens.AntimicrobialReferenceHubScreen
 import com.medtrixa.app.ui.screens.BacterialAtlasScreen
 import com.medtrixa.app.ui.screens.AntibioticDosingGuidelinesScreen
 import com.medtrixa.app.ui.theme.MedtrixaTheme
@@ -69,6 +74,8 @@ private fun MedtrixaRoot() {
         mutableStateOf("")
     }
 
+    var selectedDrug by remember { mutableStateOf<String?>(null) }
+
     var antibioticGuidelinesReturnTo by rememberSaveable {
         mutableStateOf("antibiotic_dosing")
     }
@@ -92,6 +99,15 @@ private fun MedtrixaRoot() {
                 onDrugToolsClick = { currentScreen = "drug_tools" },
                 onReferenceClick = { currentScreen = "reference" }
             )
+        }
+
+        "drug_detail" -> {
+            selectedDrug?.let { genericName ->
+                DrugDetailScreen(
+                    genericName = genericName,
+                    onBackClick = { currentScreen = "drug_tool_detail" }
+                )
+            }
         }
 
         "drug_tools" -> {
@@ -121,8 +137,15 @@ private fun MedtrixaRoot() {
                 "Drug Interaction Checker" -> InteractionCheckerScreen(
                     onBackClick = { currentScreen = "drug_tools" }
                 )
+                "Contraindication Checker" -> ContraindicationCheckerScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
                     "Drug Search" -> DrugSearchScreen(
-                        onBackClick = { currentScreen = "drug_tools" }
+                        onBackClick = { currentScreen = "drug_tools" },
+                        onDrugClick = { drug ->
+                            selectedDrug = drug
+                            currentScreen = "drug_detail"
+                        }
                     )
                 else -> ComingSoonScreen(
                     title = selectedDrugToolTitle,
@@ -143,7 +166,7 @@ private fun MedtrixaRoot() {
         }
 
         "antibiotic_dosing" -> {
-            AntibioticDosingGuideScreen(
+            AntimicrobialReferenceHubScreen(
                 onBackClick = { currentScreen = "reference" },
                 onBacterialAtlasClick = { currentScreen = "bacterial_atlas" },
                 onGuidelinesClick = {
@@ -223,6 +246,12 @@ private fun MedtrixaRoot() {
             )
         }
 
+        "ai_insights" -> {
+            AiInsightsScreen(
+                onBackClick = { currentScreen = "home" }
+            )
+        }
+
         "more" -> {
             HomeScreen(
                 onToolsClick = { currentScreen = "tools" },
@@ -230,7 +259,8 @@ private fun MedtrixaRoot() {
                 onCalculateClick = { currentScreen = "calculators" },
                 onAssessClick = { currentScreen = "assess" },
                 onDrugToolsClick = { currentScreen = "drug_tools" },
-                onReferenceClick = { currentScreen = "reference" }
+                onReferenceClick = { currentScreen = "reference" },
+                onAiInsightsClick = { currentScreen = "ai_insights" }
             )
         }
 
@@ -241,7 +271,8 @@ private fun MedtrixaRoot() {
                 onCalculateClick = { currentScreen = "calculators" },
                 onAssessClick = { currentScreen = "assess" },
                 onDrugToolsClick = { currentScreen = "drug_tools" },
-                onReferenceClick = { currentScreen = "reference" }
+                onReferenceClick = { currentScreen = "reference" },
+                onAiInsightsClick = { currentScreen = "ai_insights" }
             )
         }
     }

@@ -142,7 +142,16 @@ fun AdultBmiScreen(
                 FilterChip(
                     selected = heightUnit == "cm",
                     onClick = {
-                        heightUnit = "cm"
+                        if (heightUnit != "cm") {
+                            val ft = heightFt.toDoubleOrNull()
+                            val inch = heightIn.toDoubleOrNull()
+                            if (ft != null || inch != null) {
+                                val totalIn = (ft ?: 0.0) * 12 + (inch ?: 0.0)
+                                val cm = totalIn * 2.54
+                                heightCm = String.format("%.1f", cm)
+                            }
+                            heightUnit = "cm"
+                        }
                         resetResult()
                     },
                     label = { Text("cm") }
@@ -151,7 +160,17 @@ fun AdultBmiScreen(
                 FilterChip(
                     selected = heightUnit == "ft/in",
                     onClick = {
-                        heightUnit = "ft/in"
+                        if (heightUnit != "ft/in") {
+                            val cm = heightCm.toDoubleOrNull()
+                            if (cm != null) {
+                                val totalIn = cm / 2.54
+                                val ft = (totalIn / 12).toInt()
+                                val inch = totalIn - (ft * 12)
+                                heightFt = ft.toString()
+                                heightIn = String.format("%.1f", inch)
+                            }
+                            heightUnit = "ft/in"
+                        }
                         resetResult()
                     },
                     label = { Text("ft + in") }
@@ -235,7 +254,13 @@ fun AdultBmiScreen(
                 FilterChip(
                     selected = weightUnit == "kg",
                     onClick = {
-                        weightUnit = "kg"
+                        if (weightUnit != "kg") {
+                            val lb = weightLb.toDoubleOrNull()
+                            if (lb != null) {
+                                weightKg = String.format("%.1f", lb * 0.453592)
+                            }
+                            weightUnit = "kg"
+                        }
                         resetResult()
                     },
                     label = { Text("kg") }
@@ -244,7 +269,13 @@ fun AdultBmiScreen(
                 FilterChip(
                     selected = weightUnit == "lb",
                     onClick = {
-                        weightUnit = "lb"
+                        if (weightUnit != "lb") {
+                            val kg = weightKg.toDoubleOrNull()
+                            if (kg != null) {
+                                weightLb = String.format("%.1f", kg / 0.453592)
+                            }
+                            weightUnit = "lb"
+                        }
                         resetResult()
                     },
                     label = { Text("lb") }

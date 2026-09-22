@@ -47,6 +47,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.WorkspacePremium
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Feedback
+import androidx.compose.material.icons.outlined.Lock
 
 @Composable
 fun HomeScreen(
@@ -56,9 +67,21 @@ fun HomeScreen(
     onCalculateClick: () -> Unit = {},
     onAssessClick: () -> Unit = {},
     onDrugToolsClick: () -> Unit = {},
-    onReferenceClick: () -> Unit = {}
+    onReferenceClick: () -> Unit = {},
+    onAiInsightsClick: () -> Unit = {},
+    onThemesClick: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
+    onPremiumClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
+    onCheckUpdatesClick: () -> Unit = {},
+    onHelpGuideClick: () -> Unit = {},
+    onClinicalSourcesClick: () -> Unit = {},
+    onFeedbackClick: () -> Unit = {},
+    onAboutClick: () -> Unit = {},
+    onPrivacyClick: () -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var overflowExpanded by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -105,12 +128,90 @@ fun HomeScreen(
                             )
                         }
 
-                        IconButton(onClick = onMoreClick) {
-                            Icon(
-                                imageVector = Icons.Outlined.MoreHoriz,
-                                contentDescription = "More",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        Box {
+                            IconButton(onClick = { overflowExpanded = true }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.MoreHoriz,
+                                    contentDescription = "More options",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = overflowExpanded,
+                                onDismissRequest = { overflowExpanded = false },
+                                containerColor = MaterialTheme.colorScheme.surface
+                            ) {
+                                Text(
+                                    "Personalize",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Themes") },
+                                    leadingIcon = { Icon(Icons.Outlined.Palette, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onThemesClick() }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Notifications") },
+                                    leadingIcon = { Icon(Icons.Outlined.Notifications, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onNotificationsClick() }
+                                )
+                                HorizontalDivider()
+                                Text(
+                                    "Medtrixa",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Upgrade to Premium") },
+                                    leadingIcon = { Icon(Icons.Outlined.WorkspacePremium, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onPremiumClick() }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Settings") },
+                                    leadingIcon = { Icon(Icons.Outlined.Settings, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onSettingsClick() }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Check for updates") },
+                                    leadingIcon = { Icon(Icons.Outlined.Refresh, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onCheckUpdatesClick() }
+                                )
+                                HorizontalDivider()
+                                Text(
+                                    "Support and information",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Help and guide") },
+                                    leadingIcon = { Icon(Icons.Outlined.HelpOutline, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onHelpGuideClick() }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Clinical sources") },
+                                    leadingIcon = { Icon(Icons.Outlined.MenuBook, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onClinicalSourcesClick() }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Feedback and report an issue") },
+                                    leadingIcon = { Icon(Icons.Outlined.Feedback, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onFeedbackClick() }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("About Medtrixa") },
+                                    leadingIcon = { Icon(Icons.Outlined.Info, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onAboutClick() }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Privacy and disclaimer") },
+                                    leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                                    onClick = { overflowExpanded = false; onPrivacyClick() }
+                                )
+                            }
                         }
                     }
                 }
@@ -206,9 +307,10 @@ fun HomeScreen(
                     ) {
                         QuickAccessCard(
                             modifier = Modifier.weight(1f),
-                            title = "Evidence-Based AI",
-                            subtitle = "AI Insights",
-                            icon = Icons.Outlined.Info
+                            title = "AI Insights",
+                            subtitle = "Ask Anything",
+                            icon = Icons.Outlined.Info,
+                            onClick = onAiInsightsClick
                         )
 
                         QuickAccessCard(

@@ -21,7 +21,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.medtrixa.app.data.model.DrugInteractionResult
-import com.medtrixa.app.data.repository.BrandNameRepository
 import com.medtrixa.app.data.repository.DrugInteractionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -47,7 +46,6 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
             withTimeout(15_000L) {
                 withContext(Dispatchers.IO) {
                     DrugInteractionRepository.load(context.applicationContext)
-                    BrandNameRepository.load(context.applicationContext)
                 }
             }
         } catch (e: TimeoutCancellationException) {
@@ -71,24 +69,28 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
     var closeMatchesB by remember { mutableStateOf<List<String>>(emptyList()) }
 
     fun combinedSuggestions(query: String): List<String> {
-        val drugs = DrugInteractionRepository.searchNames(query, limit = 6)
-        val brands = BrandNameRepository.searchBrands(query, limit = 6)
-        return (drugs + brands).distinct().take(6)
+        return DrugInteractionRepository.searchNames(query, limit = 6)
     }
 
     val suggestionsA = remember(drugAInput.text, showSuggestionsA) {
-        if (showSuggestionsA) combinedSuggestions(drugAInput.text) else emptyList()
+        if (showSuggestionsA) {
+            combinedSuggestions(drugAInput.text).filter {
+                !it.equals(drugAInput.text.trim(), ignoreCase = true)
+            }
+        } else emptyList()
     }
     val suggestionsB = remember(drugBInput.text, showSuggestionsB) {
-        if (showSuggestionsB) combinedSuggestions(drugBInput.text) else emptyList()
+        if (showSuggestionsB) {
+            combinedSuggestions(drugBInput.text).filter {
+                !it.equals(drugBInput.text.trim(), ignoreCase = true)
+            }
+        } else emptyList()
     }
 
     fun resolveToIngredients(input: String): List<String> {
         val trimmed = input.trim()
         if (trimmed.isEmpty()) return emptyList()
         if (DrugInteractionRepository.isKnownDrug(trimmed)) return listOf(trimmed)
-        val brandMatch = BrandNameRepository.resolveExact(trimmed)
-        if (brandMatch != null) return brandMatch
         return listOf(trimmed)
     }
 
@@ -169,9 +171,12 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
                 label = "First drug",
                 value = drugAInput,
                 onValueChange = {
+                    val textChanged = it.text != drugAInput.text
                     drugAInput = it
-                    showSuggestionsA = true
-                    checked = false
+                    if (textChanged) {
+                        showSuggestionsA = true
+                        checked = false
+                    }
                 },
                 suggestions = suggestionsA,
                 onSuggestionSelected = { name ->
@@ -186,9 +191,12 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
                 label = "Second drug",
                 value = drugBInput,
                 onValueChange = {
+                    val textChanged = it.text != drugBInput.text
                     drugBInput = it
-                    showSuggestionsB = true
-                    checked = false
+                    if (textChanged) {
+                        showSuggestionsB = true
+                        checked = false
+                    }
                 },
                 suggestions = suggestionsB,
                 onSuggestionSelected = { name ->

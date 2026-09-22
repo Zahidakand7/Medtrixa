@@ -36,10 +36,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AntibioticDosingGuideScreen(
+fun AntimicrobialReferenceHubScreen(
     onBackClick: () -> Unit,
     onGuidelinesClick: () -> Unit,
     onBacterialAtlasClick: () -> Unit
@@ -70,8 +71,10 @@ fun AntibioticDosingGuideScreen(
 
                 Column(modifier = Modifier.padding(start = 4.dp)) {
                     Text(
-                        text = "Antibiotic Dosing Guide",
-                        style = MaterialTheme.typography.headlineMedium,
+                        text = "Antimicrobial Reference Hub",
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.Bold
                     )
 
