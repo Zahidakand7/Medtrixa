@@ -13,10 +13,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.medtrixa.app.data.model.ContraindicationResult
 import com.medtrixa.app.data.repository.ContraindicationRepository
@@ -83,7 +85,7 @@ fun ContraindicationCheckerScreen(onBackClick: () -> Unit) {
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 IconButton(onClick = onBackClick) {
                     Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
                 }
@@ -98,7 +100,7 @@ fun ContraindicationCheckerScreen(onBackClick: () -> Unit) {
             Spacer(modifier = Modifier.height(20.dp))
 
             if (isLoading) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     Spacer(modifier = Modifier.width(12.dp))
                     Text("Loading contraindication data…", color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -213,26 +215,35 @@ private fun ContraindicationDrugField(
 
 @Composable
 private fun ContraindicationResultCard(result: ContraindicationResult) {
+    val text = result.contraindications.trim()
+    val isNoneOnFile = text.isEmpty() || text.equals("none", ignoreCase = true) || text.equals("none.", ignoreCase = true)
+
+    val cardContainerColor = if (isNoneOnFile) MaterialTheme.colorScheme.surfaceVariant else Color(0xFFFCEBEB)
+    val contentColor = if (isNoneOnFile) MaterialTheme.colorScheme.onSurfaceVariant else Color(0xFF791F1F)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = cardContainerColor)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Icon(
                     imageVector = Icons.Outlined.WarningAmber,
                     contentDescription = null,
+                    tint = contentColor,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(result.genericName, fontWeight = FontWeight.Bold)
+                Text(result.genericName, fontWeight = FontWeight.Bold, color = contentColor)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                if (result.contraindications.isNotBlank()) result.contraindications
-                else "No contraindication text on file for this drug.",
-                style = MaterialTheme.typography.bodyMedium
+                if (isNoneOnFile) "None found." else text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = contentColor,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Justify
             )
             if (result.status.isNotBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
