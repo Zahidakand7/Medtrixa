@@ -47,6 +47,7 @@ import com.medtrixa.app.ui.screens.AntimicrobialReferenceHubScreen
 import com.medtrixa.app.ui.screens.BacterialAtlasScreen
 import com.medtrixa.app.ui.screens.AntibioticDosingGuidelinesScreen
 import com.medtrixa.app.ui.theme.MedtrixaTheme
+import com.medtrixa.app.ui.screens.AntibioticStewardshipReferenceScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -160,8 +161,16 @@ private fun MedtrixaRoot() {
                 onReferenceClick = { referenceId ->
                     if (referenceId == "antibiotic_dosing") {
                         currentScreen = "antibiotic_dosing"
+                    } else if (referenceId == "antibiotic_stewardship") {
+                        currentScreen = "antibiotic_stewardship"
                     }
                 }
+            )
+        }
+
+        "antibiotic_stewardship" -> {
+            AntibioticStewardshipReferenceScreen(
+                onBackClick = { currentScreen = "reference" }
             )
         }
 

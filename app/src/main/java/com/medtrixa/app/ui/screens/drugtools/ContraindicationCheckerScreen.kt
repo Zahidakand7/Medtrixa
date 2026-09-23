@@ -227,7 +227,7 @@ private fun ContraindicationResultCard(result: ContraindicationResult) {
         colors = CardDefaults.cardColors(containerColor = cardContainerColor)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth()) {
                 Icon(
                     imageVector = Icons.Outlined.WarningAmber,
                     contentDescription = null,

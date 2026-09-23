@@ -1,4 +1,5 @@
 package com.medtrixa.app.ui.screens
+import com.medtrixa.app.ui.components.AutoSizeText
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -70,11 +71,9 @@ fun AntimicrobialReferenceHubScreen(
                 }
 
                 Column(modifier = Modifier.padding(start = 4.dp)) {
-                    Text(
+                    AutoSizeText(
                         text = "Antimicrobial Reference Hub",
                         style = MaterialTheme.typography.headlineSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.Bold
                     )
 

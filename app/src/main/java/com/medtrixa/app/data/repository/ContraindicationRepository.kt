@@ -34,11 +34,11 @@ object ContraindicationRepository {
                         }
 
                         val fields = parseCsvLine(line)
-                        if (fields.size < 3) return@forEachLine
+                        if (fields.size < 2) return@forEachLine
 
                         val genericName = fields[0].trim()
                         val contraindications = fields[1].trim()
-                        val status = fields[2].trim()
+                        val status = fields.getOrNull(2)?.trim() ?: ""
                         if (genericName.isEmpty()) return@forEachLine
 
                         map[genericName.lowercase()] = ContraindicationResult(genericName, contraindications, status)

@@ -46,7 +46,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.style.TextAlign
 
 private data class AntibioticRegimen(
     val indication: String,
@@ -96,9 +95,9 @@ private val antibioticRegimens = listOf(
         setting = "Complicated UTI",
         organisms = "ESBL-producing Enterobacterales",
         antibiotic = "TMP-SMX",
-        dose = "Use susceptibility-guided dosing",
+        dose = "8–15 mg/kg/day (trimethoprim component)",
         route = "PO/IV",
-        frequency = "Per product labeling and clinical context",
+        frequency = "Divided every 8 to 12 hours",
         duration = "IDSA cUTI duration guidance applies",
         patientGroup = "Adult",
         renalAdjustment = "Renal adjustment required when indicated.",
@@ -114,9 +113,9 @@ private val antibioticRegimens = listOf(
         setting = "Bloodstream or other invasive infection",
         organisms = "ESBL-producing Enterobacterales",
         antibiotic = "Meropenem",
-        dose = "Per IDSA Table 1 / renal function",
+        dose = "1–2 g (2 g preferred for obesity, CNS infection, ECMO, or CrCl ≥130 mL/min)",
         route = "IV",
-        frequency = "Per IDSA dosing table and renal function",
+        frequency = "Every 8 hours, infused over 3 hours if feasible",
         duration = "Individualize by infection syndrome and response",
         patientGroup = "Adult",
         renalAdjustment = "Renal adjustment required.",
@@ -132,9 +131,9 @@ private val antibioticRegimens = listOf(
         setting = "Invasive infection caused by organisms at moderate risk of clinically significant inducible AmpC production",
         organisms = "Enterobacter cloacae complex; Klebsiella aerogenes; Citrobacter freundii; Hafnia alvei",
         antibiotic = "Cefepime",
-        dose = "Per IDSA Table 1 / renal function",
+        dose = "2 g loading dose (over 30 min), THEN 2 g",
         route = "IV",
-        frequency = "Per IDSA dosing table and renal function",
+        frequency = "Every 8 hours, infused over 3 hours",
         duration = "Individualize by syndrome and clinical response",
         patientGroup = "Adult",
         renalAdjustment = "Renal adjustment required when indicated.",
@@ -150,9 +149,9 @@ private val antibioticRegimens = listOf(
         setting = "Carbapenem-resistant Enterobacterales infection",
         organisms = "CRE",
         antibiotic = "Mechanism-directed therapy",
-        dose = "Per IDSA Table 1 / renal function",
+        dose = "Ceftazidime-avibactam 2.5 g (2 g/0.5 g); meropenem-vaborbactam 4 g (2 g/2 g); imipenem-relebactam 1.25 g (500 mg/500 mg/250 mg); aztreonam-avibactam 2.67 g (2 g/0.67 g) loading dose THEN 2 g (1.5 g/0.5 g); cefiderocol 2 g",
         route = "IV",
-        frequency = "Per IDSA dosing table and renal function",
+        frequency = "Ceftazidime-avibactam every 8 h (over 3 h); meropenem-vaborbactam every 8 h (over 3 h); imipenem-relebactam every 6 h (over 30 min); aztreonam-avibactam every 6 h (over 3 h); cefiderocol every 8 h (over 3 h; every 6 h if CrCl ≥120 mL/min)",
         duration = "Individualize by infection syndrome",
         patientGroup = "Adult",
         renalAdjustment = "Renal adjustment required when indicated.",
@@ -168,9 +167,9 @@ private val antibioticRegimens = listOf(
         setting = "Carbapenem-resistant infection with metallo-beta-lactamase mechanism",
         organisms = "NDM-producing Enterobacterales",
         antibiotic = "Aztreonam-avibactam",
-        dose = "Per IDSA Table 1 / renal function",
+        dose = "2.67 g (aztreonam 2 g + avibactam 0.67 g) once over 3 hours as loading dose, THEN 2 g (aztreonam 1.5 g + avibactam 0.5 g)",
         route = "IV",
-        frequency = "Per IDSA dosing table and renal function",
+        frequency = "Every 6 hours for maintenance, infused over 3 hours",
         duration = "Individualize by infection syndrome",
         patientGroup = "Adult",
         renalAdjustment = "Renal adjustment required when indicated.",
@@ -186,9 +185,9 @@ private val antibioticRegimens = listOf(
         setting = "Complicated UTI caused by DTR P. aeruginosa",
         organisms = "DTR Pseudomonas aeruginosa",
         antibiotic = "Ceftazidime-avibactam",
-        dose = "Per IDSA Table 1 / renal function",
+        dose = "2.5 g (ceftazidime 2 g + avibactam 0.5 g)",
         route = "IV",
-        frequency = "Per IDSA dosing table and renal function",
+        frequency = "Every 8 hours, infused over 3 hours",
         duration = "Individualize by infection syndrome",
         patientGroup = "Adult",
         renalAdjustment = "Renal adjustment required when indicated.",
@@ -204,9 +203,9 @@ private val antibioticRegimens = listOf(
         setting = "Pneumonia or other infection outside urinary tract",
         organisms = "DTR Pseudomonas aeruginosa",
         antibiotic = "Ceftolozane-tazobactam",
-        dose = "Per IDSA Table 1 / renal function",
+        dose = "3 g (ceftolozane 2 g + tazobactam 1 g)",
         route = "IV",
-        frequency = "Per IDSA dosing table and renal function",
+        frequency = "Every 8 hours, infused over 3 hours",
         duration = "Individualize by infection syndrome",
         patientGroup = "Adult",
         renalAdjustment = "Renal adjustment required when indicated.",
@@ -222,9 +221,9 @@ private val antibioticRegimens = listOf(
         setting = "Invasive CRAB infection",
         organisms = "CRAB",
         antibiotic = "Sulbactam-durlobactam + carbapenem",
-        dose = "Per IDSA Table 1 / renal function",
+        dose = "Sulbactam-durlobactam 2 g (1 g/1 g) PLUS carbapenem: imipenem 500 mg (or 1 g) OR meropenem 1–2 g",
         route = "IV",
-        frequency = "Per IDSA dosing table and renal function",
+        frequency = "Sulbactam-durlobactam every 6 h, infused over 3 h (every 4 h if CrCl ≥130 mL/min); imipenem every 6 h (or every 8 h for 1 g) OR meropenem every 8 h",
         duration = "Individualize by infection syndrome",
         patientGroup = "Adult",
         renalAdjustment = "Renal adjustment required when indicated.",
@@ -240,9 +239,9 @@ private val antibioticRegimens = listOf(
         setting = "Clinically significant infection",
         organisms = "Stenotrophomonas maltophilia",
         antibiotic = "Susceptibility-directed combination/selected therapy",
-        dose = "Per IDSA 2026 AMR dosing table",
+        dose = "Cefiderocol 2 g; alternative: aztreonam-avibactam 2.67 g loading dose THEN 2 g",
         route = "PO/IV",
-        frequency = "Per selected agent and renal function",
+        frequency = "Cefiderocol every 8 h, infused over 3 h (every 6 h if CrCl ≥120 mL/min); aztreonam-avibactam every 6 h, infused over 3 h",
         duration = "Individualize by infection syndrome",
         patientGroup = "Adult",
         renalAdjustment = "Agent-specific renal adjustment required when applicable.",
@@ -262,9 +261,9 @@ private val antibioticRegimens = listOf(
         setting = "Clinically improving patient initially treated parenterally",
         organisms = "Pathogen-directed cUTI",
         antibiotic = "Effective oral antibiotic",
-        dose = "According to selected agent",
+        dose = "Ciprofloxacin 750 mg; levofloxacin 750 mg; TMP-SMX 8–15 mg/kg/day (trimethoprim component)",
         route = "PO",
-        frequency = "According to selected agent",
+        frequency = "Ciprofloxacin every 12 h; levofloxacin every 24 h; TMP-SMX divided every 8 to 12 h",
         duration = "Usually complete the recommended short course",
         patientGroup = "Adult",
         renalAdjustment = "Agent-specific.",
@@ -280,9 +279,9 @@ private val antibioticRegimens = listOf(
         setting = "Clinically improving cUTI",
         organisms = "Pathogen-directed",
         antibiotic = "Effective antimicrobial",
-        dose = "Agent-specific",
+        dose = "Ciprofloxacin 750 mg PO; levofloxacin 750 mg; TMP-SMX 8–15 mg/kg/day (trimethoprim component)",
         route = "PO/IV",
-        frequency = "Agent-specific",
+        frequency = "Ciprofloxacin every 12 h; levofloxacin every 24 h; TMP-SMX divided every 8 to 12 h",
         duration = "5–7 days for fluoroquinolone OR 7 days for non-fluoroquinolone in typical improving cases",
         patientGroup = "Adult",
         renalAdjustment = "Agent-specific.",
@@ -476,14 +475,11 @@ fun AntibioticDosingGuidelinesScreen(
                             contentDescription = null
                         )
                     },
-                    textStyle = MaterialTheme.typography.bodyMedium,
+                    label = {
+                        Text("Search indication, organism or antibiotic")
+                    },
                     placeholder = {
-                        Text(
-                            "Search indication, organism or antibiotic",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        Text("e.g. pneumonia, ceftriaxone, MRSA")
                     }
                 )
             }
@@ -575,8 +571,8 @@ private fun AntibioticRegimenCard(
         )
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
 
             Text(
@@ -629,17 +625,19 @@ private fun DetailRow(
     label: String,
     value: String
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "$label:",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Justify,
+    Column {
+        Row(
             modifier = Modifier.fillMaxWidth()
-        )
+        ) {
+            Text(
+                text = "$label: ",
+                style = MaterialTheme.typography.labelMedium
+            )
+
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
     }
 }
