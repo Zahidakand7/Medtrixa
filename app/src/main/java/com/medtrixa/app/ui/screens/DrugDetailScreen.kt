@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,17 +13,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Business
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.LocalPharmacy
+import androidx.compose.material.icons.outlined.Medication
+import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +46,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -64,8 +76,18 @@ private fun cleanLabelText(raw: String?): String {
 }
 
 private fun formatMarketingDate(raw: String?): String? = try {
-    LocalDate.parse(raw).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+    val d = LocalDate.parse(raw)
+    "${d.dayOfMonth} ${d.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)}, ${d.year}"
 } catch (e: Exception) { null }
+
+private val CARD_ACCENT_COLORS = listOf(
+    Color(0xFF6C5CE7), // purple
+    Color(0xFF0984E3), // blue
+    Color(0xFF00B894), // teal/green
+    Color(0xFFE17055), // orange
+    Color(0xFFE84393), // pink
+    Color(0xFFFDA13B)  // amber
+)
 
 private fun formatApproval(raw: String?): String? = try {
     val d = LocalDate.parse(raw)
@@ -127,48 +149,98 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    CARD_ACCENT_COLORS[0].copy(alpha = 0.12f),
+                                    CARD_ACCENT_COLORS[2].copy(alpha = 0.08f)
+                                )
+                            ),
+                            RoundedCornerShape(12.dp)
+                        )
                         .padding(16.dp)
                 ) {
                     val primary = strengths.firstOrNull()
                     val distinctStrengths = strengths.mapNotNull { it.strength }.distinct()
 
-                    Text(genericName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.padding(top = 4.dp))
-
-                    primary?.pharmacologicClass?.let {
-                        Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(CARD_ACCENT_COLORS[0].copy(alpha = 0.16f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Medication,
+                                contentDescription = null,
+                                tint = CARD_ACCENT_COLORS[0],
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(genericName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            primary?.pharmacologicClass?.let {
+                                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
                     }
 
                     if (distinctStrengths.isNotEmpty()) {
-                        Spacer(modifier = Modifier.padding(top = 6.dp))
+                        Spacer(modifier = Modifier.padding(top = 10.dp))
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            items(distinctStrengths) { s -> Tag(s) }
+                            items(distinctStrengths.size) { idx ->
+                                Tag(distinctStrengths[idx], CARD_ACCENT_COLORS[idx % CARD_ACCENT_COLORS.size])
+                            }
                         }
-                        Spacer(modifier = Modifier.padding(top = 8.dp))
+                        Spacer(modifier = Modifier.padding(top = 10.dp))
                     }
 
-                    primary?.let {
-                        InfoLine("Formulation", it.formulation, "Route -", it.route)
+                    primary?.let { p ->
+                        if (!p.formulation.isNullOrBlank()) {
+                            IconInfoRow(
+                                icon = Icons.Outlined.LocalPharmacy,
+                                iconColor = CARD_ACCENT_COLORS[1],
+                                text = buildString {
+                                    append("Formulation: ${p.formulation}")
+                                    if (!p.route.isNullOrBlank()) append(", Route - ${p.route}")
+                                }
+                            )
+                        }
                     }
 
                     StylishDivider()
 
                     primary?.let {
-                        InfoLine("Brand Name", it.brandName ?: "N/A", null, null)
-                        InfoLine("Company", it.company, null, null)
-                        formatMarketingDate(it.marketingDate)?.let { d -> InfoLine("Marketing Date", d, null, null) }
+                        IconInfoRow(
+                            icon = Icons.Outlined.Sell,
+                            iconColor = CARD_ACCENT_COLORS[3],
+                            text = "Brand Name: ${it.brandName ?: "N/A"}"
+                        )
+                        if (!it.company.isNullOrBlank()) {
+                            IconInfoRow(
+                                icon = Icons.Outlined.Business,
+                                iconColor = CARD_ACCENT_COLORS[2],
+                                text = "Company: ${it.company}"
+                            )
+                        }
+                        formatMarketingDate(it.marketingDate)?.let { d ->
+                            IconInfoRow(
+                                icon = Icons.Outlined.CalendarToday,
+                                iconColor = CARD_ACCENT_COLORS[4],
+                                text = "Marketing Date: $d"
+                            )
+                        }
                         val approval = formatApproval(it.initialApproval) ?: it.initialApproval
                         if (approval != null || it.rxcui != null) {
-                            Text(
+                            IconInfoRow(
+                                icon = Icons.Outlined.VerifiedUser,
+                                iconColor = CARD_ACCENT_COLORS[5],
                                 text = buildString {
                                     approval?.let { a -> append("FDA Approval: $a") }
                                     if (approval != null && it.rxcui != null) append(", ")
                                     it.rxcui?.let { r -> append("RxCUI: $r") }
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         }
                     }
@@ -246,6 +318,35 @@ private fun StylishDivider() {
 }
 
 @Composable
+private fun IconInfoRow(icon: ImageVector, iconColor: Color, text: String) {
+    if (text.isBlank()) return
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(bottom = 6.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(26.dp)
+                .background(iconColor.copy(alpha = 0.15f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
 private fun InfoLine(label1: String, value1: String?, label2: String?, value2: String?) {
     if (value1.isNullOrBlank()) return
     Text(
@@ -260,14 +361,15 @@ private fun InfoLine(label1: String, value1: String?, label2: String?, value2: S
 }
 
 @Composable
-private fun Tag(text: String) {
+private fun Tag(text: String, color: Color = MaterialTheme.colorScheme.primary) {
     if (text.isBlank()) return
     Text(
         text = text,
         style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.primary,
+        color = color,
+        fontWeight = FontWeight.SemiBold,
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(20.dp))
+            .background(color.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
             .padding(horizontal = 10.dp, vertical = 3.dp)
     )
 }
