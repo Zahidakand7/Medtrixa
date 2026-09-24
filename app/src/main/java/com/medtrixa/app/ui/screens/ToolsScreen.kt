@@ -20,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Assessment
 import androidx.compose.material.icons.outlined.Calculate
 import androidx.compose.material.icons.outlined.LocalPharmacy
-import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -131,15 +130,6 @@ fun ToolsScreen(
                         description = "Dosing, adjustment and medication tools",
                         icon = Icons.Outlined.LocalPharmacy,
                         onClick = onDrugToolsClick
-                    )
-                }
-
-                item {
-                    ToolSection(
-                        title = "Reference",
-                        description = "Guidelines, evidence and medical references",
-                        icon = Icons.Outlined.MenuBook,
-                        onClick = onReferenceClick
                     )
                 }
             }

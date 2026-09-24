@@ -94,13 +94,9 @@ private fun MedtrixaRoot() {
     when (currentScreen) {
 
         "tools" -> {
-            ToolsScreen(
-                onHomeClick = { currentScreen = "home" },
-                onMoreClick = { currentScreen = "more" },
-                onCalculateClick = { currentScreen = "calculators" },
-                onAssessClick = { currentScreen = "assess" },
-                onDrugToolsClick = { currentScreen = "drug_tools" },
-                onReferenceClick = { currentScreen = "reference" }
+            ComingSoonScreen(
+                title = "Tools",
+                onBackClick = { currentScreen = "home" }
             )
         }
 
@@ -115,7 +111,7 @@ private fun MedtrixaRoot() {
 
         "drug_tools" -> {
             DrugToolsScreen(
-                onBackClick = { currentScreen = "tools" },
+                onBackClick = { currentScreen = "home" },
                 onToolClick = { tool ->
                     selectedDrugToolTitle = tool.title
                     currentScreen = "drug_tool_detail"
@@ -201,7 +197,7 @@ private fun MedtrixaRoot() {
 
         "assess" -> {
             AssessScreen(
-                onBackClick = { currentScreen = "tools" },
+                onBackClick = { currentScreen = "home" },
                 onClinicalScoresClick = { currentScreen = "clinical_scores" },
                 onRiskAssessmentClick = { currentScreen = "risk_assessment" }
             )
@@ -242,7 +238,7 @@ private fun MedtrixaRoot() {
         "calculators" -> {
             CalculatorLibraryScreen(
                 repository = calculatorRepository,
-                onBackClick = { currentScreen = "tools" },
+                onBackClick = { currentScreen = "home" },
                 onCalculatorClick = { calculator ->
                     selectedCalculatorId = calculator.id
                     currentScreen = "calculator"
