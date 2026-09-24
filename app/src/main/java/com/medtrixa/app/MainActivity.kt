@@ -1,5 +1,6 @@
 package com.medtrixa.app
 
+import com.medtrixa.app.ui.screens.preloadAntibioticGuidelines
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -52,6 +53,7 @@ import com.medtrixa.app.ui.screens.AntibioticStewardshipReferenceScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        preloadAntibioticGuidelines(applicationContext)
         setContent {
             MedtrixaTheme {
                 MedtrixaRoot()
