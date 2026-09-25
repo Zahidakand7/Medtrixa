@@ -1,6 +1,7 @@
 package com.medtrixa.app.ui.screens
 
 import android.content.Intent
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -37,8 +38,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
@@ -47,6 +52,8 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,7 +77,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -88,7 +94,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
-import java.net.URLEncoder
+import java.util.UUID
 
 // ───────────────────────── Data + network (unchanged logic) ─────────────────────────
 
@@ -98,46 +104,6 @@ private data class PubMedResult(
     val journal: String,
     val pubDate: String
 )
-
-private fun searchPubMed(query: String, sortMode: String): List<PubMedResult> {
-    val encoded = URLEncoder.encode(query, "UTF-8")
-    val sortParam = if (sortMode == "Newest") "pub_date" else "relevance"
-    val searchUrl = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=$encoded&retmax=8&sort=$sortParam&retmode=json"
-
-    val searchConn = URL(searchUrl).openConnection() as HttpURLConnection
-    searchConn.connectTimeout = 10000
-    searchConn.readTimeout = 10000
-    val searchJson = JSONObject(searchConn.inputStream.bufferedReader().readText())
-    searchConn.disconnect()
-
-    val idArray = searchJson.getJSONObject("esearchresult").getJSONArray("idlist")
-    if (idArray.length() == 0) return emptyList()
-
-    val ids = (0 until idArray.length()).joinToString(",") { idArray.getString(it) }
-    val summaryUrl = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=$ids&retmode=json"
-
-    val summaryConn = URL(summaryUrl).openConnection() as HttpURLConnection
-    summaryConn.connectTimeout = 10000
-    summaryConn.readTimeout = 10000
-    val summaryJson = JSONObject(summaryConn.inputStream.bufferedReader().readText())
-    summaryConn.disconnect()
-
-    val resultObj = summaryJson.getJSONObject("result")
-    val results = mutableListOf<PubMedResult>()
-    for (i in 0 until idArray.length()) {
-        val pmid = idArray.getString(i)
-        val item = resultObj.optJSONObject(pmid) ?: continue
-        results.add(
-            PubMedResult(
-                pmid = pmid,
-                title = item.optString("title", ""),
-                journal = item.optString("fulljournalname", ""),
-                pubDate = item.optString("pubdate", "")
-            )
-        )
-    }
-    return results
-}
 
 private const val AI_SOURCE_PREFS = "medtrixa_ai_source"
 
@@ -172,9 +138,8 @@ private data class ChatExchange(
     val sortMode: String = "Relevance"
 )
 
-private fun saveStoredThread(context: android.content.Context, provider: String, thread: List<ChatExchange>) {
-    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
-    val arr = JSONArray().apply {
+private fun exchangesToJson(thread: List<ChatExchange>): JSONArray =
+    JSONArray().apply {
         thread.forEach { exchange ->
             put(JSONObject().apply {
                 put("q", exchange.question)
@@ -193,38 +158,48 @@ private fun saveStoredThread(context: android.content.Context, provider: String,
             })
         }
     }
-    prefs.edit().putString("thread_$provider", arr.toString()).apply()
+
+private fun jsonToExchanges(arr: JSONArray): List<ChatExchange> {
+    val results = mutableListOf<ChatExchange>()
+    for (i in 0 until arr.length()) {
+        val json = arr.getJSONObject(i)
+        val resultsArr = json.optJSONArray("results")
+        val pubMedResults = mutableListOf<PubMedResult>()
+        if (resultsArr != null) {
+            for (j in 0 until resultsArr.length()) {
+                val item = resultsArr.getJSONObject(j)
+                pubMedResults.add(
+                    PubMedResult(
+                        pmid = item.optString("pmid", ""),
+                        title = item.optString("title", ""),
+                        journal = item.optString("journal", ""),
+                        pubDate = item.optString("pubDate", "")
+                    )
+                )
+            }
+        }
+        results.add(
+            ChatExchange(
+                question = json.optString("q", ""),
+                answer = if (json.has("a")) json.optString("a") else null,
+                results = pubMedResults,
+                sortMode = json.optString("sort", "Relevance")
+            )
+        )
+    }
+    return results
+}
+
+private fun saveStoredThread(context: android.content.Context, provider: String, thread: List<ChatExchange>) {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    prefs.edit().putString("thread_$provider", exchangesToJson(thread).toString()).apply()
 }
 
 private fun loadStoredThread(context: android.content.Context, provider: String): List<ChatExchange> {
     val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
     val raw = prefs.getString("thread_$provider", null) ?: return emptyList()
     return try {
-        val arr = JSONArray(raw)
-        (0 until arr.length()).map { i ->
-            val json = arr.getJSONObject(i)
-            val resultsArr = json.optJSONArray("results")
-            val results = mutableListOf<PubMedResult>()
-            if (resultsArr != null) {
-                for (j in 0 until resultsArr.length()) {
-                    val item = resultsArr.getJSONObject(j)
-                    results.add(
-                        PubMedResult(
-                            pmid = item.optString("pmid", ""),
-                            title = item.optString("title", ""),
-                            journal = item.optString("journal", ""),
-                            pubDate = item.optString("pubDate", "")
-                        )
-                    )
-                }
-            }
-            ChatExchange(
-                question = json.optString("q", ""),
-                answer = if (json.has("a")) json.optString("a") else null,
-                results = results,
-                sortMode = json.optString("sort", "Relevance")
-            )
-        }
+        jsonToExchanges(JSONArray(raw))
     } catch (e: Exception) {
         emptyList()
     }
@@ -235,17 +210,126 @@ private fun clearStoredThread(context: android.content.Context, provider: String
     prefs.edit().remove("thread_$provider").apply()
 }
 
+// ───────────────────────── Chat sessions (New Chat / Clear Chat / history) ─────────────────────────
+// Each provider can now hold several saved conversations ("chat sessions") instead
+// of just one. "New Chat" archives the current conversation into this list and
+// starts a blank one; "Clear Chat" drops the current conversation without saving
+// it; the chat-history list lets you switch back to any saved session later.
+
+private data class ChatSession(
+    val id: String,
+    val title: String,
+    val exchanges: List<ChatExchange> = emptyList()
+)
+
+private fun sessionTitle(exchanges: List<ChatExchange>): String {
+    val q = exchanges.firstOrNull()?.question?.trim().orEmpty()
+    return when {
+        q.isEmpty() -> "New chat"
+        q.length > 40 -> q.take(40) + "…"
+        else -> q
+    }
+}
+
+private fun saveSessions(context: android.content.Context, provider: String, sessions: List<ChatSession>) {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    val arr = JSONArray().apply {
+        sessions.forEach { session ->
+            put(JSONObject().apply {
+                put("id", session.id)
+                put("title", session.title)
+                put("exchanges", exchangesToJson(session.exchanges))
+            })
+        }
+    }
+    prefs.edit().putString("sessions_$provider", arr.toString()).apply()
+}
+
+private fun loadSessions(context: android.content.Context, provider: String): List<ChatSession> {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    val raw = prefs.getString("sessions_$provider", null)
+    if (raw != null) {
+        return try {
+            val arr = JSONArray(raw)
+            (0 until arr.length()).map { i ->
+                val json = arr.getJSONObject(i)
+                ChatSession(
+                    id = json.optString("id", UUID.randomUUID().toString()),
+                    title = json.optString("title", "New chat"),
+                    exchanges = jsonToExchanges(json.optJSONArray("exchanges") ?: JSONArray())
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+    // One-time migration: earlier versions kept a single thread per provider.
+    // Wrap any existing thread into the first chat session so nobody loses history.
+    val legacy = loadStoredThread(context, provider)
+    if (legacy.isNotEmpty()) {
+        val migrated = listOf(ChatSession(id = UUID.randomUUID().toString(), title = sessionTitle(legacy), exchanges = legacy))
+        saveSessions(context, provider, migrated)
+        clearStoredThread(context, provider)
+        return migrated
+    }
+    return emptyList()
+}
+
+private fun loadActiveSessionId(context: android.content.Context, provider: String): String? {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    return prefs.getString("active_$provider", null)
+}
+
+private fun saveActiveSessionId(context: android.content.Context, provider: String, id: String?) {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    if (id == null) prefs.edit().remove("active_$provider").apply()
+    else prefs.edit().putString("active_$provider", id).apply()
+}
+
 private const val CLINICAL_SYSTEM_PROMPT =
     "You are a clinical reference assistant for healthcare professionals. " +
         "Answer concisely and precisely, using clinical terminology, and note " +
         "when a question needs the clinician's own judgment or a primary source."
 
+/** HTTP codes worth a short automatic retry with backoff before giving up. */
+private val RETRYABLE_HTTP_CODES = setOf(429, 500, 502, 503)
+
+/**
+ * Turns a raw HTTP failure from a provider into a short, clinical-app-appropriate
+ * message. The full raw body (which may contain provider-specific JSON) is only
+ * ever written to Logcat for debugging — it is never shown to the user.
+ */
+private fun friendlyApiError(label: String, code: Int, rawBody: String): String {
+    Log.w("AiInsights", "$label error ($code): $rawBody")
+    return when (code) {
+        401 -> "$label: API key is invalid."
+        403 -> "$label: API access is not authorized."
+        429 -> "$label is temporarily rate-limited. Please wait a moment and try again."
+        500, 502, 503 -> "$label is temporarily unavailable. Please try again shortly."
+        else -> "$label error ($code). Please try again."
+    }
+}
+
+/** Turns a low-level network failure (no HTTP response at all) into a clean message. */
+private fun friendlyNetworkError(label: String, e: Exception): String {
+    Log.w("AiInsights", "$label network error", e)
+    return when (e) {
+        is java.net.SocketTimeoutException -> "$label: Request timed out. Please try again."
+        is java.net.UnknownHostException -> "Check your internet connection."
+        is java.io.IOException -> "Check your internet connection."
+        else -> "$label: Something went wrong. Please try again."
+    }
+}
+
 /**
  * Shared caller for OpenAI-compatible chat-completions endpoints.
- * ChatGPT, Groq, Cerebras, and Mistral all speak this same request/response shape.
+ * Groq and Mistral both speak this same request/response shape.
  * `history` is the full thread so far, including the new question as the last
  * exchange (with a null answer) — this is what makes it a real multi-turn
  * conversation instead of a one-off question each time.
+ *
+ * Transient failures (429 rate limits, 500/502/503) are retried automatically with
+ * exponential backoff (2s, 4s, 8s) before surfacing an error to the user.
  */
 private fun askOpenAiCompatible(
     endpoint: String,
@@ -254,77 +338,102 @@ private fun askOpenAiCompatible(
     history: List<ChatExchange>,
     label: String
 ): String {
-    val conn = URL(endpoint).openConnection() as HttpURLConnection
-    conn.requestMethod = "POST"
-    conn.setRequestProperty("Authorization", "Bearer $apiKey")
-    conn.setRequestProperty("Content-Type", "application/json")
-    conn.doOutput = true
-    conn.connectTimeout = 45000
-    conn.readTimeout = 45000
+    val maxAttempts = 3
+    var lastError: Exception = Exception("$label: Something went wrong. Please try again.")
 
-    val body = JSONObject().apply {
-        put("model", model)
-        put("messages", JSONArray().apply {
-            put(JSONObject().apply {
-                put("role", "system")
-                put("content", CLINICAL_SYSTEM_PROMPT)
-            })
-            history.forEach { exchange ->
-                put(JSONObject().apply {
-                    put("role", "user")
-                    put("content", exchange.question)
-                })
-                exchange.answer?.let { ans ->
+    repeat(maxAttempts) { attempt ->
+        try {
+            val conn = URL(endpoint).openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("Authorization", "Bearer $apiKey")
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.doOutput = true
+            conn.connectTimeout = 45000
+            conn.readTimeout = 45000
+
+            val body = JSONObject().apply {
+                put("model", model)
+                put("messages", JSONArray().apply {
                     put(JSONObject().apply {
-                        put("role", "assistant")
-                        put("content", ans)
+                        put("role", "system")
+                        put("content", CLINICAL_SYSTEM_PROMPT)
                     })
-                }
+                    history.forEach { exchange ->
+                        put(JSONObject().apply {
+                            put("role", "user")
+                            put("content", exchange.question)
+                        })
+                        exchange.answer?.let { ans ->
+                            put(JSONObject().apply {
+                                put("role", "assistant")
+                                put("content", ans)
+                            })
+                        }
+                    }
+                })
             }
-        })
+            conn.outputStream.use { it.write(body.toString().toByteArray()) }
+
+            val code = conn.responseCode
+            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+            val text = stream.bufferedReader().readText()
+            conn.disconnect()
+
+            if (code in 200..299) {
+                return JSONObject(text)
+                    .getJSONArray("choices")
+                    .getJSONObject(0)
+                    .getJSONObject("message")
+                    .getString("content")
+            }
+
+            val message = friendlyApiError(label, code, text)
+            lastError = Exception(message)
+            val retryable = code in RETRYABLE_HTTP_CODES
+            if (!retryable || attempt == maxAttempts - 1) throw lastError
+        } catch (e: Exception) {
+            if (e === lastError) {
+                // Already-classified HTTP error from above; only sleep-and-retry
+                // when there are attempts left, otherwise propagate.
+                if (attempt == maxAttempts - 1) throw e
+            } else {
+                // Low-level network failure (timeout, DNS, connection reset, etc).
+                lastError = Exception(friendlyNetworkError(label, e))
+                if (attempt == maxAttempts - 1) throw lastError
+            }
+        }
+        Thread.sleep(2000L * (1L shl attempt)) // 2s, 4s, 8s
     }
-    conn.outputStream.use { it.write(body.toString().toByteArray()) }
-
-    val code = conn.responseCode
-    val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-    val text = stream.bufferedReader().readText()
-    conn.disconnect()
-
-    if (code !in 200..299) throw Exception("$label error ($code): $text")
-
-    return JSONObject(text)
-        .getJSONArray("choices")
-        .getJSONObject(0)
-        .getJSONObject("message")
-        .getString("content")
+    throw lastError
 }
-
-private fun askChatGpt(apiKey: String, history: List<ChatExchange>): String =
-    askOpenAiCompatible("https://api.openai.com/v1/chat/completions", apiKey, "gpt-4o-mini", history, "ChatGPT")
 
 private fun askGroq(apiKey: String, history: List<ChatExchange>): String =
     askOpenAiCompatible("https://api.groq.com/openai/v1/chat/completions", apiKey, "openai/gpt-oss-120b", history, "Groq")
-
-private fun askCerebras(apiKey: String, history: List<ChatExchange>): String =
-    askOpenAiCompatible("https://api.cerebras.ai/v1/chat/completions", apiKey, "gpt-oss-120b", history, "Cerebras")
 
 private fun askMistral(apiKey: String, history: List<ChatExchange>): String =
     askOpenAiCompatible("https://api.mistral.ai/v1/chat/completions", apiKey, "mistral-small-latest", history, "Mistral")
 
 private fun askGeminiWithRetry(apiKey: String, history: List<ChatExchange>): String {
-    // Gemini is the slowest of the providers, so we keep retries lean: two attempts
-    // total with a short backoff, rather than hammering a busy endpoint for a long time.
-    repeat(2) { attempt ->
+    val maxAttempts = 3
+    var lastError: Exception = Exception("Gemini is temporarily unavailable. Please try again.")
+    repeat(maxAttempts) { attempt ->
         try {
             return askGemini(apiKey, history)
+        } catch (e: GeminiHttpException) {
+            lastError = Exception(friendlyApiError("Gemini", e.code, e.rawBody))
+            val retryable = e.code in RETRYABLE_HTTP_CODES
+            if (!retryable || attempt == maxAttempts - 1) throw lastError
         } catch (e: Exception) {
-            val busy = e.message?.contains("(503)") == true || e.message?.contains("(429)") == true
-            if (!busy) throw e
-            Thread.sleep(1200L * (attempt + 1))
+            lastError = Exception(friendlyNetworkError("Gemini", e))
+            if (attempt == maxAttempts - 1) throw lastError
         }
+        Thread.sleep(2000L * (1L shl attempt)) // 2s, 4s, 8s
     }
-    throw Exception("Gemini is busy right now. Try again in a moment.")
+    throw lastError
 }
+
+/** Carries the HTTP status and raw body so the retry wrapper can classify the failure. */
+private class GeminiHttpException(val code: Int, val rawBody: String) : Exception()
 
 private fun askGemini(apiKey: String, history: List<ChatExchange>): String {
     val conn = URL(
@@ -360,7 +469,7 @@ private fun askGemini(apiKey: String, history: List<ChatExchange>): String {
     val text = stream.bufferedReader().readText()
     conn.disconnect()
 
-    if (code !in 200..299) throw Exception("Gemini error ($code): $text")
+    if (code !in 200..299) throw GeminiHttpException(code, text)
 
     return JSONObject(text)
         .getJSONArray("candidates")
@@ -459,11 +568,8 @@ private fun toneStyle(tone: Tone): ToneStyle {
 // Each AI/data source gets its own brand-ish accent color so the source picker
 // reads at a glance instead of every option looking the same.
 private fun providerColor(provider: String): Color = when (provider) {
-    "ChatGPT" -> Color(0xFF10A37F)
     "Groq" -> Color(0xFFF55036)
-    "PubMed" -> Color(0xFF2A6EBB)
     "Gemini" -> Color(0xFF8E44AD)
-    "Cerebras" -> Color(0xFFFF6D00)
     "Mistral" -> Color(0xFFFFA000)
     else -> Color(0xFF6C63FF)
 }
@@ -704,60 +810,10 @@ private fun ErrorCard(message: String, actionLabel: String, onAction: () -> Unit
     }
 }
 
-@Composable
-private fun PubMedCard(index: Int, r: PubMedResult, onOpen: () -> Unit) {
-    val cs = MaterialTheme.colorScheme
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .clickable(onClick = onOpen),
-        shape = RoundedCornerShape(22.dp),
-        color = cs.surfaceVariant.copy(alpha = 0.55f)
-    ) {
-        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(
-                modifier = Modifier.size(28.dp).background(cs.primary.copy(alpha = 0.14f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "$index",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = cs.primary,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-                Text(r.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                if (r.journal.isNotBlank() || r.pubDate.isNotBlank()) {
-                    Text(
-                        "${r.journal} · ${r.pubDate}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = cs.onSurfaceVariant
-                    )
-                }
-                Text(
-                    "Open in PubMed · PMID ${r.pmid}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = cs.primary
-                )
-            }
-        }
-    }
-}
-
 // Each provider gets its own larger pool of suggestions so they don't all show the
 // same four questions; pickSuggestions() below draws a fresh random subset from the
 // right pool every time the screen is opened, so they also change on every app start.
 private val suggestionPools: Map<String, List<String>> = mapOf(
-    "ChatGPT" to listOf(
-        "Sepsis-3 criteria",
-        "Metformin dosing in CKD",
-        "Warfarin and antibiotic interactions",
-        "Hyperkalemia management",
-        "DKA management protocol",
-        "Community-acquired pneumonia workup"
-    ),
     "Groq" to listOf(
         "Acute coronary syndrome red flags",
         "Steroid tapering after prolonged use",
@@ -774,14 +830,6 @@ private val suggestionPools: Map<String, List<String>> = mapOf(
         "Thyroid function test interpretation",
         "Managing status epilepticus"
     ),
-    "Cerebras" to listOf(
-        "Electrolyte correction in refeeding syndrome",
-        "VTE prophylaxis in hospitalized patients",
-        "Acute kidney injury workup",
-        "Delirium vs dementia differentiation",
-        "Blood pressure targets in stroke",
-        "Approach to unexplained syncope"
-    ),
     "Mistral" to listOf(
         "Antibiotic choice for UTI in pregnancy",
         "Managing hypertensive emergency",
@@ -789,14 +837,6 @@ private val suggestionPools: Map<String, List<String>> = mapOf(
         "Approach to acute low back pain",
         "Postoperative fever workup",
         "Management of anaphylaxis"
-    ),
-    "PubMed" to listOf(
-        "SGLT2 inhibitors in heart failure",
-        "Sepsis fluid resuscitation",
-        "Anticoagulation in atrial fibrillation",
-        "GLP-1 agonists cardiovascular outcomes",
-        "Early mobilization in ICU",
-        "Statin therapy in primary prevention"
     )
 )
 
@@ -809,8 +849,7 @@ private fun EmptyState(provider: String, suggestions: List<String>, onPick: (Str
     Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("What do you need to know?", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Text(
-            if (provider == "PubMed") "Search medical literature. No API key needed."
-            else "Ask a clinical question and get a structured, scannable answer.",
+            "Ask a clinical question and get a structured, scannable answer.",
             style = MaterialTheme.typography.bodyMedium,
             color = cs.onSurfaceVariant
         )
@@ -896,33 +935,102 @@ private fun ComposerBar(
 fun AiInsightsScreen(onBackClick: () -> Unit) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     val listState = rememberLazyListState()
 
     var query by remember { mutableStateOf("") }
     var pendingQuestion by remember { mutableStateOf("") }
-    var provider by remember { mutableStateOf("ChatGPT") }
+    var provider by remember { mutableStateOf("Groq") }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var errorNeedsKey by remember { mutableStateOf(false) }
     var thread by remember { mutableStateOf<List<ChatExchange>>(emptyList()) }
     var sortMode by remember { mutableStateOf("Relevance") }
 
+    // Saved chat sessions for the current provider, plus which one (if any) is
+    // currently open. A null activeSessionId means the current conversation
+    // hasn't been saved as a session yet (a brand-new, still-empty chat).
+    var sessions by remember { mutableStateOf<List<ChatSession>>(emptyList()) }
+    var activeSessionId by remember { mutableStateOf<String?>(null) }
+    var showChatMenu by remember { mutableStateOf(false) }
+    var showClearConfirm by remember { mutableStateOf(false) }
+    var showHistoryDialog by remember { mutableStateOf(false) }
+
     var showAiSourceDialog by remember { mutableStateOf(false) }
     var keyDraft by remember { mutableStateOf("") }
 
-    val providers = listOf("ChatGPT", "Groq", "PubMed", "Gemini", "Cerebras", "Mistral")
+    val providers = listOf("Groq", "Gemini", "Mistral")
 
     // Freshly randomized per provider each time this screen is entered, so the
     // "try asking" suggestions differ on every app start rather than being static.
     val suggestionsByProvider = remember { providers.associateWith { pickSuggestions(it) } }
 
     fun loadHistoryFor(target: String) {
-        thread = loadStoredThread(context, target)
+        sessions = loadSessions(context, target)
+        val storedActiveId = loadActiveSessionId(context, target)
+        val active = sessions.find { it.id == storedActiveId }
+        activeSessionId = active?.id
+        thread = active?.exchanges ?: emptyList()
         sortMode = thread.lastOrNull { it.results.isNotEmpty() }?.sortMode ?: "Relevance"
         error = null
         errorNeedsKey = false
         pendingQuestion = ""
+    }
+
+    // Saves the current turn either into its existing session, or — for a
+    // brand-new chat that hasn't been saved yet — creates that session now.
+    fun persistThread(target: String, updated: List<ChatExchange>) {
+        val currentId = activeSessionId
+        if (currentId == null) {
+            val newSession = ChatSession(id = UUID.randomUUID().toString(), title = sessionTitle(updated), exchanges = updated)
+            val updatedSessions = sessions + newSession
+            sessions = updatedSessions
+            activeSessionId = newSession.id
+            saveSessions(context, target, updatedSessions)
+            saveActiveSessionId(context, target, newSession.id)
+        } else {
+            val updatedSessions = sessions.map { if (it.id == currentId) it.copy(exchanges = updated) else it }
+            sessions = updatedSessions
+            saveSessions(context, target, updatedSessions)
+        }
+    }
+
+    // "New Chat": keeps the current conversation saved in chat history and
+    // starts a blank one.
+    fun startNewChat() {
+        activeSessionId = null
+        thread = emptyList()
+        pendingQuestion = ""
+        error = null
+        errorNeedsKey = false
+        saveActiveSessionId(context, provider, null)
+    }
+
+    // "Clear Chat": drops the current conversation entirely, without keeping
+    // it in chat history.
+    fun clearChat() {
+        val currentId = activeSessionId
+        if (currentId != null) {
+            val updatedSessions = sessions.filterNot { it.id == currentId }
+            sessions = updatedSessions
+            saveSessions(context, provider, updatedSessions)
+        }
+        activeSessionId = null
+        thread = emptyList()
+        pendingQuestion = ""
+        error = null
+        errorNeedsKey = false
+        saveActiveSessionId(context, provider, null)
+    }
+
+    fun switchToSession(session: ChatSession) {
+        activeSessionId = session.id
+        thread = session.exchanges
+        sortMode = thread.lastOrNull { it.results.isNotEmpty() }?.sortMode ?: "Relevance"
+        pendingQuestion = ""
+        error = null
+        errorNeedsKey = false
+        saveActiveSessionId(context, provider, session.id)
+        showHistoryDialog = false
     }
 
     // Restore the full thread for the initially selected provider when the screen
@@ -938,32 +1046,10 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         query = ""
         val source = provider
 
-        if (source == "PubMed") {
-            loading = true
-            scope.launch {
-                try {
-                    val r = withContext(Dispatchers.IO) { searchPubMed(question, sortMode) }
-                    if (r.isEmpty()) {
-                        error = "No results found for that query."
-                    } else {
-                        val updated = thread + ChatExchange(question, results = r, sortMode = sortMode)
-                        thread = updated
-                        saveStoredThread(context, source, updated)
-                        pendingQuestion = ""
-                    }
-                } catch (e: Exception) {
-                    error = "Couldn't reach PubMed: ${e.message}"
-                } finally {
-                    loading = false
-                }
-            }
-            return
-        }
-
         val apiKey = getStoredApiKey(context, source)
         if (apiKey.isBlank()) {
             errorNeedsKey = true
-            error = "$source needs an API key before it can answer. Add yours, or switch to PubMed, which needs no key."
+            error = "$source needs an API key before it can answer."
             return
         }
 
@@ -975,19 +1061,19 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             try {
                 val answer = withContext(Dispatchers.IO) {
                     when (source) {
-                        "ChatGPT" -> askChatGpt(apiKey, historyForCall)
                         "Groq" -> askGroq(apiKey, historyForCall)
-                        "Cerebras" -> askCerebras(apiKey, historyForCall)
                         "Mistral" -> askMistral(apiKey, historyForCall)
                         else -> askGeminiWithRetry(apiKey, historyForCall)
                     }
                 }
                 val updated = thread + ChatExchange(question, answer = answer)
                 thread = updated
-                saveStoredThread(context, source, updated)
+                persistThread(source, updated)
                 pendingQuestion = ""
             } catch (e: Exception) {
-                error = "Couldn't reach $source: ${e.message}"
+                // askOpenAiCompatible / askGeminiWithRetry already produce a clean,
+                // labeled, user-facing message — no raw JSON or status-code noise.
+                error = e.message ?: "Couldn't reach $source. Please try again."
             } finally {
                 loading = false
             }
@@ -1050,6 +1136,71 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             )
         }
 
+        if (showClearConfirm) {
+            AlertDialog(
+                onDismissRequest = { showClearConfirm = false },
+                title = { Text("Clear this chat?") },
+                text = {
+                    Text(
+                        "This removes the current $provider conversation. It won't be kept in chat history.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showClearConfirm = false
+                        clearChat()
+                    }) { Text("Clear") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showClearConfirm = false }) { Text("Cancel") }
+                }
+            )
+        }
+
+        if (showHistoryDialog) {
+            AlertDialog(
+                onDismissRequest = { showHistoryDialog = false },
+                title = { Text("Chat History · $provider") },
+                text = {
+                    if (sessions.isEmpty()) {
+                        Text("No saved chats yet.", style = MaterialTheme.typography.bodyMedium)
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            sessions.asReversed().forEach { session ->
+                                val isActive = session.id == activeSessionId
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { switchToSession(session) },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isActive) MaterialTheme.colorScheme.primaryContainer
+                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Text(
+                                            session.title,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            "${session.exchanges.size} message${if (session.exchanges.size == 1) "" else "s"}",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showHistoryDialog = false }) { Text("Close") }
+                }
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -1070,12 +1221,43 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-                if (provider != "PubMed") {
-                    IconButton(onClick = {
-                        keyDraft = getStoredApiKey(context, provider)
-                        showAiSourceDialog = true
-                    }) {
-                        Icon(Icons.Outlined.Settings, contentDescription = "AI Source")
+                IconButton(onClick = {
+                    keyDraft = getStoredApiKey(context, provider)
+                    showAiSourceDialog = true
+                }) {
+                    Icon(Icons.Outlined.Settings, contentDescription = "AI Source")
+                }
+                Box {
+                    IconButton(onClick = { showChatMenu = true }) {
+                        Icon(Icons.Filled.MoreVert, contentDescription = "Chat options")
+                    }
+                    DropdownMenu(expanded = showChatMenu, onDismissRequest = { showChatMenu = false }) {
+                        DropdownMenuItem(
+                            text = { Text("New Chat") },
+                            leadingIcon = { Icon(Icons.Filled.Add, contentDescription = null) },
+                            onClick = {
+                                showChatMenu = false
+                                startNewChat()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Clear Chat") },
+                            leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null) },
+                            enabled = thread.isNotEmpty(),
+                            onClick = {
+                                showChatMenu = false
+                                showClearConfirm = true
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Chat History") },
+                            leadingIcon = { Icon(Icons.Filled.History, contentDescription = null) },
+                            enabled = sessions.isNotEmpty(),
+                            onClick = {
+                                showChatMenu = false
+                                showHistoryDialog = true
+                            }
+                        )
                     }
                 }
             }
@@ -1102,31 +1284,6 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 }
             }
 
-            if (provider == "PubMed") {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Sort",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    listOf("Relevance", "Newest").forEach { mode ->
-                        FilterChip(
-                            selected = sortMode == mode,
-                            enabled = !loading,
-                            onClick = {
-                                sortMode = mode
-                                thread.lastOrNull()?.question?.let { runSearch(it) }
-                            },
-                            label = { Text(mode) }
-                        )
-                    }
-                }
-            }
-
             LazyColumn(
                 state = listState,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -1141,25 +1298,10 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                     itemsIndexed(thread) { _, exchange ->
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             QuestionBubble(exchange.question)
-                            if (provider == "PubMed") {
-                                if (exchange.results.isNotEmpty()) {
-                                    Text(
-                                        "${exchange.results.size} results · ${exchange.sortMode.lowercase()}",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    exchange.results.forEachIndexed { i, r ->
-                                        PubMedCard(i + 1, r) {
-                                            uriHandler.openUri("https://pubmed.ncbi.nlm.nih.gov/${r.pmid}/")
-                                        }
-                                    }
-                                }
-                            } else {
-                                exchange.answer?.let { ans ->
-                                    val sections = remember(ans) { parseInsight(ans) }
-                                    sections.forEach { InsightCard(it) }
-                                    AnswerActions(ans)
-                                }
+                            exchange.answer?.let { ans ->
+                                val sections = remember(ans) { parseInsight(ans) }
+                                sections.forEach { InsightCard(it) }
+                                AnswerActions(ans)
                             }
                         }
                     }
@@ -1168,13 +1310,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 QuestionBubble(pendingQuestion)
-                                if (provider == "PubMed") {
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                        CircularProgressIndicator()
-                                    }
-                                } else {
-                                    InsightSkeleton()
-                                }
+                                InsightSkeleton()
                             }
                         }
                     }
@@ -1203,7 +1339,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             ComposerBar(
                 query = query,
                 onQueryChange = { query = it },
-                placeholder = if (provider == "PubMed") "Search medical literature" else "Ask a Clinical Question",
+                placeholder = "Ask a Clinical Question",
                 loading = loading,
                 onSend = { runSearch() }
             )

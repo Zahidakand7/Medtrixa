@@ -44,6 +44,7 @@ import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.AiInsightsScreen
 import com.medtrixa.app.ui.screens.ToolsScreen
 import com.medtrixa.app.ui.screens.ReferenceScreen
+import com.medtrixa.app.ui.screens.PubMedScreen
 import com.medtrixa.app.ui.screens.AntimicrobialReferenceHubScreen
 import com.medtrixa.app.ui.screens.BacterialAtlasScreen
 import com.medtrixa.app.ui.screens.AntibioticDosingGuidelinesScreen
@@ -161,8 +162,16 @@ private fun MedtrixaRoot() {
                         currentScreen = "antibiotic_dosing"
                     } else if (referenceId == "antibiotic_stewardship") {
                         currentScreen = "antibiotic_stewardship"
+                    } else if (referenceId == "pubmed") {
+                        currentScreen = "pubmed"
                     }
                 }
+            )
+        }
+
+        "pubmed" -> {
+            PubMedScreen(
+                onBackClick = { currentScreen = "reference" }
             )
         }
 

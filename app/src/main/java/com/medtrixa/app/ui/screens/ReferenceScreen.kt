@@ -48,6 +48,11 @@ fun ReferenceScreen(
 ) {
     val references = listOf(
         ReferenceItem(
+            id = "pubmed",
+            title = "PubMed",
+            description = "Search medical literature."
+        ),
+        ReferenceItem(
             id = "antibiotic_stewardship",
             title = "Antibiotic Stewardship",
             description = "Quick reference for everyday prescribing, adapted from CDC's Core Elements"
