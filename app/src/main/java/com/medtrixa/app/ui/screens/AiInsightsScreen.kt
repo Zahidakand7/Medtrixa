@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +28,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -60,6 +60,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -74,6 +75,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -147,34 +149,139 @@ private fun getStoredApiKey(context: android.content.Context, provider: String):
 
 private fun saveApiKey(context: android.content.Context, provider: String, key: String) {
     val prefs = context.getSharedPreferences(AI_SOURCE_PREFS, android.content.Context.MODE_PRIVATE)
+    // Keys are written with apply() to a persistent, app-private SharedPreferences file.
+    // They remain on disk across app restarts/updates until removeApiKey() is called.
     prefs.edit().putString("key_$provider", key).apply()
 }
 
-private fun askChatGpt(apiKey: String, question: String): String {
-    val conn = URL("https://api.openai.com/v1/chat/completions").openConnection() as HttpURLConnection
+private fun removeApiKey(context: android.content.Context, provider: String) {
+    val prefs = context.getSharedPreferences(AI_SOURCE_PREFS, android.content.Context.MODE_PRIVATE)
+    prefs.edit().remove("key_$provider").apply()
+}
+
+// ───────────────────────── Chat history persistence ─────────────────────────
+// Keeps the full conversation thread (every question + answer, or question +
+// PubMed results) for each provider, so re-opening the screen after the app
+// was closed shows the whole thread where you left off, not just the last turn.
+
+private const val AI_HISTORY_PREFS = "medtrixa_ai_history"
+
+private data class ChatExchange(
+    val question: String,
+    val answer: String? = null,
+    val results: List<PubMedResult> = emptyList(),
+    val sortMode: String = "Relevance"
+)
+
+private fun saveStoredThread(context: android.content.Context, provider: String, thread: List<ChatExchange>) {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    val arr = JSONArray().apply {
+        thread.forEach { exchange ->
+            put(JSONObject().apply {
+                put("q", exchange.question)
+                exchange.answer?.let { put("a", it) }
+                put("sort", exchange.sortMode)
+                put("results", JSONArray().apply {
+                    exchange.results.forEach { r ->
+                        put(JSONObject().apply {
+                            put("pmid", r.pmid)
+                            put("title", r.title)
+                            put("journal", r.journal)
+                            put("pubDate", r.pubDate)
+                        })
+                    }
+                })
+            })
+        }
+    }
+    prefs.edit().putString("thread_$provider", arr.toString()).apply()
+}
+
+private fun loadStoredThread(context: android.content.Context, provider: String): List<ChatExchange> {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    val raw = prefs.getString("thread_$provider", null) ?: return emptyList()
+    return try {
+        val arr = JSONArray(raw)
+        (0 until arr.length()).map { i ->
+            val json = arr.getJSONObject(i)
+            val resultsArr = json.optJSONArray("results")
+            val results = mutableListOf<PubMedResult>()
+            if (resultsArr != null) {
+                for (j in 0 until resultsArr.length()) {
+                    val item = resultsArr.getJSONObject(j)
+                    results.add(
+                        PubMedResult(
+                            pmid = item.optString("pmid", ""),
+                            title = item.optString("title", ""),
+                            journal = item.optString("journal", ""),
+                            pubDate = item.optString("pubDate", "")
+                        )
+                    )
+                }
+            }
+            ChatExchange(
+                question = json.optString("q", ""),
+                answer = if (json.has("a")) json.optString("a") else null,
+                results = results,
+                sortMode = json.optString("sort", "Relevance")
+            )
+        }
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
+
+private fun clearStoredThread(context: android.content.Context, provider: String) {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    prefs.edit().remove("thread_$provider").apply()
+}
+
+private const val CLINICAL_SYSTEM_PROMPT =
+    "You are a clinical reference assistant for healthcare professionals. " +
+        "Answer concisely and precisely, using clinical terminology, and note " +
+        "when a question needs the clinician's own judgment or a primary source."
+
+/**
+ * Shared caller for OpenAI-compatible chat-completions endpoints.
+ * ChatGPT, Groq, Cerebras, and Mistral all speak this same request/response shape.
+ * `history` is the full thread so far, including the new question as the last
+ * exchange (with a null answer) — this is what makes it a real multi-turn
+ * conversation instead of a one-off question each time.
+ */
+private fun askOpenAiCompatible(
+    endpoint: String,
+    apiKey: String,
+    model: String,
+    history: List<ChatExchange>,
+    label: String
+): String {
+    val conn = URL(endpoint).openConnection() as HttpURLConnection
     conn.requestMethod = "POST"
     conn.setRequestProperty("Authorization", "Bearer $apiKey")
     conn.setRequestProperty("Content-Type", "application/json")
     conn.doOutput = true
-    conn.connectTimeout = 60000
-    conn.readTimeout = 60000
+    conn.connectTimeout = 45000
+    conn.readTimeout = 45000
 
     val body = JSONObject().apply {
-        put("model", "gpt-4o-mini")
+        put("model", model)
         put("messages", JSONArray().apply {
             put(JSONObject().apply {
                 put("role", "system")
-                put(
-                    "content",
-                    "You are a clinical reference assistant for healthcare professionals. " +
-                        "Answer concisely and precisely, using clinical terminology, and note " +
-                        "when a question needs the clinician's own judgment or a primary source."
-                )
+                put("content", CLINICAL_SYSTEM_PROMPT)
             })
-            put(JSONObject().apply {
-                put("role", "user")
-                put("content", question)
-            })
+            history.forEach { exchange ->
+                put(JSONObject().apply {
+                    put("role", "user")
+                    put("content", exchange.question)
+                })
+                exchange.answer?.let { ans ->
+                    put(JSONObject().apply {
+                        put("role", "assistant")
+                        put("content", ans)
+                    })
+                }
+            }
         })
     }
     conn.outputStream.use { it.write(body.toString().toByteArray()) }
@@ -184,7 +291,7 @@ private fun askChatGpt(apiKey: String, question: String): String {
     val text = stream.bufferedReader().readText()
     conn.disconnect()
 
-    if (code !in 200..299) throw Exception("ChatGPT error ($code): $text")
+    if (code !in 200..299) throw Exception("$label error ($code): $text")
 
     return JSONObject(text)
         .getJSONArray("choices")
@@ -193,36 +300,59 @@ private fun askChatGpt(apiKey: String, question: String): String {
         .getString("content")
 }
 
-private fun askGeminiWithRetry(apiKey: String, question: String): String {
-    repeat(3) { attempt ->
+private fun askChatGpt(apiKey: String, history: List<ChatExchange>): String =
+    askOpenAiCompatible("https://api.openai.com/v1/chat/completions", apiKey, "gpt-4o-mini", history, "ChatGPT")
+
+private fun askGroq(apiKey: String, history: List<ChatExchange>): String =
+    askOpenAiCompatible("https://api.groq.com/openai/v1/chat/completions", apiKey, "openai/gpt-oss-120b", history, "Groq")
+
+private fun askCerebras(apiKey: String, history: List<ChatExchange>): String =
+    askOpenAiCompatible("https://api.cerebras.ai/v1/chat/completions", apiKey, "gpt-oss-120b", history, "Cerebras")
+
+private fun askMistral(apiKey: String, history: List<ChatExchange>): String =
+    askOpenAiCompatible("https://api.mistral.ai/v1/chat/completions", apiKey, "mistral-small-latest", history, "Mistral")
+
+private fun askGeminiWithRetry(apiKey: String, history: List<ChatExchange>): String {
+    // Gemini is the slowest of the providers, so we keep retries lean: two attempts
+    // total with a short backoff, rather than hammering a busy endpoint for a long time.
+    repeat(2) { attempt ->
         try {
-            return askGemini(apiKey, question)
+            return askGemini(apiKey, history)
         } catch (e: Exception) {
             val busy = e.message?.contains("(503)") == true || e.message?.contains("(429)") == true
             if (!busy) throw e
-            Thread.sleep(2000L * (attempt + 1))
+            Thread.sleep(1200L * (attempt + 1))
         }
     }
     throw Exception("Gemini is busy right now. Try again in a moment.")
 }
 
-private fun askGemini(apiKey: String, question: String): String {
+private fun askGemini(apiKey: String, history: List<ChatExchange>): String {
     val conn = URL(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=$apiKey"
     ).openConnection() as HttpURLConnection
     conn.requestMethod = "POST"
     conn.setRequestProperty("Content-Type", "application/json")
     conn.doOutput = true
-    conn.connectTimeout = 60000
-    conn.readTimeout = 60000
+    conn.connectTimeout = 45000
+    conn.readTimeout = 45000
 
     val body = JSONObject().apply {
         put("generationConfig", JSONObject().put("thinkingConfig", JSONObject().put("thinkingLevel", "low")))
-        put("contents", JSONArray().put(
-            JSONObject().apply {
-                put("parts", JSONArray().put(JSONObject().put("text", question)))
+        put("contents", JSONArray().apply {
+            history.forEach { exchange ->
+                put(JSONObject().apply {
+                    put("role", "user")
+                    put("parts", JSONArray().put(JSONObject().put("text", exchange.question)))
+                })
+                exchange.answer?.let { ans ->
+                    put(JSONObject().apply {
+                        put("role", "model")
+                        put("parts", JSONArray().put(JSONObject().put("text", ans)))
+                    })
+                }
             }
-        ))
+        })
     }
     conn.outputStream.use { it.write(body.toString().toByteArray()) }
 
@@ -395,7 +525,8 @@ private fun InsightCard(section: InsightSection) {
                                 b.text.withBold(),
                                 style = if (section.title == null) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
                                 color = ts.onContainer,
-                                lineHeight = 22.sp
+                                lineHeight = 22.sp,
+                                textAlign = TextAlign.Justify
                             )
                             is InsightBlock.Bullet -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Box(
@@ -406,6 +537,7 @@ private fun InsightCard(section: InsightSection) {
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = ts.onContainer,
                                     lineHeight = 22.sp,
+                                    textAlign = TextAlign.Justify,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -426,6 +558,7 @@ private fun InsightCard(section: InsightSection) {
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = ts.onContainer,
                                     lineHeight = 22.sp,
+                                    textAlign = TextAlign.Justify,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -554,14 +687,66 @@ private fun PubMedCard(index: Int, r: PubMedResult, onOpen: () -> Unit) {
     }
 }
 
+// Each provider gets its own larger pool of suggestions so they don't all show the
+// same four questions; pickSuggestions() below draws a fresh random subset from the
+// right pool every time the screen is opened, so they also change on every app start.
+private val suggestionPools: Map<String, List<String>> = mapOf(
+    "ChatGPT" to listOf(
+        "Sepsis-3 criteria",
+        "Metformin dosing in CKD",
+        "Warfarin and antibiotic interactions",
+        "Hyperkalemia management",
+        "DKA management protocol",
+        "Community-acquired pneumonia workup"
+    ),
+    "Groq" to listOf(
+        "Acute coronary syndrome red flags",
+        "Steroid tapering after prolonged use",
+        "Community-acquired pneumonia antibiotics",
+        "Approach to acute abdominal pain",
+        "Beta-blocker choice in heart failure",
+        "Management of acute asthma exacerbation"
+    ),
+    "Gemini" to listOf(
+        "Differential for acute chest pain",
+        "Insulin sliding scale basics",
+        "Stroke thrombolysis window",
+        "Approach to unexplained weight loss",
+        "Thyroid function test interpretation",
+        "Managing status epilepticus"
+    ),
+    "Cerebras" to listOf(
+        "Electrolyte correction in refeeding syndrome",
+        "VTE prophylaxis in hospitalized patients",
+        "Acute kidney injury workup",
+        "Delirium vs dementia differentiation",
+        "Blood pressure targets in stroke",
+        "Approach to unexplained syncope"
+    ),
+    "Mistral" to listOf(
+        "Antibiotic choice for UTI in pregnancy",
+        "Managing hypertensive emergency",
+        "Opioid conversion basics",
+        "Approach to acute low back pain",
+        "Postoperative fever workup",
+        "Management of anaphylaxis"
+    ),
+    "PubMed" to listOf(
+        "SGLT2 inhibitors in heart failure",
+        "Sepsis fluid resuscitation",
+        "Anticoagulation in atrial fibrillation",
+        "GLP-1 agonists cardiovascular outcomes",
+        "Early mobilization in ICU",
+        "Statin therapy in primary prevention"
+    )
+)
+
+private fun pickSuggestions(provider: String): List<String> =
+    (suggestionPools[provider] ?: emptyList()).shuffled().take(4)
+
 @Composable
-private fun EmptyState(provider: String, onPick: (String) -> Unit) {
+private fun EmptyState(provider: String, suggestions: List<String>, onPick: (String) -> Unit) {
     val cs = MaterialTheme.colorScheme
-    val suggestions = if (provider == "PubMed") {
-        listOf("SGLT2 inhibitors in heart failure", "Sepsis fluid resuscitation", "Anticoagulation in atrial fibrillation")
-    } else {
-        listOf("Sepsis-3 criteria", "Metformin dosing in CKD", "Warfarin and antibiotic interactions", "Hyperkalemia management")
-    }
     Column(modifier = Modifier.fillMaxWidth().padding(top = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("What do you need to know?", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Text(
@@ -656,29 +841,41 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     val listState = rememberLazyListState()
 
     var query by remember { mutableStateOf("") }
-    var askedQuery by remember { mutableStateOf("") }
+    var pendingQuestion by remember { mutableStateOf("") }
     var provider by remember { mutableStateOf("ChatGPT") }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var errorNeedsKey by remember { mutableStateOf(false) }
-    var results by remember { mutableStateOf<List<PubMedResult>>(emptyList()) }
-    var aiAnswer by remember { mutableStateOf<String?>(null) }
+    var thread by remember { mutableStateOf<List<ChatExchange>>(emptyList()) }
     var sortMode by remember { mutableStateOf("Relevance") }
 
     var showAiSourceDialog by remember { mutableStateOf(false) }
     var keyDraft by remember { mutableStateOf("") }
 
-    val providers = listOf("ChatGPT", "Gemini", "PubMed")
-    val sections = remember(aiAnswer) { aiAnswer?.let { parseInsight(it) }.orEmpty() }
+    val providers = listOf("ChatGPT", "Groq", "PubMed", "Gemini", "Cerebras", "Mistral")
+
+    // Freshly randomized per provider each time this screen is entered, so the
+    // "try asking" suggestions differ on every app start rather than being static.
+    val suggestionsByProvider = remember { providers.associateWith { pickSuggestions(it) } }
+
+    fun loadHistoryFor(target: String) {
+        thread = loadStoredThread(context, target)
+        sortMode = thread.lastOrNull { it.results.isNotEmpty() }?.sortMode ?: "Relevance"
+        error = null
+        errorNeedsKey = false
+        pendingQuestion = ""
+    }
+
+    // Restore the full thread for the initially selected provider when the screen
+    // (re)opens, so closing and reopening the app doesn't lose where you left off.
+    LaunchedEffect(Unit) { loadHistoryFor(provider) }
 
     fun runSearch(q: String = query) {
         val question = q.trim()
         if (question.isEmpty() || loading) return
         error = null
         errorNeedsKey = false
-        results = emptyList()
-        aiAnswer = null
-        askedQuery = question
+        pendingQuestion = question
         query = ""
         val source = provider
 
@@ -687,8 +884,14 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             scope.launch {
                 try {
                     val r = withContext(Dispatchers.IO) { searchPubMed(question, sortMode) }
-                    results = r
-                    if (r.isEmpty()) error = "No results found for that query."
+                    if (r.isEmpty()) {
+                        error = "No results found for that query."
+                    } else {
+                        val updated = thread + ChatExchange(question, results = r, sortMode = sortMode)
+                        thread = updated
+                        saveStoredThread(context, source, updated)
+                        pendingQuestion = ""
+                    }
                 } catch (e: Exception) {
                     error = "Couldn't reach PubMed: ${e.message}"
                 } finally {
@@ -706,12 +909,24 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         }
 
         loading = true
+        // The new question is included as the last turn of the history sent to the
+        // model, so each answer is aware of the whole conversation so far.
+        val historyForCall = thread + ChatExchange(question)
         scope.launch {
             try {
                 val answer = withContext(Dispatchers.IO) {
-                    if (source == "ChatGPT") askChatGpt(apiKey, question) else askGeminiWithRetry(apiKey, question)
+                    when (source) {
+                        "ChatGPT" -> askChatGpt(apiKey, historyForCall)
+                        "Groq" -> askGroq(apiKey, historyForCall)
+                        "Cerebras" -> askCerebras(apiKey, historyForCall)
+                        "Mistral" -> askMistral(apiKey, historyForCall)
+                        else -> askGeminiWithRetry(apiKey, historyForCall)
+                    }
                 }
-                aiAnswer = answer
+                val updated = thread + ChatExchange(question, answer = answer)
+                thread = updated
+                saveStoredThread(context, source, updated)
+                pendingQuestion = ""
             } catch (e: Exception) {
                 error = "Couldn't reach $source: ${e.message}"
             } finally {
@@ -720,7 +935,10 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         }
     }
 
-    LaunchedEffect(askedQuery, aiAnswer, results) { listState.animateScrollToItem(0) }
+    LaunchedEffect(thread.size, loading, error) {
+        val lastIndex = thread.size + if (loading || error != null) 0 else -1
+        if (lastIndex >= 0) listState.animateScrollToItem(lastIndex)
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
 
@@ -731,7 +949,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 text = {
                     Column {
                         Text(
-                            "Enter your own $provider API key. It's stored only on this device.",
+                            "Enter your own $provider API key. It's stored only on this device, and stays saved until you remove it here.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -751,13 +969,24 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                     TextButton(onClick = {
                         saveApiKey(context, provider, keyDraft.trim())
                         showAiSourceDialog = false
-                        if (errorNeedsKey && askedQuery.isNotBlank() && keyDraft.isNotBlank()) {
-                            runSearch(askedQuery)
+                        if (errorNeedsKey && pendingQuestion.isNotBlank() && keyDraft.isNotBlank()) {
+                            runSearch(pendingQuestion)
                         }
                     }) { Text("Save") }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showAiSourceDialog = false }) { Text("Cancel") }
+                    Row {
+                        if (keyDraft.isNotBlank()) {
+                            TextButton(onClick = {
+                                // Stay open after removing so the user can type a
+                                // replacement key right away instead of having to
+                                // reopen "AI Source" from scratch.
+                                removeApiKey(context, provider)
+                                keyDraft = ""
+                            }) { Text("Remove key") }
+                        }
+                        TextButton(onClick = { showAiSourceDialog = false }) { Text("Cancel") }
+                    }
                 }
             )
         }
@@ -793,7 +1022,10 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 providers.forEach { option ->
@@ -803,11 +1035,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                         onClick = {
                             if (provider != option) {
                                 provider = option
-                                results = emptyList()
-                                aiAnswer = null
-                                error = null
-                                errorNeedsKey = false
-                                askedQuery = ""
+                                loadHistoryFor(option)
                             }
                         },
                         label = { Text(option) }
@@ -832,7 +1060,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                             enabled = !loading,
                             onClick = {
                                 sortMode = mode
-                                if (askedQuery.isNotBlank()) runSearch(askedQuery)
+                                thread.lastOrNull()?.question?.let { runSearch(it) }
                             },
                             label = { Text(mode) }
                         )
@@ -840,62 +1068,73 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 }
             }
 
-            val hasContent = loading || error != null || aiAnswer != null || results.isNotEmpty()
-
             LazyColumn(
                 state = listState,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                if (!hasContent) {
-                    item { EmptyState(provider) { runSearch(it) } }
+                if (thread.isEmpty() && !loading && error == null) {
+                    item {
+                        EmptyState(provider, suggestionsByProvider[provider].orEmpty()) { runSearch(it) }
+                    }
                 } else {
-                    item { QuestionBubble(askedQuery) }
+                    itemsIndexed(thread) { _, exchange ->
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            QuestionBubble(exchange.question)
+                            if (provider == "PubMed") {
+                                if (exchange.results.isNotEmpty()) {
+                                    Text(
+                                        "${exchange.results.size} results · ${exchange.sortMode.lowercase()}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    exchange.results.forEachIndexed { i, r ->
+                                        PubMedCard(i + 1, r) {
+                                            uriHandler.openUri("https://pubmed.ncbi.nlm.nih.gov/${r.pmid}/")
+                                        }
+                                    }
+                                }
+                            } else {
+                                exchange.answer?.let { ans ->
+                                    val sections = remember(ans) { parseInsight(ans) }
+                                    sections.forEach { InsightCard(it) }
+                                    AnswerActions(ans)
+                                }
+                            }
+                        }
+                    }
 
                     if (loading) {
                         item {
-                            if (provider == "PubMed") {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                                    CircularProgressIndicator()
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                QuestionBubble(pendingQuestion)
+                                if (provider == "PubMed") {
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                                        CircularProgressIndicator()
+                                    }
+                                } else {
+                                    InsightSkeleton()
                                 }
-                            } else {
-                                InsightSkeleton()
                             }
                         }
                     }
 
                     error?.let { msg ->
                         item {
-                            ErrorCard(
-                                message = msg,
-                                actionLabel = if (errorNeedsKey) "Add API key" else "Try again"
-                            ) {
-                                if (errorNeedsKey) {
-                                    keyDraft = getStoredApiKey(context, provider)
-                                    showAiSourceDialog = true
-                                } else {
-                                    runSearch(askedQuery)
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                if (!loading && pendingQuestion.isNotBlank()) QuestionBubble(pendingQuestion)
+                                ErrorCard(
+                                    message = msg,
+                                    actionLabel = if (errorNeedsKey) "Add API key" else "Try again"
+                                ) {
+                                    if (errorNeedsKey) {
+                                        keyDraft = getStoredApiKey(context, provider)
+                                        showAiSourceDialog = true
+                                    } else {
+                                        runSearch(pendingQuestion)
+                                    }
                                 }
-                            }
-                        }
-                    }
-
-                    items(sections) { InsightCard(it) }
-
-                    aiAnswer?.let { a -> item { AnswerActions(a) } }
-
-                    if (results.isNotEmpty()) {
-                        item {
-                            Text(
-                                "${results.size} results · ${sortMode.lowercase()}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        itemsIndexed(results) { i, r ->
-                            PubMedCard(i + 1, r) {
-                                uriHandler.openUri("https://pubmed.ncbi.nlm.nih.gov/${r.pmid}/")
                             }
                         }
                     }
