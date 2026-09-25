@@ -75,7 +75,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -457,6 +456,69 @@ private fun toneStyle(tone: Tone): ToneStyle {
 
 // ───────────────────────── UI pieces ─────────────────────────
 
+// Each AI/data source gets its own brand-ish accent color so the source picker
+// reads at a glance instead of every option looking the same.
+private fun providerColor(provider: String): Color = when (provider) {
+    "ChatGPT" -> Color(0xFF10A37F)
+    "Groq" -> Color(0xFFF55036)
+    "PubMed" -> Color(0xFF2A6EBB)
+    "Gemini" -> Color(0xFF8E44AD)
+    "Cerebras" -> Color(0xFFFF6D00)
+    "Mistral" -> Color(0xFFFFA000)
+    else -> Color(0xFF6C63FF)
+}
+
+@Composable
+private fun ProviderChip(
+    provider: String,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val accent = providerColor(provider)
+    val bg = when {
+        selected -> accent
+        else -> accent.copy(alpha = 0.12f)
+    }
+    val contentColor = when {
+        selected -> Color.White
+        else -> accent
+    }
+    Surface(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .clickable(enabled = enabled, onClick = onClick),
+        shape = RoundedCornerShape(50),
+        color = bg
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 6.dp, end = 14.dp, top = 6.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(22.dp)
+                    .background(if (selected) Color.White.copy(alpha = 0.25f) else accent, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    provider.take(1),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                provider,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f)
+            )
+        }
+    }
+}
+
 @Composable
 private fun QuestionBubble(text: String) {
     val cs = MaterialTheme.colorScheme
@@ -525,8 +587,7 @@ private fun InsightCard(section: InsightSection) {
                                 b.text.withBold(),
                                 style = if (section.title == null) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
                                 color = ts.onContainer,
-                                lineHeight = 22.sp,
-                                textAlign = TextAlign.Justify
+                                lineHeight = 22.sp
                             )
                             is InsightBlock.Bullet -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Box(
@@ -537,7 +598,6 @@ private fun InsightCard(section: InsightSection) {
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = ts.onContainer,
                                     lineHeight = 22.sp,
-                                    textAlign = TextAlign.Justify,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -558,7 +618,6 @@ private fun InsightCard(section: InsightSection) {
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = ts.onContainer,
                                     lineHeight = 22.sp,
-                                    textAlign = TextAlign.Justify,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -1029,7 +1088,8 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 providers.forEach { option ->
-                    FilterChip(
+                    ProviderChip(
+                        provider = option,
                         selected = provider == option,
                         enabled = !loading,
                         onClick = {
@@ -1037,8 +1097,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                 provider = option
                                 loadHistoryFor(option)
                             }
-                        },
-                        label = { Text(option) }
+                        }
                     )
                 }
             }
@@ -1144,7 +1203,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             ComposerBar(
                 query = query,
                 onQueryChange = { query = it },
-                placeholder = if (provider == "PubMed") "Search medical literature" else "Ask a clinical question",
+                placeholder = if (provider == "PubMed") "Search medical literature" else "Ask a Clinical Question",
                 loading = loading,
                 onSend = { runSearch() }
             )
