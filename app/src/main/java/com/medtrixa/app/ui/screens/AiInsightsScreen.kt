@@ -45,6 +45,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AltRoute
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Circle
@@ -54,7 +55,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
@@ -335,7 +335,7 @@ private fun friendlyNetworkError(label: String, e: Exception): String {
 
 /**
  * Shared caller for OpenAI-compatible chat-completions endpoints.
- * Groq and Together both speak this same request/response shape.
+ * Groq and OpenRouter both speak this same request/response shape.
  * `history` is the full thread so far, including the new question as the last
  * exchange (with a null answer) — this is what makes it a real multi-turn
  * conversation instead of a one-off question each time.
@@ -422,13 +422,15 @@ private fun askOpenAiCompatible(
 private fun askGroq(apiKey: String, history: List<ChatExchange>): String =
     askOpenAiCompatible("https://api.groq.com/openai/v1/chat/completions", apiKey, "openai/gpt-oss-120b", history, "Groq")
 
-private fun askTogether(apiKey: String, history: List<ChatExchange>): String =
+private fun askOpenRouter(apiKey: String, history: List<ChatExchange>): String =
     askOpenAiCompatible(
-        "https://api.together.xyz/v1/chat/completions",
+        "https://openrouter.ai/api/v1/chat/completions",
         apiKey,
-        "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+        // Free-tagged route: no cost, but rate-limited and can be slower/queued
+        // versus paid routes for the same underlying model.
+        "meta-llama/llama-3.1-8b-instruct:free",
         history,
-        "Together"
+        "OpenRouter"
     )
 
 private fun askGeminiWithRetry(apiKey: String, history: List<ChatExchange>): String {
@@ -588,7 +590,7 @@ private fun toneStyle(tone: Tone): ToneStyle {
 private fun providerColor(provider: String): Color = when (provider) {
     "Groq" -> Color(0xFFF55036)
     "Gemini" -> Color(0xFF4285F4)
-    "Together" -> Color(0xFFEF2CC1)
+    "OpenRouter" -> Color(0xFF6D28D9)
     else -> Color(0xFF6C63FF)
 }
 
@@ -596,9 +598,8 @@ private fun providerColor(provider: String): Color = when (provider) {
 // language so the row reads as genuinely different platforms, not one template
 // recolored three times: Groq's is a sharp, low-radius badge (speed/inference),
 // Gemini's is a full pill filled with its own multicolor gradient when active
-// (Gemini's own brand treatment), and Together's uses the same sharp,
-// low-radius badge as Groq's, in its own brand magenta — reflecting that
-// it's a direct alternative to Groq on speed and setup.
+// (Gemini's own brand treatment), and OpenRouter uses the same sharp,
+// low-radius badge as Groq's, tinted in its own brand violet-purple.
 private data class ProviderStyle(
     val icon: ImageVector,
     val shape: Shape,
@@ -613,7 +614,7 @@ private fun providerStyle(provider: String): ProviderStyle = when (provider) {
         shape = RoundedCornerShape(50),
         gradient = listOf(Color(0xFF4285F4), Color(0xFF9B72CB), Color(0xFFD96570))
     )
-    "Together" -> ProviderStyle(icon = Icons.Filled.Speed, shape = RoundedCornerShape(10.dp))
+    "OpenRouter" -> ProviderStyle(icon = Icons.Filled.AltRoute, shape = RoundedCornerShape(10.dp))
     else -> ProviderStyle(icon = Icons.Filled.Circle, shape = RoundedCornerShape(50))
 }
 
@@ -914,7 +915,7 @@ private val suggestionPools: Map<String, List<String>> = mapOf(
         "How cholesterol numbers are interpreted",
         "Basics of managing anxiety symptoms"
     ),
-    "Together" to listOf(
+    "OpenRouter" to listOf(
         "Empiric antibiotics for febrile neutropenia",
         "Approach to hyponatremia workup",
         "DKA management in adults",
@@ -1054,7 +1055,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     var showAiSourceDialog by remember { mutableStateOf(false) }
     var keyDraft by remember { mutableStateOf("") }
 
-    val providers = listOf("Groq", "Gemini", "Together")
+    val providers = listOf("Groq", "Gemini", "OpenRouter")
 
     // Freshly randomized per provider each time this screen is entered, so the
     // "try asking" suggestions differ on every app start rather than being static.
@@ -1158,7 +1159,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 val answer = withContext(Dispatchers.IO) {
                     when (source) {
                         "Groq" -> askGroq(apiKey, historyForCall)
-                        "Together" -> askTogether(apiKey, historyForCall)
+                        "OpenRouter" -> askOpenRouter(apiKey, historyForCall)
                         else -> askGeminiWithRetry(apiKey, historyForCall)
                     }
                 }
