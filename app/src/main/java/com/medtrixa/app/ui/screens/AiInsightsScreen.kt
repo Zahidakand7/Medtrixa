@@ -669,7 +669,7 @@ private fun ProviderChip(
             is ProviderIcon.Drawable -> Icon(
                 painter = painterResource(ic.resId),
                 contentDescription = null,
-                tint = Color.Unspecified,
+                tint = contentColor,
                 modifier = Modifier.size(16.dp)
             )
         }
