@@ -10,24 +10,30 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -39,12 +45,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
@@ -73,7 +83,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -574,6 +586,30 @@ private fun providerColor(provider: String): Color = when (provider) {
     else -> Color(0xFF6C63FF)
 }
 
+// Beyond color, each provider's chip ("chat head") gets its own icon and shape
+// language so the row reads as genuinely different platforms, not one template
+// recolored three times: Groq's is a sharp, low-radius badge (speed/inference),
+// Gemini's is a full pill filled with its own multicolor gradient when active
+// (Gemini's own brand treatment), and EvidenceMD's is an outlined, shield-badge
+// pill evoking a verified/evidence-backed source.
+private data class ProviderStyle(
+    val icon: ImageVector,
+    val shape: Shape,
+    val gradient: List<Color>? = null,
+    val bordered: Boolean = false
+)
+
+private fun providerStyle(provider: String): ProviderStyle = when (provider) {
+    "Groq" -> ProviderStyle(icon = Icons.Filled.Bolt, shape = RoundedCornerShape(10.dp))
+    "Gemini" -> ProviderStyle(
+        icon = Icons.Filled.AutoAwesome,
+        shape = RoundedCornerShape(50),
+        gradient = listOf(Color(0xFF4285F4), Color(0xFF9B72CB), Color(0xFFD96570))
+    )
+    "EvidenceMD" -> ProviderStyle(icon = Icons.Filled.Shield, shape = RoundedCornerShape(50), bordered = true)
+    else -> ProviderStyle(icon = Icons.Filled.Circle, shape = RoundedCornerShape(50))
+}
+
 @Composable
 private fun ProviderChip(
     provider: String,
@@ -582,46 +618,38 @@ private fun ProviderChip(
     onClick: () -> Unit
 ) {
     val accent = providerColor(provider)
-    val bg = when {
-        selected -> accent
-        else -> accent.copy(alpha = 0.12f)
+    val style = providerStyle(provider)
+    val contentColor = if (selected) Color.White else accent
+
+    val backgroundModifier = when {
+        selected && style.gradient != null -> Modifier.background(Brush.linearGradient(style.gradient), style.shape)
+        selected -> Modifier.background(accent, style.shape)
+        else -> Modifier.background(accent.copy(alpha = 0.12f), style.shape)
     }
-    val contentColor = when {
-        selected -> Color.White
-        else -> accent
-    }
-    Surface(
+    val borderModifier = if (style.bordered) Modifier.border(1.2.dp, accent, style.shape) else Modifier
+
+    Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .clickable(enabled = enabled, onClick = onClick),
-        shape = RoundedCornerShape(50),
-        color = bg
+            .clip(style.shape)
+            .then(backgroundModifier)
+            .then(borderModifier)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(start = 12.dp, end = 14.dp, top = 7.dp, bottom = 7.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.padding(start = 6.dp, end = 14.dp, top = 6.dp, bottom = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(22.dp)
-                    .background(if (selected) Color.White.copy(alpha = 0.25f) else accent, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    provider.take(1),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                provider,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f)
-            )
-        }
+        Icon(
+            style.icon,
+            contentDescription = null,
+            tint = contentColor,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(7.dp))
+        Text(
+            provider,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f)
+        )
     }
 }
 
@@ -931,7 +959,7 @@ private fun ComposerBar(
 // ───────────────────────── Screen ─────────────────────────
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 fun AiInsightsScreen(onBackClick: () -> Unit) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -1085,6 +1113,15 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         if (lastIndex >= 0) listState.animateScrollToItem(lastIndex)
     }
 
+    // Keep the latest message in view when the keyboard opens: it shrinks the
+    // visible list area, which otherwise leaves the last message's tail hidden
+    // below the keyboard until the user scrolls manually.
+    val imeVisible = WindowInsets.isImeVisible
+    LaunchedEffect(imeVisible) {
+        val lastIndex = thread.size + if (loading || error != null) 0 else -1
+        if (imeVisible && lastIndex >= 0) listState.animateScrollToItem(lastIndex)
+    }
+
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
 
         if (showAiSourceDialog) {
@@ -1205,8 +1242,12 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .navigationBarsPadding()
-                .imePadding()
+                // Union (not stack) the nav-bar and keyboard insets: stacking both
+                // padding modifiers left a visible gap between the keyboard and the
+                // composer, since the keyboard's own inset already covers the nav
+                // bar's space. This keeps the composer flush against whichever is
+                // taller, matching how Claude/ChatGPT's own composer behaves.
+                .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
