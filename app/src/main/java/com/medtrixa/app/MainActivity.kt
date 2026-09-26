@@ -4,6 +4,7 @@ import com.medtrixa.app.ui.screens.preloadAntibioticGuidelines
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +55,12 @@ import com.medtrixa.app.ui.screens.AntibioticStewardshipReferenceScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Forces consistent edge-to-edge on every API level (rather than leaving it to
+        // whatever the OS/theme defaults to), so Compose's own WindowInsets — status bar,
+        // nav bar, and the keyboard — are the single source of truth for padding. Without
+        // this, the system can additionally resize/pan the window on top of Compose's own
+        // ime padding, which is what produced the gap between the keyboard and the composer.
+        enableEdgeToEdge()
         preloadAntibioticGuidelines(applicationContext)
         setContent {
             MedtrixaTheme {
