@@ -581,7 +581,7 @@ private fun toneStyle(tone: Tone): ToneStyle {
 // reads at a glance instead of every option looking the same.
 private fun providerColor(provider: String): Color = when (provider) {
     "Groq" -> Color(0xFFF55036)
-    "Gemini" -> Color(0xFF8E44AD)
+    "Gemini" -> Color(0xFF4285F4)
     "EvidenceMD" -> Color(0xFF1F7A6C)
     else -> Color(0xFF6C63FF)
 }
@@ -654,19 +654,40 @@ private fun ProviderChip(
 }
 
 @Composable
-private fun QuestionBubble(text: String) {
+private fun QuestionBubble(text: String, provider: String? = null) {
     val cs = MaterialTheme.colorScheme
+    val tailShape = RoundedCornerShape(20.dp, 20.dp, 6.dp, 20.dp)
+    // Solid fill for most providers, tinted with their own accent color (same
+    // accent as their ProviderChip). Gemini is the exception: its bubble uses
+    // a gradient-outline treatment — the chip's blue-purple-pink gradient as a
+    // thin border around a plain surface fill, fully rounded (no tail cut),
+    // matching the approved style-4 mockup — rather than a solid block or the
+    // tailed shape used by the other providers.
+    val gemini = provider == "Gemini"
+    val gradient = if (gemini) providerStyle("Gemini").gradient else null
+    val shape = if (gemini) RoundedCornerShape(20.dp) else tailShape
+    val backgroundColor = if (gemini) null else provider?.let { providerColor(it) } ?: cs.primary
+    val textColor = if (gemini) cs.onSurface else Color.White
+
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        val outerModifier = if (gradient != null) {
+            Modifier
+                .widthIn(max = 300.dp)
+                .background(Brush.linearGradient(gradient), shape)
+                .padding(2.dp)
+        } else {
+            Modifier.widthIn(max = 300.dp)
+        }
         Surface(
-            modifier = Modifier.widthIn(max = 300.dp),
-            color = cs.primary,
-            shape = RoundedCornerShape(20.dp, 20.dp, 6.dp, 20.dp)
+            modifier = outerModifier,
+            color = backgroundColor ?: cs.surfaceVariant,
+            shape = shape
         ) {
             Text(
                 text,
-                color = cs.onPrimary,
+                color = textColor,
                 style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                modifier = Modifier.padding(horizontal = 15.dp, vertical = 9.dp)
             )
         }
     }
@@ -1342,7 +1363,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                     error?.let { msg ->
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                if (!loading && pendingQuestion.isNotBlank()) QuestionBubble(pendingQuestion)
+                                if (!loading && pendingQuestion.isNotBlank()) QuestionBubble(pendingQuestion, provider)
                                 ErrorCard(
                                     message = msg,
                                     actionLabel = if (errorNeedsKey) "Add API key" else "Try again"
@@ -1361,7 +1382,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                     if (loading) {
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                QuestionBubble(pendingQuestion)
+                                QuestionBubble(pendingQuestion, provider)
                                 InsightSkeleton()
                             }
                         }
@@ -1369,7 +1390,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
 
                     itemsIndexed(thread.asReversed()) { _, exchange ->
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            QuestionBubble(exchange.question)
+                            QuestionBubble(exchange.question, provider)
                             exchange.answer?.let { ans ->
                                 val sections = remember(ans) { parseInsight(ans) }
                                 sections.forEach { InsightCard(it) }
