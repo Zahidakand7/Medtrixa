@@ -89,6 +89,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import com.medtrixa.app.R
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -300,6 +302,8 @@ private fun saveActiveSessionId(context: android.content.Context, provider: Stri
 
 private const val CLINICAL_SYSTEM_PROMPT =
     "You are a clinical reference assistant for healthcare professionals. " +
+        "Provide concise, evidence-based answers using precise clinical terminology. " +
+        "Rely on medical knowledge reasoning and clinical safety guidelines. " +
         "Answer concisely and precisely, using clinical terminology, and note " +
         "when a question needs the clinician's own judgment or a primary source."
 
@@ -428,7 +432,7 @@ private fun askOpenRouter(apiKey: String, history: List<ChatExchange>): String =
         apiKey,
         // Free-tagged route: no cost, but rate-limited and can be slower/queued
         // versus paid routes for the same underlying model.
-        "meta-llama/llama-3.1-8b-instruct:free",
+        "inclusionai/ling-3.0-flash-sante:free",
         history,
         "OpenRouter"
     )
@@ -600,22 +604,32 @@ private fun providerColor(provider: String): Color = when (provider) {
 // Gemini's is a full pill filled with its own multicolor gradient when active
 // (Gemini's own brand treatment), and OpenRouter uses the same sharp,
 // low-radius badge as Groq's, tinted in its own brand violet-purple.
+// A provider's chip icon is either a Material glyph (recolorable, used for
+// providers we don't have a real logo asset for) or the provider's own
+// drawable resource (its actual brand mark, rendered in its own colors).
+private sealed class ProviderIcon {
+    data class Vector(val icon: ImageVector) : ProviderIcon()
+    data class Drawable(@androidx.annotation.DrawableRes val resId: Int) : ProviderIcon()
+}
+
 private data class ProviderStyle(
-    val icon: ImageVector,
+    val icon: ProviderIcon,
     val shape: Shape,
     val gradient: List<Color>? = null,
     val bordered: Boolean = false
 )
 
 private fun providerStyle(provider: String): ProviderStyle = when (provider) {
-    "Groq" -> ProviderStyle(icon = Icons.Filled.Bolt, shape = RoundedCornerShape(10.dp))
+    "Groq" -> ProviderStyle(icon = ProviderIcon.Vector(Icons.Filled.Bolt), shape = RoundedCornerShape(10.dp))
     "Gemini" -> ProviderStyle(
-        icon = Icons.Filled.AutoAwesome,
+        icon = ProviderIcon.Vector(Icons.Filled.AutoAwesome),
         shape = RoundedCornerShape(50),
         gradient = listOf(Color(0xFF4285F4), Color(0xFF9B72CB), Color(0xFFD96570))
     )
-    "OpenRouter" -> ProviderStyle(icon = Icons.Filled.AltRoute, shape = RoundedCornerShape(10.dp))
-    else -> ProviderStyle(icon = Icons.Filled.Circle, shape = RoundedCornerShape(50))
+    // OpenRouter's actual logo mark, dropped in as a drawable — see
+    // ic_provider_openrouter.png in res/drawable.
+    "OpenRouter" -> ProviderStyle(icon = ProviderIcon.Drawable(R.drawable.ic_provider_openrouter), shape = RoundedCornerShape(10.dp))
+    else -> ProviderStyle(icon = ProviderIcon.Vector(Icons.Filled.Circle), shape = RoundedCornerShape(50))
 }
 
 @Composable
@@ -645,12 +659,20 @@ private fun ProviderChip(
             .padding(start = 12.dp, end = 14.dp, top = 7.dp, bottom = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            style.icon,
-            contentDescription = null,
-            tint = contentColor,
-            modifier = Modifier.size(16.dp)
-        )
+        when (val ic = style.icon) {
+            is ProviderIcon.Vector -> Icon(
+                ic.icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(16.dp)
+            )
+            is ProviderIcon.Drawable -> Icon(
+                painter = painterResource(ic.resId),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(16.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(7.dp))
         Text(
             provider,
