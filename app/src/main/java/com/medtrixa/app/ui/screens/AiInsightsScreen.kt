@@ -54,7 +54,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
@@ -335,7 +335,7 @@ private fun friendlyNetworkError(label: String, e: Exception): String {
 
 /**
  * Shared caller for OpenAI-compatible chat-completions endpoints.
- * Groq and EvidenceMD both speak this same request/response shape.
+ * Groq and Together both speak this same request/response shape.
  * `history` is the full thread so far, including the new question as the last
  * exchange (with a null answer) — this is what makes it a real multi-turn
  * conversation instead of a one-off question each time.
@@ -422,8 +422,14 @@ private fun askOpenAiCompatible(
 private fun askGroq(apiKey: String, history: List<ChatExchange>): String =
     askOpenAiCompatible("https://api.groq.com/openai/v1/chat/completions", apiKey, "openai/gpt-oss-120b", history, "Groq")
 
-private fun askEvidenceMd(apiKey: String, history: List<ChatExchange>): String =
-    askOpenAiCompatible("https://evidencemd.ai/api/v1/chat/completions", apiKey, "evidencemd-fast", history, "EvidenceMD")
+private fun askTogether(apiKey: String, history: List<ChatExchange>): String =
+    askOpenAiCompatible(
+        "https://api.together.xyz/v1/chat/completions",
+        apiKey,
+        "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+        history,
+        "Together"
+    )
 
 private fun askGeminiWithRetry(apiKey: String, history: List<ChatExchange>): String {
     val maxAttempts = 3
@@ -582,7 +588,7 @@ private fun toneStyle(tone: Tone): ToneStyle {
 private fun providerColor(provider: String): Color = when (provider) {
     "Groq" -> Color(0xFFF55036)
     "Gemini" -> Color(0xFF4285F4)
-    "EvidenceMD" -> Color(0xFF1F7A6C)
+    "Together" -> Color(0xFFEF2CC1)
     else -> Color(0xFF6C63FF)
 }
 
@@ -590,8 +596,9 @@ private fun providerColor(provider: String): Color = when (provider) {
 // language so the row reads as genuinely different platforms, not one template
 // recolored three times: Groq's is a sharp, low-radius badge (speed/inference),
 // Gemini's is a full pill filled with its own multicolor gradient when active
-// (Gemini's own brand treatment), and EvidenceMD's is an outlined, shield-badge
-// pill evoking a verified/evidence-backed source.
+// (Gemini's own brand treatment), and Together's uses the same sharp,
+// low-radius badge as Groq's, in its own brand magenta — reflecting that
+// it's a direct alternative to Groq on speed and setup.
 private data class ProviderStyle(
     val icon: ImageVector,
     val shape: Shape,
@@ -606,7 +613,7 @@ private fun providerStyle(provider: String): ProviderStyle = when (provider) {
         shape = RoundedCornerShape(50),
         gradient = listOf(Color(0xFF4285F4), Color(0xFF9B72CB), Color(0xFFD96570))
     )
-    "EvidenceMD" -> ProviderStyle(icon = Icons.Filled.Shield, shape = RoundedCornerShape(50), bordered = true)
+    "Together" -> ProviderStyle(icon = Icons.Filled.Speed, shape = RoundedCornerShape(10.dp))
     else -> ProviderStyle(icon = Icons.Filled.Circle, shape = RoundedCornerShape(50))
 }
 
@@ -862,6 +869,10 @@ private fun ErrorCard(message: String, actionLabel: String, onAction: () -> Unit
 // Each provider gets its own larger pool of suggestions so they don't all show the
 // same four questions; pickSuggestions() below draws a fresh random subset from the
 // right pool every time the screen is opened, so they also change on every app start.
+// Pools mix foundational, everyday questions spanning common domains (diabetes,
+// cardiovascular disease, skin conditions, respiratory, GI, renal, neuro, infectious
+// disease, mental health) with the sharper clinical-scenario questions, since both
+// are things people reach for the app to check.
 private val suggestionPools: Map<String, List<String>> = mapOf(
     "Groq" to listOf(
         "Acute coronary syndrome red flags",
@@ -869,7 +880,19 @@ private val suggestionPools: Map<String, List<String>> = mapOf(
         "Community-acquired pneumonia antibiotics",
         "Approach to acute abdominal pain",
         "Beta-blocker choice in heart failure",
-        "Management of acute asthma exacerbation"
+        "Management of acute asthma exacerbation",
+        "How to read an ABG",
+        "First-line treatment for hypertension",
+        "Signs of dehydration in adults",
+        "When to start antibiotics for a UTI",
+        "Common causes of fatigue",
+        "How to interpret a basic metabolic panel",
+        "Type 1 vs type 2 diabetes basics",
+        "Warning signs of a heart attack",
+        "Difference between eczema and psoriasis",
+        "Normal fasting blood sugar range",
+        "Common triggers for migraines",
+        "When a rash needs urgent care"
     ),
     "Gemini" to listOf(
         "Differential for acute chest pain",
@@ -877,15 +900,39 @@ private val suggestionPools: Map<String, List<String>> = mapOf(
         "Stroke thrombolysis window",
         "Approach to unexplained weight loss",
         "Thyroid function test interpretation",
-        "Managing status epilepticus"
+        "Managing status epilepticus",
+        "How to calculate BMI and what it means",
+        "Normal vital sign ranges by age",
+        "Common drug interactions with warfarin",
+        "Signs of an allergic reaction vs anaphylaxis",
+        "How vaccines work",
+        "Difference between viral and bacterial infection",
+        "How HbA1c reflects blood sugar control",
+        "Risk factors for coronary artery disease",
+        "Common causes of chronic itchy skin",
+        "Warning signs of a stroke",
+        "How cholesterol numbers are interpreted",
+        "Basics of managing anxiety symptoms"
     ),
-    "EvidenceMD" to listOf(
-        "Evidence for beta-blockers post-MI",
-        "GLP-1 agonists cardiovascular outcomes trials",
-        "Aspirin primary prevention evidence",
-        "Tight glycemic control evidence in ICU",
-        "Early goal-directed therapy evidence in sepsis",
-        "PCI vs CABG evidence in multivessel disease"
+    "Together" to listOf(
+        "Empiric antibiotics for febrile neutropenia",
+        "Approach to hyponatremia workup",
+        "DKA management in adults",
+        "Anticoagulation reversal strategies",
+        "Approach to syncope evaluation",
+        "Sepsis bundle first-hour actions",
+        "How to take blood pressure correctly",
+        "Common causes of a persistent cough",
+        "When a headache needs urgent evaluation",
+        "Basics of fluid resuscitation",
+        "How antibiotics are chosen for an infection",
+        "What a fever actually means",
+        "Diabetic foot care basics",
+        "Lifestyle changes to lower blood pressure",
+        "Identifying a fungal vs bacterial skin infection",
+        "Basics of managing acne",
+        "Common early symptoms of kidney disease",
+        "When shortness of breath is an emergency"
     )
 )
 
@@ -1007,7 +1054,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     var showAiSourceDialog by remember { mutableStateOf(false) }
     var keyDraft by remember { mutableStateOf("") }
 
-    val providers = listOf("Groq", "Gemini", "EvidenceMD")
+    val providers = listOf("Groq", "Gemini", "Together")
 
     // Freshly randomized per provider each time this screen is entered, so the
     // "try asking" suggestions differ on every app start rather than being static.
@@ -1111,7 +1158,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 val answer = withContext(Dispatchers.IO) {
                     when (source) {
                         "Groq" -> askGroq(apiKey, historyForCall)
-                        "EvidenceMD" -> askEvidenceMd(apiKey, historyForCall)
+                        "Together" -> askTogether(apiKey, historyForCall)
                         else -> askGeminiWithRetry(apiKey, historyForCall)
                     }
                 }
