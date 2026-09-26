@@ -323,7 +323,7 @@ private fun friendlyNetworkError(label: String, e: Exception): String {
 
 /**
  * Shared caller for OpenAI-compatible chat-completions endpoints.
- * Groq and Mistral both speak this same request/response shape.
+ * Groq and EvidenceMD both speak this same request/response shape.
  * `history` is the full thread so far, including the new question as the last
  * exchange (with a null answer) — this is what makes it a real multi-turn
  * conversation instead of a one-off question each time.
@@ -410,8 +410,8 @@ private fun askOpenAiCompatible(
 private fun askGroq(apiKey: String, history: List<ChatExchange>): String =
     askOpenAiCompatible("https://api.groq.com/openai/v1/chat/completions", apiKey, "openai/gpt-oss-120b", history, "Groq")
 
-private fun askMistral(apiKey: String, history: List<ChatExchange>): String =
-    askOpenAiCompatible("https://api.mistral.ai/v1/chat/completions", apiKey, "mistral-small-latest", history, "Mistral")
+private fun askEvidenceMd(apiKey: String, history: List<ChatExchange>): String =
+    askOpenAiCompatible("https://evidencemd.ai/api/v1/chat/completions", apiKey, "evidencemd-fast", history, "EvidenceMD")
 
 private fun askGeminiWithRetry(apiKey: String, history: List<ChatExchange>): String {
     val maxAttempts = 3
@@ -570,7 +570,7 @@ private fun toneStyle(tone: Tone): ToneStyle {
 private fun providerColor(provider: String): Color = when (provider) {
     "Groq" -> Color(0xFFF55036)
     "Gemini" -> Color(0xFF8E44AD)
-    "Mistral" -> Color(0xFFFFA000)
+    "EvidenceMD" -> Color(0xFF1F7A6C)
     else -> Color(0xFF6C63FF)
 }
 
@@ -830,13 +830,13 @@ private val suggestionPools: Map<String, List<String>> = mapOf(
         "Thyroid function test interpretation",
         "Managing status epilepticus"
     ),
-    "Mistral" to listOf(
-        "Antibiotic choice for UTI in pregnancy",
-        "Managing hypertensive emergency",
-        "Opioid conversion basics",
-        "Approach to acute low back pain",
-        "Postoperative fever workup",
-        "Management of anaphylaxis"
+    "EvidenceMD" to listOf(
+        "Evidence for beta-blockers post-MI",
+        "GLP-1 agonists cardiovascular outcomes trials",
+        "Aspirin primary prevention evidence",
+        "Tight glycemic control evidence in ICU",
+        "Early goal-directed therapy evidence in sepsis",
+        "PCI vs CABG evidence in multivessel disease"
     )
 )
 
@@ -958,7 +958,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     var showAiSourceDialog by remember { mutableStateOf(false) }
     var keyDraft by remember { mutableStateOf("") }
 
-    val providers = listOf("Groq", "Gemini", "Mistral")
+    val providers = listOf("Groq", "Gemini", "EvidenceMD")
 
     // Freshly randomized per provider each time this screen is entered, so the
     // "try asking" suggestions differ on every app start rather than being static.
@@ -1062,7 +1062,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 val answer = withContext(Dispatchers.IO) {
                     when (source) {
                         "Groq" -> askGroq(apiKey, historyForCall)
-                        "Mistral" -> askMistral(apiKey, historyForCall)
+                        "EvidenceMD" -> askEvidenceMd(apiKey, historyForCall)
                         else -> askGeminiWithRetry(apiKey, historyForCall)
                     }
                 }
