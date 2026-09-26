@@ -1108,18 +1108,18 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         }
     }
 
+    // With reverseLayout = true below, item index 0 is always the bottom-most (newest)
+    // item on screen, so scrolling to 0 is a true "scroll to bottom" — including when
+    // the keyboard opens and shrinks the viewport, the newest message stays flush
+    // against the composer instead of getting stranded above the fold.
+    val hasContent = thread.isNotEmpty() || loading || error != null
     LaunchedEffect(thread.size, loading, error) {
-        val lastIndex = thread.size + if (loading || error != null) 0 else -1
-        if (lastIndex >= 0) listState.animateScrollToItem(lastIndex)
+        if (hasContent) listState.animateScrollToItem(0)
     }
 
-    // Keep the latest message in view when the keyboard opens: it shrinks the
-    // visible list area, which otherwise leaves the last message's tail hidden
-    // below the keyboard until the user scrolls manually.
     val imeVisible = WindowInsets.isImeVisible
     LaunchedEffect(imeVisible) {
-        val lastIndex = thread.size + if (loading || error != null) 0 else -1
-        if (imeVisible && lastIndex >= 0) listState.animateScrollToItem(lastIndex)
+        if (imeVisible && hasContent) listState.animateScrollToItem(0)
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -1327,35 +1327,18 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
 
             LazyColumn(
                 state = listState,
+                reverseLayout = hasContent,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                if (thread.isEmpty() && !loading && error == null) {
+                if (!hasContent) {
                     item {
                         EmptyState(provider, suggestionsByProvider[provider].orEmpty()) { runSearch(it) }
                     }
                 } else {
-                    itemsIndexed(thread) { _, exchange ->
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            QuestionBubble(exchange.question)
-                            exchange.answer?.let { ans ->
-                                val sections = remember(ans) { parseInsight(ans) }
-                                sections.forEach { InsightCard(it) }
-                                AnswerActions(ans)
-                            }
-                        }
-                    }
-
-                    if (loading) {
-                        item {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                QuestionBubble(pendingQuestion)
-                                InsightSkeleton()
-                            }
-                        }
-                    }
-
+                    // Declared newest-first: with reverseLayout = true, the first item in
+                    // this block is the one pinned to the bottom of the screen.
                     error?.let { msg ->
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1371,6 +1354,26 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                         runSearch(pendingQuestion)
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    if (loading) {
+                        item {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                QuestionBubble(pendingQuestion)
+                                InsightSkeleton()
+                            }
+                        }
+                    }
+
+                    itemsIndexed(thread.asReversed()) { _, exchange ->
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            QuestionBubble(exchange.question)
+                            exchange.answer?.let { ans ->
+                                val sections = remember(ans) { parseInsight(ans) }
+                                sections.forEach { InsightCard(it) }
+                                AnswerActions(ans)
                             }
                         }
                     }
