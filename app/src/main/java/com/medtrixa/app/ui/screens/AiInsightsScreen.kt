@@ -912,7 +912,7 @@ private fun AnswerActions(answer: String, provider: String) {
         "OpenRouter" -> "Powered by OpenRouter AI • Responses are Ai-generated."
         else -> "Responses are Ai-generated."
     }
-    val line2 = "Verify against current Clinical Guidelines."
+    val line2 = "Verify against Current Clinical Guidelines."
     val footerStyle = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 14.sp)
     val footerColor = MaterialTheme.colorScheme.onSurfaceVariant
     Column {
