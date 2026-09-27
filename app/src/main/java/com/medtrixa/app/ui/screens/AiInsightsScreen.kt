@@ -101,6 +101,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -900,12 +901,13 @@ private fun AnswerActions(answer: String, provider: String) {
             .replace(Regex("(?m)^-{3,}$"), "")
             .trim()
     }
-    val disclaimerText = when (provider) {
-        "Groq" -> "⚡ Powered by Groq AI • Responses are Ai-generated. Verify against current Clinical Guidelines."
-        "Gemini" -> "✨ Powered by Gemini AI • Responses are Ai-generated. Verify against current Clinical Guidelines."
-        "OpenRouter" -> "🤖 Powered by OpenRouter AI • Responses are Ai-generated. Verify against current Clinical Guidelines."
-        else -> "Responses are Ai-generated. Verify against current Clinical Guidelines."
+    val disclaimerLine1 = when (provider) {
+        "Groq" -> "⚡ Powered by Groq AI • Responses are Ai-generated."
+        "Gemini" -> "✨ Powered by Gemini AI • Responses are Ai-generated."
+        "OpenRouter" -> "🤖 Powered by OpenRouter AI • Responses are Ai-generated."
+        else -> "Responses are Ai-generated."
     }
+    val disclaimerText = disclaimerLine1 + "\nVerify against current Clinical Guidelines."
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = {
@@ -922,7 +924,14 @@ private fun AnswerActions(answer: String, provider: String) {
         }
         Text(
             disclaimerText,
-            style = MaterialTheme.typography.labelSmall,
+            // Slightly smaller than the previous labelSmall size, with the second
+            // line indented (via TextIndent's restLine) to line up under the "P"
+            // in "Powered" rather than under the leading emoji.
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 10.sp,
+                lineHeight = 14.sp,
+                textIndent = TextIndent(firstLine = 0.sp, restLine = 18.sp)
+            ),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 12.dp)
         )
@@ -1537,7 +1546,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
             ) {
                 providers.forEach { option ->
                     ProviderChip(
