@@ -900,11 +900,11 @@ private fun AnswerActions(answer: String, provider: String) {
             .replace(Regex("(?m)^-{3,}$"), "")
             .trim()
     }
-    val providerLabel = when (provider) {
-        "Groq" -> "⚡ Powered by Groq AI • "
-        "Gemini" -> "✨ Powered by Gemini AI • "
-        "OpenRouter" -> "🔀 Powered by OpenRouter AI • "
-        else -> ""
+    val disclaimerText = when (provider) {
+        "Groq" -> "⚡ Powered by Groq AI • Responses are Ai-generated. Verify against current Clinical Guidelines."
+        "Gemini" -> "✨ Powered by Gemini AI • Responses are Ai-generated. Verify against current Clinical Guidelines."
+        "OpenRouter" -> "🤖 Powered by OpenRouter AI • Responses are Ai-generated. Verify against current Clinical Guidelines."
+        else -> "Responses are Ai-generated. Verify against current Clinical Guidelines."
     }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -921,7 +921,7 @@ private fun AnswerActions(answer: String, provider: String) {
             }) { Text("Share", fontWeight = FontWeight.SemiBold) }
         }
         Text(
-            providerLabel + "AI-generated. Verify against current clinical guidelines.",
+            disclaimerText,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 12.dp)
