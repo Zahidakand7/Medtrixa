@@ -12,6 +12,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
@@ -57,6 +58,8 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
@@ -98,6 +101,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -236,7 +240,9 @@ private fun clearStoredThread(context: android.content.Context, provider: String
 private data class ChatSession(
     val id: String,
     val title: String,
-    val exchanges: List<ChatExchange> = emptyList()
+    val exchanges: List<ChatExchange> = emptyList(),
+    val timestamp: Long = System.currentTimeMillis(),
+    val pinned: Boolean = false
 )
 
 private fun sessionTitle(exchanges: List<ChatExchange>): String {
@@ -248,6 +254,11 @@ private fun sessionTitle(exchanges: List<ChatExchange>): String {
     }
 }
 
+private val sessionTimestampFormat = java.text.SimpleDateFormat("MMM d, h:mm a", java.util.Locale.getDefault())
+
+private fun formatSessionTimestamp(timestamp: Long): String =
+    sessionTimestampFormat.format(java.util.Date(timestamp))
+
 private fun saveSessions(context: android.content.Context, provider: String, sessions: List<ChatSession>) {
     val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
     val arr = JSONArray().apply {
@@ -255,6 +266,8 @@ private fun saveSessions(context: android.content.Context, provider: String, ses
             put(JSONObject().apply {
                 put("id", session.id)
                 put("title", session.title)
+                put("timestamp", session.timestamp)
+                put("pinned", session.pinned)
                 put("exchanges", exchangesToJson(session.exchanges))
             })
         }
@@ -273,6 +286,8 @@ private fun loadSessions(context: android.content.Context, provider: String): Li
                 ChatSession(
                     id = json.optString("id", UUID.randomUUID().toString()),
                     title = json.optString("title", "New chat"),
+                    timestamp = json.optLong("timestamp", System.currentTimeMillis()),
+                    pinned = json.optBoolean("pinned", false),
                     exchanges = jsonToExchanges(json.optJSONArray("exchanges") ?: JSONArray())
                 )
             }
@@ -284,7 +299,7 @@ private fun loadSessions(context: android.content.Context, provider: String): Li
     // Wrap any existing thread into the first chat session so nobody loses history.
     val legacy = loadStoredThread(context, provider)
     if (legacy.isNotEmpty()) {
-        val migrated = listOf(ChatSession(id = UUID.randomUUID().toString(), title = sessionTitle(legacy), exchanges = legacy))
+        val migrated = listOf(ChatSession(id = UUID.randomUUID().toString(), title = sessionTitle(legacy), timestamp = System.currentTimeMillis(), exchanges = legacy))
         saveSessions(context, provider, migrated)
         clearStoredThread(context, provider)
         return migrated
@@ -875,7 +890,7 @@ private fun InsightSkeleton() {
 }
 
 @Composable
-private fun AnswerActions(answer: String) {
+private fun AnswerActions(answer: String, provider: String) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     var copied by remember(answer) { mutableStateOf(false) }
@@ -884,6 +899,12 @@ private fun AnswerActions(answer: String) {
             .replace(Regex("(?m)^#+\\s*"), "")
             .replace(Regex("(?m)^-{3,}$"), "")
             .trim()
+    }
+    val providerLabel = when (provider) {
+        "Groq" -> "⚡ Powered by Groq AI • "
+        "Gemini" -> "✨ Powered by Gemini AI • "
+        "OpenRouter" -> "🔀 Powered by OpenRouter AI • "
+        else -> ""
     }
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -900,7 +921,7 @@ private fun AnswerActions(answer: String) {
             }) { Text("Share", fontWeight = FontWeight.SemiBold) }
         }
         Text(
-            "AI-generated. Verify against current clinical guidelines.",
+            providerLabel + "AI-generated. Verify against current clinical guidelines.",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 12.dp)
@@ -1110,6 +1131,8 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     var showChatMenu by remember { mutableStateOf(false) }
     var showClearConfirm by remember { mutableStateOf(false) }
     var showHistoryDialog by remember { mutableStateOf(false) }
+    var showAllChats by remember { mutableStateOf(false) }
+    var longPressedSessionId by remember { mutableStateOf<String?>(null) }
 
     var showAiSourceDialog by remember { mutableStateOf(false) }
     var keyDraft by remember { mutableStateOf("") }
@@ -1141,14 +1164,14 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     fun persistThread(target: String, updated: List<ChatExchange>) {
         val currentId = activeSessionId
         if (currentId == null) {
-            val newSession = ChatSession(id = UUID.randomUUID().toString(), title = sessionTitle(updated), exchanges = updated)
+            val newSession = ChatSession(id = UUID.randomUUID().toString(), title = sessionTitle(updated), timestamp = System.currentTimeMillis(), exchanges = updated)
             val updatedSessions = sessions + newSession
             sessions = updatedSessions
             activeSessionId = newSession.id
             saveSessions(context, target, updatedSessions)
             saveActiveSessionId(context, target, newSession.id)
         } else {
-            val updatedSessions = sessions.map { if (it.id == currentId) it.copy(exchanges = updated) else it }
+            val updatedSessions = sessions.map { if (it.id == currentId) it.copy(exchanges = updated, timestamp = System.currentTimeMillis()) else it }
             sessions = updatedSessions
             saveSessions(context, target, updatedSessions)
         }
@@ -1191,6 +1214,14 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         errorNeedsKey = false
         saveActiveSessionId(context, provider, session.id)
         showHistoryDialog = false
+    }
+
+
+
+    fun togglePin(session: ChatSession) {
+        val updatedSessions = sessions.map { if (it.id == session.id) it.copy(pinned = !it.pinned) else it }
+        sessions = updatedSessions
+        saveSessions(context, provider, updatedSessions)
     }
 
     // Every time this screen is opened it starts a new session — the previous
@@ -1330,48 +1361,108 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         if (showHistoryDialog) {
             AlertDialog(
                 onDismissRequest = { showHistoryDialog = false },
-                title = { Text("Chat History · $provider") },
+                title = {
+                    Text(
+                        "Chat History · $provider",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        softWrap = false
+                    )
+                },
                 text = {
-                    if (sessions.isEmpty()) {
-                        Text("No saved chats yet.", style = MaterialTheme.typography.bodyMedium)
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.heightIn(max = 420.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            // Oldest first, newest last — scroll down to reach
-                            // the most recent saved chat.
-                            items(sessions, key = { it.id }) { session ->
-                                val isActive = session.id == activeSessionId
-                                Surface(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .clickable { switchToSession(session) },
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = if (isActive) MaterialTheme.colorScheme.primaryContainer
-                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
-                                ) {
-                                    Column(modifier = Modifier.padding(12.dp)) {
-                                        Text(
-                                            session.title,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                        Text(
-                                            "${session.exchanges.size} message${if (session.exchanges.size == 1) "" else "s"}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
+                    Column {
+                        if (sessions.isEmpty()) {
+                            Text("No saved chats yet.", style = MaterialTheme.typography.bodyMedium)
+                        } else {
+                            val sortedSessions = sessions.sortedWith(compareByDescending<ChatSession> { it.pinned }.thenByDescending { it.timestamp })
+                            val visibleSessions = if (showAllChats) sortedSessions else sortedSessions.take(10)
+                            LazyColumn(
+                                modifier = Modifier.heightIn(max = 420.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                // Newest first, like Claude's own chat history list.
+                                items(visibleSessions, key = { it.id }) { session ->
+                                    val isActive = session.id == activeSessionId
+                                    Box {
+                                        Surface(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .combinedClickable(
+                                                    onClick = { switchToSession(session) },
+                                                    onLongClick = { longPressedSessionId = session.id }
+                                                ),
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = if (isActive) MaterialTheme.colorScheme.primaryContainer
+                                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Text(
+                                                        session.title,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.SemiBold
+                                                    )
+                                                    Text(
+                                                        formatSessionTimestamp(session.timestamp),
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                                if (session.pinned) {
+                                                    Icon(
+                                                        Icons.Filled.PushPin,
+                                                        contentDescription = "Pinned",
+                                                        modifier = Modifier.size(16.dp),
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        DropdownMenu(
+                                            expanded = longPressedSessionId == session.id,
+                                            onDismissRequest = { longPressedSessionId = null }
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { Text(if (session.pinned) "Unpin" else "Pin") },
+                                                onClick = {
+                                                    togglePin(session)
+                                                    longPressedSessionId = null
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text("Remove") },
+                                                onClick = { longPressedSessionId = null }
+                                            )
+                                            DropdownMenuItem(
+                                                text = { Text("Share") },
+                                                onClick = { longPressedSessionId = null }
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            if (!showAllChats && sessions.size > 10) {
+                                TextButton(onClick = { showAllChats = true }) { Text("All Chats") }
+                            } else {
+                                Spacer(modifier = Modifier.width(1.dp))
+                            }
+                            TextButton(onClick = { showHistoryDialog = false }) { Text("Close") }
+                        }
                     }
                 },
-                confirmButton = {
-                    TextButton(onClick = { showHistoryDialog = false }) { Text("Close") }
-                }
+                confirmButton = {}
             )
         }
 
@@ -1433,6 +1524,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                             enabled = sessions.isNotEmpty(),
                             onClick = {
                                 showChatMenu = false
+                                showAllChats = false
                                 showHistoryDialog = true
                             }
                         )
@@ -1510,7 +1602,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                             exchange.answer?.let { ans ->
                                 val sections = remember(ans) { parseInsight(ans) }
                                 sections.forEach { InsightCard(it) }
-                                AnswerActions(ans)
+                                AnswerActions(ans, provider)
                             }
                         }
                     }
