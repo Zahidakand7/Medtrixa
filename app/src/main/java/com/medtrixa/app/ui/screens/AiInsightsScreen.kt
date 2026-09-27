@@ -14,6 +14,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -616,11 +617,27 @@ private data class ProviderStyle(
     val icon: ProviderIcon,
     val shape: Shape,
     val gradient: List<Color>? = null,
-    val bordered: Boolean = false
+    val bordered: Boolean = false,
+    // True when `icon` is a full wordmark (spells out the provider's name,
+    // e.g. Groq's actual logo) rather than a compact symbol. The chip skips
+    // its separate text label in that case, since the wordmark already reads
+    // as the name — showing both would repeat it.
+    val isWordmark: Boolean = false,
+    // A small glyph shown before a wordmark icon (e.g. Groq's bolt next to
+    // its logo). Unused for non-wordmark providers.
+    val leadingIcon: ImageVector? = null
 )
 
 private fun providerStyle(provider: String): ProviderStyle = when (provider) {
-    "Groq" -> ProviderStyle(icon = ProviderIcon.Vector(Icons.Filled.Bolt), shape = RoundedCornerShape(10.dp))
+    // Groq has no standalone symbol mark — their brand asset (from
+    // console.groq.com/groq-logo.svg) is the wordmark itself, paired here
+    // with a bolt glyph (speed/inference) in front of it.
+    "Groq" -> ProviderStyle(
+        icon = ProviderIcon.Drawable(R.drawable.ic_provider_groq_wordmark),
+        shape = RoundedCornerShape(10.dp),
+        isWordmark = true,
+        leadingIcon = Icons.Filled.Bolt
+    )
     "Gemini" -> ProviderStyle(
         icon = ProviderIcon.Vector(Icons.Filled.AutoAwesome),
         shape = RoundedCornerShape(50),
@@ -659,27 +676,45 @@ private fun ProviderChip(
             .padding(start = 12.dp, end = 14.dp, top = 7.dp, bottom = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        style.leadingIcon?.let { leading ->
+            Icon(
+                leading,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+        }
         when (val ic = style.icon) {
             is ProviderIcon.Vector -> Icon(
                 ic.icon,
-                contentDescription = null,
+                contentDescription = provider,
                 tint = contentColor,
                 modifier = Modifier.size(16.dp)
             )
             is ProviderIcon.Drawable -> Icon(
                 painter = painterResource(ic.resId),
-                contentDescription = null,
+                contentDescription = provider,
                 tint = contentColor,
-                modifier = Modifier.size(16.dp)
+                modifier = if (style.isWordmark) {
+                    // Size by the wordmark's own aspect ratio (Groq's is
+                    // 40:15) rather than the fixed square used by symbol
+                    // icons, so the lettering isn't squashed or clipped.
+                    Modifier.height(16.dp).aspectRatio(40f / 15f)
+                } else {
+                    Modifier.size(16.dp)
+                }
             )
         }
-        Spacer(modifier = Modifier.width(7.dp))
-        Text(
-            provider,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f)
-        )
+        if (!style.isWordmark) {
+            Spacer(modifier = Modifier.width(7.dp))
+            Text(
+                provider,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f)
+            )
+        }
     }
 }
 
