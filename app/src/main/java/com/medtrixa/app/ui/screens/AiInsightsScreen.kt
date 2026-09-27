@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBars
@@ -36,6 +37,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -1118,16 +1120,20 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     // "try asking" suggestions differ on every app start rather than being static.
     val suggestionsByProvider = remember { providers.associateWith { pickSuggestions(it) } }
 
-    fun loadHistoryFor(target: String) {
+    // Loads a provider's saved sessions (for the Chat History list) and always
+    // begins a fresh, unsaved conversation — the previous thread is never
+    // auto-restored here. Every visit to a provider starts a new session; the
+    // old ones stay reachable through Chat History rather than reappearing
+    // on their own.
+    fun startFreshFor(target: String) {
         sessions = loadSessions(context, target)
-        val storedActiveId = loadActiveSessionId(context, target)
-        val active = sessions.find { it.id == storedActiveId }
-        activeSessionId = active?.id
-        thread = active?.exchanges ?: emptyList()
-        sortMode = thread.lastOrNull { it.results.isNotEmpty() }?.sortMode ?: "Relevance"
+        activeSessionId = null
+        thread = emptyList()
+        sortMode = "Relevance"
         error = null
         errorNeedsKey = false
         pendingQuestion = ""
+        saveActiveSessionId(context, target, null)
     }
 
     // Saves the current turn either into its existing session, or — for a
@@ -1187,9 +1193,9 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         showHistoryDialog = false
     }
 
-    // Restore the full thread for the initially selected provider when the screen
-    // (re)opens, so closing and reopening the app doesn't lose where you left off.
-    LaunchedEffect(Unit) { loadHistoryFor(provider) }
+    // Every time this screen is opened it starts a new session — the previous
+    // thread (if any) is not restored, only the saved history list is.
+    LaunchedEffect(Unit) { startFreshFor(provider) }
 
     fun runSearch(q: String = query) {
         val question = q.trim()
@@ -1329,8 +1335,13 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                     if (sessions.isEmpty()) {
                         Text("No saved chats yet.", style = MaterialTheme.typography.bodyMedium)
                     } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            sessions.asReversed().forEach { session ->
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 420.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            // Oldest first, newest last — scroll down to reach
+                            // the most recent saved chat.
+                            items(sessions, key = { it.id }) { session ->
                                 val isActive = session.id == activeSessionId
                                 Surface(
                                     modifier = Modifier
@@ -1444,7 +1455,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                         onClick = {
                             if (provider != option) {
                                 provider = option
-                                loadHistoryFor(option)
+                                startFreshFor(option)
                             }
                         }
                     )
