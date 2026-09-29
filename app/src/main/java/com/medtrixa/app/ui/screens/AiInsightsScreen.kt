@@ -107,6 +107,20 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import kotlinx.coroutines.delay
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.WifiOff
@@ -395,6 +409,50 @@ private fun saveActiveSessionId(context: android.content.Context, provider: Stri
     val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
     if (id == null) prefs.edit().remove("active_$provider").apply()
     else prefs.edit().putString("active_$provider", id).apply()
+}
+
+private data class SavedAnswer(
+    val id: String,
+    val provider: String,
+    val question: String,
+    val answer: String,
+    val timestamp: Long
+)
+
+private fun loadSavedAnswers(context: android.content.Context): List<SavedAnswer> {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    val raw = prefs.getString("saved_answers", null) ?: return emptyList()
+    return try {
+        val arr = JSONArray(raw)
+        (0 until arr.length()).map { i ->
+            val j = arr.getJSONObject(i)
+            SavedAnswer(
+                id = j.optString("id", UUID.randomUUID().toString()),
+                provider = j.optString("provider", ""),
+                question = j.optString("q", ""),
+                answer = j.optString("a", ""),
+                timestamp = j.optLong("ts", 0L)
+            )
+        }
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
+
+private fun writeSavedAnswers(context: android.content.Context, list: List<SavedAnswer>) {
+    val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+    val arr = JSONArray().apply {
+        list.forEach { sa ->
+            put(JSONObject().apply {
+                put("id", sa.id)
+                put("provider", sa.provider)
+                put("q", sa.question)
+                put("a", sa.answer)
+                put("ts", sa.timestamp)
+            })
+        }
+    }
+    prefs.edit().putString("saved_answers", arr.toString()).apply()
 }
 
 private const val CLINICAL_SYSTEM_PROMPT =
@@ -875,6 +933,15 @@ private fun QuestionBubble(text: String, provider: String? = null) {
 private fun InsightCard(section: InsightSection) {
     val ts = toneStyle(toneFor(section.title))
     var expanded by remember { mutableStateOf(true) }
+    val cardClipboard = LocalClipboardManager.current
+    val cardHaptic = LocalHapticFeedback.current
+    var cardCopied by remember { mutableStateOf(false) }
+    LaunchedEffect(cardCopied) {
+        if (cardCopied) {
+            delay(2000)
+            cardCopied = false
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxWidth().animateContentSize(),
@@ -904,6 +971,21 @@ private fun InsightCard(section: InsightSection) {
                         color = ts.onContainer,
                         modifier = Modifier.weight(1f)
                     )
+                    IconButton(
+                        onClick = {
+                            cardClipboard.setText(AnnotatedString(sectionPlain(section)))
+                            cardCopied = true
+                            cardHaptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            if (cardCopied) Icons.Filled.Check else Icons.Filled.ContentCopy,
+                            contentDescription = if (cardCopied) "Copied" else "Copy section",
+                            tint = if (cardCopied) Color(0xFF2E7D32) else ts.onContainer.copy(alpha = 0.7f),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                     Icon(
                         if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                         contentDescription = if (expanded) "Collapse" else "Expand",
@@ -985,10 +1067,63 @@ private fun InsightSkeleton() {
     }
 }
 
+private fun plainAnswer(answer: String): String =
+    answer.replace("**", "")
+        .replace(Regex("(?m)^#+\\s*"), "")
+        .replace(Regex("(?m)^-{3,}$"), "")
+        .trim()
+
+private fun toSpeakable(text: String): String =
+    text.replace(Regex("(?m)^\\s*[-*•]\\s+"), "")
+        .replace("*", "")
+        .replace("→", " to ")
+
+private fun sectionPlain(section: InsightSection): String = buildString {
+    section.title?.let { appendLine(it) }
+    section.blocks.forEach { b ->
+        when (b) {
+            is InsightBlock.Para -> appendLine(b.text)
+            is InsightBlock.Bullet -> appendLine("• " + b.text)
+            is InsightBlock.Step -> appendLine(b.n + ". " + b.text)
+        }
+    }
+}.replace("**", "").trim()
+
 @Composable
-private fun AnswerActions(answer: String, provider: String, onRegenerate: (() -> Unit)? = null) {
+private fun ActionChip(label: String, icon: ImageVector? = null, onClick: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .border(1.dp, cs.outline.copy(alpha = 0.5f), RoundedCornerShape(50))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (icon != null) {
+            Icon(icon, contentDescription = null, tint = cs.primary, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(5.dp))
+        }
+        Text(label, style = MaterialTheme.typography.labelLarge, color = cs.onSurface)
+    }
+}
+
+@Composable
+private fun AnswerActions(
+    answer: String,
+    provider: String,
+    question: String,
+    saved: Boolean,
+    onToggleSave: () -> Unit,
+    onRegenerate: (() -> Unit)? = null,
+    onFollowUp: ((String) -> Unit)? = null
+) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val cs = MaterialTheme.colorScheme
+    val green = Color(0xFF2E7D32)
+    val amber = Color(0xFFF9A825)
     var copied by remember(answer) { mutableStateOf(false) }
     LaunchedEffect(copied) {
         if (copied) {
@@ -996,12 +1131,66 @@ private fun AnswerActions(answer: String, provider: String, onRegenerate: (() ->
             copied = false
         }
     }
-    val plain = remember(answer) {
-        answer.replace("**", "")
-            .replace(Regex("(?m)^#+\\s*"), "")
-            .replace(Regex("(?m)^-{3,}$"), "")
-            .trim()
+    val plain = remember(answer) { plainAnswer(answer) }
+
+    // Listen (text-to-speech), using the phone's own voice engine.
+    var speaking by remember { mutableStateOf(false) }
+    val ttsHolder = remember { arrayOfNulls<TextToSpeech>(1) }
+    DisposableEffect(Unit) {
+        onDispose {
+            ttsHolder[0]?.stop()
+            ttsHolder[0]?.shutdown()
+            ttsHolder[0] = null
+        }
     }
+    fun speakNow(engine: TextToSpeech) {
+        engine.setLanguage(java.util.Locale.getDefault())
+        engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {}
+            override fun onDone(utteranceId: String?) {
+                if (utteranceId == "last") speaking = false
+            }
+            @Deprecated("Deprecated in Java")
+            override fun onError(utteranceId: String?) {
+                speaking = false
+            }
+        })
+        val lines = toSpeakable(plain).lines().filter { it.isNotBlank() }
+        lines.forEachIndexed { i, line ->
+            val id = if (i == lines.lastIndex) "last" else "u$i"
+            engine.speak(line.take(3900), TextToSpeech.QUEUE_ADD, null, id)
+        }
+        speaking = true
+    }
+    fun toggleListen() {
+        if (speaking) {
+            ttsHolder[0]?.stop()
+            speaking = false
+            return
+        }
+        val existing = ttsHolder[0]
+        if (existing != null) {
+            speakNow(existing)
+            return
+        }
+        var engine: TextToSpeech? = null
+        engine = TextToSpeech(context) { status ->
+            val e = engine
+            if (status == TextToSpeech.SUCCESS && e != null) speakNow(e)
+        }
+        ttsHolder[0] = engine
+    }
+
+    fun openPubMed() {
+        try {
+            val term = java.net.URLEncoder.encode(question.take(300), "UTF-8")
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://pubmed.ncbi.nlm.nih.gov/?term=$term"))
+            )
+        } catch (e: Exception) {
+        }
+    }
+
     val emoji = when (provider) {
         "Groq" -> "⚡"
         "Gemini" -> "✨"
@@ -1019,28 +1208,83 @@ private fun AnswerActions(answer: String, provider: String, onRegenerate: (() ->
     val footerColor = MaterialTheme.colorScheme.onSurfaceVariant
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = {
-                clipboard.setText(AnnotatedString(plain))
-                copied = true
-            }) { Text(if (copied) "Copied" else "Copy", fontWeight = FontWeight.SemiBold) }
-            TextButton(onClick = {
+            if (copied) {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = green.copy(alpha = 0.14f),
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.height(40.dp).padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = green, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            "Copied",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = green,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            } else {
+                IconButton(onClick = {
+                    clipboard.setText(AnnotatedString(plain))
+                    copied = true
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                }) {
+                    Icon(Icons.Filled.ContentCopy, contentDescription = "Copy", tint = cs.primary, modifier = Modifier.size(22.dp))
+                }
+            }
+            IconButton(onClick = {
                 val send = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, plain)
                 }
                 context.startActivity(Intent.createChooser(send, "Share answer"))
-            }) { Text("Share", fontWeight = FontWeight.SemiBold) }
+            }) {
+                Icon(Icons.Filled.Share, contentDescription = "Share", tint = cs.primary, modifier = Modifier.size(22.dp))
+            }
             if (onRegenerate != null) {
-                TextButton(onClick = onRegenerate) { Text("Regenerate", fontWeight = FontWeight.SemiBold) }
+                IconButton(onClick = onRegenerate) {
+                    Icon(Icons.Filled.Refresh, contentDescription = "Regenerate", tint = cs.primary, modifier = Modifier.size(22.dp))
+                }
+            }
+            IconButton(onClick = onToggleSave) {
+                Icon(
+                    if (saved) Icons.Filled.Star else Icons.Filled.StarBorder,
+                    contentDescription = if (saved) "Remove from saved" else "Save answer",
+                    tint = if (saved) amber else cs.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            IconButton(onClick = { toggleListen() }) {
+                Icon(
+                    if (speaking) Icons.Filled.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+                    contentDescription = if (speaking) "Stop reading" else "Listen",
+                    tint = cs.primary,
+                    modifier = Modifier.size(22.dp)
+                )
             }
         }
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (onFollowUp != null) {
+                ActionChip("Shorter") { onFollowUp("Make that shorter and more concise.") }
+                ActionChip("More detail") { onFollowUp("Give more detail on that, including key numbers and specifics.") }
+            }
+            ActionChip("PubMed", Icons.Filled.Search) { openPubMed() }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
             Text("$emoji $line1Rest", style = footerStyle, color = footerColor)
             Row {
                 // Invisible copy of "<emoji> " reserves exactly the width the
                 // real prefix occupies on line 1, so line 2 lines up under the
-                // "P" in "Powered" based on actual measured layout rather than
-                // a guessed indent value.
+                // "P" in "Powered" based on actual measured layout.
                 Text("$emoji ", style = footerStyle, color = Color.Transparent)
                 Text(line2, style = footerStyle, color = footerColor)
             }
@@ -1318,6 +1562,8 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     var showChatMenu by remember { mutableStateOf(false) }
     var showClearConfirm by remember { mutableStateOf(false) }
     var showHistoryDialog by remember { mutableStateOf(false) }
+    var showSavedDialog by remember { mutableStateOf(false) }
+    var savedAnswers by remember { mutableStateOf(loadSavedAnswers(context)) }
     var longPressedSessionId by remember { mutableStateOf<String?>(null) }
 
     var showAiSourceDialog by remember { mutableStateOf(false) }
@@ -1431,6 +1677,17 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             putExtra(Intent.EXTRA_TEXT, text)
         }
         context.startActivity(Intent.createChooser(send, "Share chat"))
+    }
+
+    fun toggleSaveAnswer(question: String, answer: String) {
+        val existing = savedAnswers.firstOrNull { it.answer == answer && it.provider == provider }
+        val updated = if (existing != null) {
+            savedAnswers.filterNot { it.id == existing.id }
+        } else {
+            listOf(SavedAnswer(UUID.randomUUID().toString(), provider, question, answer, System.currentTimeMillis())) + savedAnswers
+        }
+        savedAnswers = updated
+        writeSavedAnswers(context, updated)
     }
 
     fun togglePin(session: ChatSession) {
@@ -1656,6 +1913,86 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             )
         }
 
+        if (showSavedDialog) {
+            val savedClipboard = LocalClipboardManager.current
+            var openSavedId by remember { mutableStateOf<String?>(null) }
+            AlertDialog(
+                onDismissRequest = { showSavedDialog = false },
+                title = {
+                    Text(
+                        "Saved answers",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                text = {
+                    if (savedAnswers.isEmpty()) {
+                        Text(
+                            "Nothing saved yet. Tap the star under an answer to keep it here.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 520.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            items(savedAnswers, key = { it.id }) { item ->
+                                val open = openSavedId == item.id
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { openSavedId = if (open) null else item.id },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Text(
+                                            item.question,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = if (open) Int.MAX_VALUE else 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            "${item.provider} · ${formatSessionTimestamp(item.timestamp)}",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        if (open) {
+                                            parseInsight(item.answer).forEach { InsightCard(it) }
+                                            Row {
+                                                TextButton(onClick = {
+                                                    savedClipboard.setText(AnnotatedString(plainAnswer(item.answer)))
+                                                }) { Text("Copy") }
+                                                TextButton(
+                                                    onClick = {
+                                                        val updated = savedAnswers.filterNot { it.id == item.id }
+                                                        savedAnswers = updated
+                                                        writeSavedAnswers(context, updated)
+                                                        openSavedId = null
+                                                    },
+                                                    colors = ButtonDefaults.textButtonColors(
+                                                        contentColor = MaterialTheme.colorScheme.error
+                                                    )
+                                                ) { Text("Remove") }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showSavedDialog = false }) { Text("Close") }
+                }
+            )
+        }
+
         if (showHistoryDialog) {
             AlertDialog(
                 onDismissRequest = { showHistoryDialog = false },
@@ -1825,6 +2162,14 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                 showHistoryDialog = true
                             }
                         )
+                        DropdownMenuItem(
+                            text = { Text("Saved answers") },
+                            leadingIcon = { Icon(Icons.Filled.Star, contentDescription = null) },
+                            onClick = {
+                                showChatMenu = false
+                                showSavedDialog = true
+                            }
+                        )
                     }
                 }
             }
@@ -1915,7 +2260,15 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                         sections.forEach { InsightCard(it) }
                                     }
                                 }
-                                AnswerActions(ans, provider, if (index == 0 && !loading) ({ regenerateLast() }) else null)
+                                AnswerActions(
+                                    answer = ans,
+                                    provider = provider,
+                                    question = exchange.question,
+                                    saved = savedAnswers.any { it.answer == ans && it.provider == provider },
+                                    onToggleSave = { toggleSaveAnswer(exchange.question, ans) },
+                                    onRegenerate = if (index == 0 && !loading) ({ regenerateLast() }) else null,
+                                    onFollowUp = if (index == 0 && !loading) ({ q: String -> runSearch(q) }) else null
+                                )
                             }
                         }
                     }
