@@ -107,6 +107,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Visibility
@@ -412,11 +415,11 @@ private val RETRYABLE_HTTP_CODES = setOf(429, 500, 502, 503)
 private fun friendlyApiError(label: String, code: Int, rawBody: String): String {
     Log.w("AiInsights", "$label error ($code): $rawBody")
     return when (code) {
-        401 -> "$label: API key is invalid."
-        403 -> "$label: API access is not authorized."
-        429 -> "$label is temporarily rate-limited. Please wait a moment and try again."
-        500, 502, 503 -> "$label is temporarily unavailable. Please try again shortly."
-        else -> "$label error ($code). Please try again."
+        401 -> "API key rejected\n$label didn't accept your key. Update it and try again."
+        403 -> "Access not authorized\n$label blocked this request. Check your key's permissions."
+        429 -> "$label is busy\nToo many requests right now. Wait a minute, then try again."
+        500, 502, 503 -> "$label is unavailable\nTheir servers are having trouble. Try again shortly, or switch source."
+        else -> "Something went wrong\n$label returned an error ($code). Please try again."
     }
 }
 
@@ -424,10 +427,9 @@ private fun friendlyApiError(label: String, code: Int, rawBody: String): String 
 private fun friendlyNetworkError(label: String, e: Exception): String {
     Log.w("AiInsights", "$label network error", e)
     return when (e) {
-        is java.net.SocketTimeoutException -> "$label: Request timed out. Please try again."
-        is java.net.UnknownHostException -> "Check your internet connection."
-        is java.io.IOException -> "Check your internet connection."
-        else -> "$label: Something went wrong. Please try again."
+        is java.net.SocketTimeoutException -> "$label is taking too long\nThe request timed out. Try again, or switch source."
+        is java.net.UnknownHostException, is java.io.IOException -> "You're offline\nCheck your internet connection, then try again."
+        else -> "Something went wrong\n$label couldn't complete the request. Please try again."
     }
 }
 
@@ -1049,17 +1051,54 @@ private fun AnswerActions(answer: String, provider: String, onRegenerate: (() ->
 @Composable
 private fun ErrorCard(message: String, actionLabel: String, onAction: () -> Unit) {
     val cs = MaterialTheme.colorScheme
+    val title = message.substringBefore("\n")
+    val body = message.substringAfter("\n", "")
+    val offline = title.startsWith("You're offline")
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
         color = cs.errorContainer
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(message, color = cs.onErrorContainer, style = MaterialTheme.typography.bodyMedium)
-            TextButton(
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    if (offline) Icons.Filled.WifiOff else Icons.Filled.ErrorOutline,
+                    contentDescription = null,
+                    tint = cs.onErrorContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    title,
+                    color = cs.onErrorContainer,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            if (body.isNotEmpty()) {
+                Text(
+                    body,
+                    color = cs.onErrorContainer.copy(alpha = 0.85f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 30.dp)
+                )
+            }
+            androidx.compose.material3.Button(
                 onClick = onAction,
-                colors = ButtonDefaults.textButtonColors(contentColor = cs.onErrorContainer)
-            ) { Text(actionLabel, fontWeight = FontWeight.SemiBold) }
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = cs.onErrorContainer,
+                    contentColor = cs.errorContainer
+                ),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                modifier = Modifier.padding(start = 30.dp, top = 6.dp)
+            ) {
+                if (actionLabel == "Try again") {
+                    Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
+                Text(actionLabel, fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }
@@ -1416,7 +1455,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         val apiKey = getStoredApiKey(context, source)
         if (apiKey.isBlank()) {
             errorNeedsKey = true
-            error = "$source needs an API key before it can answer."
+            error = "API key needed\nAdd your $source key to get answers."
             return
         }
 
@@ -1485,7 +1524,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             val clipboardMgr = LocalClipboardManager.current
             var keyVisible by remember { mutableStateOf(false) }
             var keySaved by remember { mutableStateOf(getStoredApiKey(context, provider).isNotBlank()) }
-            val keyRejected = error?.contains("invalid", ignoreCase = true) == true
+            val keyRejected = error?.startsWith("API key rejected") == true
             val savedGreen = Color(0xFF2E7D32)
 
             fun saveKey() {
@@ -1494,7 +1533,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 saveApiKey(context, provider, cleaned)
                 keyVersion++
                 showAiSourceDialog = false
-                if (errorNeedsKey && pendingQuestion.isNotBlank()) {
+                if ((errorNeedsKey || keyRejected) && pendingQuestion.isNotBlank()) {
                     runSearch(pendingQuestion)
                 }
             }
@@ -1844,9 +1883,9 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                 if (!loading && pendingQuestion.isNotBlank()) QuestionBubble(pendingQuestion, provider)
                                 ErrorCard(
                                     message = msg,
-                                    actionLabel = if (errorNeedsKey) "Add API key" else "Try again"
+                                    actionLabel = if (errorNeedsKey) "Add API key" else if (msg.startsWith("API key rejected")) "Update API key" else "Try again"
                                 ) {
-                                    if (errorNeedsKey) {
+                                    if (errorNeedsKey || msg.startsWith("API key rejected")) {
                                         keyDraft = getStoredApiKey(context, provider)
                                         showAiSourceDialog = true
                                     } else {
