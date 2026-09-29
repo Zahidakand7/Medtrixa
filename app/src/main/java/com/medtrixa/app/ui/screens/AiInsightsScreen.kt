@@ -136,16 +136,72 @@ private data class PubMedResult(
 
 private const val AI_SOURCE_PREFS = "medtrixa_ai_source"
 
+private const val KEYSTORE_ALIAS = "medtrixa_ai_key_wrap"
+private const val ENC_PREFIX = "enc1:"
+
+private fun aiSecretKey(): javax.crypto.SecretKey {
+    val ks = java.security.KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+    (ks.getKey(KEYSTORE_ALIAS, null) as? javax.crypto.SecretKey)?.let { return it }
+    val gen = javax.crypto.KeyGenerator.getInstance(
+        android.security.keystore.KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore"
+    )
+    gen.init(
+        android.security.keystore.KeyGenParameterSpec.Builder(
+            KEYSTORE_ALIAS,
+            android.security.keystore.KeyProperties.PURPOSE_ENCRYPT or
+                android.security.keystore.KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(android.security.keystore.KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setKeySize(256)
+            .build()
+    )
+    return gen.generateKey()
+}
+
+private fun encryptApiKey(plain: String): String {
+    val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+    cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, aiSecretKey())
+    val data = cipher.doFinal(plain.toByteArray(Charsets.UTF_8))
+    val flags = android.util.Base64.NO_WRAP
+    return ENC_PREFIX + android.util.Base64.encodeToString(cipher.iv, flags) + ":" +
+        android.util.Base64.encodeToString(data, flags)
+}
+
+private fun decryptApiKey(stored: String): String = try {
+    val parts = stored.removePrefix(ENC_PREFIX).split(":")
+    val flags = android.util.Base64.NO_WRAP
+    val iv = android.util.Base64.decode(parts[0], flags)
+    val data = android.util.Base64.decode(parts[1], flags)
+    val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+    cipher.init(
+        javax.crypto.Cipher.DECRYPT_MODE,
+        aiSecretKey(),
+        javax.crypto.spec.GCMParameterSpec(128, iv)
+    )
+    String(cipher.doFinal(data), Charsets.UTF_8)
+} catch (e: Exception) {
+    ""
+}
+
 private fun getStoredApiKey(context: android.content.Context, provider: String): String {
     val prefs = context.getSharedPreferences(AI_SOURCE_PREFS, android.content.Context.MODE_PRIVATE)
-    return prefs.getString("key_$provider", "") ?: ""
+    val stored = prefs.getString("key_$provider", "") ?: ""
+    if (stored.isBlank()) return ""
+    if (!stored.startsWith(ENC_PREFIX)) {
+        // Older plain-text key: encrypt it now, then keep using it.
+        saveApiKey(context, provider, stored)
+        return stored
+    }
+    return decryptApiKey(stored)
 }
 
 private fun saveApiKey(context: android.content.Context, provider: String, key: String) {
     val prefs = context.getSharedPreferences(AI_SOURCE_PREFS, android.content.Context.MODE_PRIVATE)
-    // Keys are written with apply() to a persistent, app-private SharedPreferences file.
-    // They remain on disk across app restarts/updates until removeApiKey() is called.
-    prefs.edit().putString("key_$provider", key).apply()
+    // Encrypted with an Android Keystore key; falls back to plain text only if the
+    // device's Keystore fails, so saving never breaks.
+    val value = try { encryptApiKey(key) } catch (e: Exception) { key }
+    prefs.edit().putString("key_$provider", value).apply()
 }
 
 private fun removeApiKey(context: android.content.Context, provider: String) {
@@ -1223,7 +1279,6 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     var showChatMenu by remember { mutableStateOf(false) }
     var showClearConfirm by remember { mutableStateOf(false) }
     var showHistoryDialog by remember { mutableStateOf(false) }
-    var showAllChats by remember { mutableStateOf(false) }
     var longPressedSessionId by remember { mutableStateOf<String?>(null) }
 
     var showAiSourceDialog by remember { mutableStateOf(false) }
@@ -1581,9 +1636,9 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                             Text("No saved chats yet.", style = MaterialTheme.typography.bodyMedium)
                         } else {
                             val sortedSessions = sessions.sortedWith(compareByDescending<ChatSession> { it.pinned }.thenByDescending { it.timestamp })
-                            val visibleSessions = if (showAllChats) sortedSessions else sortedSessions.take(10)
+                            val visibleSessions = sortedSessions
                             LazyColumn(
-                                modifier = Modifier.heightIn(max = 420.dp),
+                                modifier = Modifier.heightIn(max = 520.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 // Newest first, like Claude's own chat history list.
@@ -1652,21 +1707,11 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                 }
                             }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            if (!showAllChats && sessions.size > 10) {
-                                TextButton(onClick = { showAllChats = true }) { Text("All Chats") }
-                            } else {
-                                Spacer(modifier = Modifier.width(1.dp))
-                            }
-                            TextButton(onClick = { showHistoryDialog = false }) { Text("Close") }
-                        }
                     }
                 },
-                confirmButton = {}
+                confirmButton = {
+                    TextButton(onClick = { showHistoryDialog = false }) { Text("Close") }
+                }
             )
         }
 
@@ -1738,7 +1783,6 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                             enabled = sessions.isNotEmpty(),
                             onClick = {
                                 showChatMenu = false
-                                showAllChats = false
                                 showHistoryDialog = true
                             }
                         )
