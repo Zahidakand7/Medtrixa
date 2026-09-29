@@ -1090,33 +1090,13 @@ private fun sectionPlain(section: InsightSection): String = buildString {
 }.replace("**", "").trim()
 
 @Composable
-private fun ActionChip(label: String, icon: ImageVector? = null, onClick: () -> Unit) {
-    val cs = MaterialTheme.colorScheme
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .border(1.dp, cs.outline.copy(alpha = 0.5f), RoundedCornerShape(50))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (icon != null) {
-            Icon(icon, contentDescription = null, tint = cs.primary, modifier = Modifier.size(14.dp))
-            Spacer(modifier = Modifier.width(5.dp))
-        }
-        Text(label, style = MaterialTheme.typography.labelLarge, color = cs.onSurface)
-    }
-}
-
-@Composable
 private fun AnswerActions(
     answer: String,
     provider: String,
     question: String,
     saved: Boolean,
     onToggleSave: () -> Unit,
-    onRegenerate: (() -> Unit)? = null,
-    onFollowUp: ((String) -> Unit)? = null
+    onRegenerate: (() -> Unit)? = null
 ) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
@@ -1181,15 +1161,6 @@ private fun AnswerActions(
         ttsHolder[0] = engine
     }
 
-    fun openPubMed() {
-        try {
-            val term = java.net.URLEncoder.encode(question.take(300), "UTF-8")
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://pubmed.ncbi.nlm.nih.gov/?term=$term"))
-            )
-        } catch (e: Exception) {
-        }
-    }
 
     val emoji = when (provider) {
         "Groq" -> "⚡"
@@ -1267,16 +1238,6 @@ private fun AnswerActions(
                     modifier = Modifier.size(22.dp)
                 )
             }
-        }
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (onFollowUp != null) {
-                ActionChip("Shorter") { onFollowUp("Make that shorter and more concise.") }
-                ActionChip("More detail") { onFollowUp("Give more detail on that, including key numbers and specifics.") }
-            }
-            ActionChip("PubMed", Icons.Filled.Search) { openPubMed() }
         }
         Spacer(modifier = Modifier.height(4.dp))
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
@@ -2266,8 +2227,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                     question = exchange.question,
                                     saved = savedAnswers.any { it.answer == ans && it.provider == provider },
                                     onToggleSave = { toggleSaveAnswer(exchange.question, ans) },
-                                    onRegenerate = if (index == 0 && !loading) ({ regenerateLast() }) else null,
-                                    onFollowUp = if (index == 0 && !loading) ({ q: String -> runSearch(q) }) else null
+                                    onRegenerate = if (index == 0 && !loading) ({ regenerateLast() }) else null
                                 )
                             }
                         }
