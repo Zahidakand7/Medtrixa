@@ -591,73 +591,182 @@ private fun askOpenRouter(apiKey: String, history: List<ChatExchange>): String =
         "OpenRouter"
     )
 
-private fun askGeminiWithRetry(apiKey: String, history: List<ChatExchange>): String {
-    val maxAttempts = 3
-    var lastError: Exception = Exception("Gemini is temporarily unavailable. Please try again.")
-    repeat(maxAttempts) { attempt ->
-        try {
-            return askGemini(apiKey, history)
-        } catch (e: GeminiHttpException) {
-            lastError = Exception(friendlyApiError("Gemini", e.code, e.rawBody))
-            val retryable = e.code in RETRYABLE_HTTP_CODES
-            if (!retryable || attempt == maxAttempts - 1) throw lastError
-        } catch (e: Exception) {
-            lastError = Exception(friendlyNetworkError("Gemini", e))
-            if (attempt == maxAttempts - 1) throw lastError
-        }
-        Thread.sleep(2000L * (1L shl attempt)) // 2s, 4s, 8s
-    }
-    throw lastError
-}
-
 /** Carries the HTTP status and raw body so the retry wrapper can classify the failure. */
 private class GeminiHttpException(val code: Int, val rawBody: String) : Exception()
 
-private fun askGemini(apiKey: String, history: List<ChatExchange>): String {
-    val conn = URL(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
-    ).openConnection() as HttpURLConnection
-    conn.requestMethod = "POST"
-    conn.setRequestProperty("x-goog-api-key", apiKey)
-    conn.setRequestProperty("Content-Type", "application/json")
-    conn.doOutput = true
-    conn.connectTimeout = 45000
-    conn.readTimeout = 45000
+/** A clean, already user-facing message (blocked / empty answer). Never retried. */
+private class GeminiContentException(message: String) : Exception(message)
 
-    val body = JSONObject().apply {
-        put("generationConfig", JSONObject().put("thinkingConfig", JSONObject().put("thinkingLevel", "low")))
-        put("contents", JSONArray().apply {
-            history.forEach { exchange ->
-                put(JSONObject().apply {
-                    put("role", "user")
-                    put("parts", JSONArray().put(JSONObject().put("text", exchange.question)))
+// Tried in order. If a model fails for ANY reason other than a rejected API key
+// (busy, quota, unknown/retired model ID, unsupported field, empty answer), the next
+// one is used automatically. Quotas are per model, so each has its own free allowance.
+// To swap models later, just edit this list.
+private val GEMINI_MODELS = listOf(
+    "gemini-3.6-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite"
+)
+
+// Longest we'll silently wait on a 429 before moving on to the fallback model.
+private const val GEMINI_MAX_WAIT_MS = 15_000L
+
+/** Reads RetryInfo.retryDelay (e.g. "34s") from a Gemini error body; null if absent. */
+private fun geminiRetryDelayMs(rawBody: String): Long? = try {
+    val details = JSONObject(rawBody).getJSONObject("error").optJSONArray("details")
+    var ms: Long? = null
+    if (details != null) {
+        for (i in 0 until details.length()) {
+            val d = details.getJSONObject(i)
+            if (d.optString("@type").endsWith("RetryInfo")) {
+                ms = (d.optString("retryDelay").removeSuffix("s").toDouble() * 1000).toLong()
+            }
+        }
+    }
+    ms
+} catch (_: Exception) {
+    null
+}
+
+/** True when the 429 is a per-day quota (quotaId contains "PerDay"): waiting won't help. */
+private fun geminiIsDailyQuota(rawBody: String): Boolean =
+    rawBody.contains("PerDay", ignoreCase = true)
+
+/**
+ * Gemini caller with quota-aware retry and automatic model fallback:
+ *  - 401 (key rejected) fails immediately: every model would reject it too.
+ *  - 429 per-minute: wait the server's own retryDelay (capped), retry once.
+ *  - 500/502/503: one short retry with jitter.
+ *  - Anything else that fails (429 per-day, 400/403/404 bad or retired model ID,
+ *    blocked/empty answer, still busy after retry): move on to the next model in
+ *    GEMINI_MODELS.
+ *  - All models failed: show the most useful error (busy/unavailable beats a
+ *    technical one).
+ * Suspend + delay() so the Stop button cancels it instantly.
+ */
+private suspend fun askGeminiWithRetry(apiKey: String, history: List<ChatExchange>): String {
+    var lastError: Exception = Exception("Gemini is temporarily unavailable. Please try again.")
+    var busyError: Exception? = null
+    for (model in GEMINI_MODELS) {
+        var attempt = 0
+        while (attempt < 2) {
+            var waitMs = 0L
+            try {
+                return askGemini(apiKey, model, history)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: GeminiContentException) {
+                lastError = e
+                break // try next model
+            } catch (e: GeminiHttpException) {
+                lastError = Exception(friendlyApiError("Gemini", e.code, e.rawBody))
+                if (e.code == 401) throw lastError
+                if (e.code !in RETRYABLE_HTTP_CODES) break // bad/retired model etc: next model
+                if (busyError == null) busyError = lastError
+                if (e.code == 429 && geminiIsDailyQuota(e.rawBody)) break // next model
+                waitMs = (if (e.code == 429) geminiRetryDelayMs(e.rawBody) else null)
+                    ?: (1500L * (attempt + 1))
+                if (waitMs > GEMINI_MAX_WAIT_MS) break // too long to wait: next model
+            } catch (e: Exception) {
+                lastError = Exception(friendlyNetworkError("Gemini", e))
+                if (e is java.net.UnknownHostException) throw lastError // offline: retry is pointless
+                waitMs = 1500L
+            }
+            if (attempt == 1) break
+            delay(waitMs + kotlin.random.Random.nextLong(0, 400))
+            attempt++
+        }
+    }
+    throw busyError ?: lastError
+}
+
+private suspend fun askGemini(apiKey: String, model: String, history: List<ChatExchange>): String =
+    withContext(Dispatchers.IO) {
+        val conn = URL(
+            "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent"
+        ).openConnection() as HttpURLConnection
+        // If the coroutine is cancelled (Stop button), close the socket so the
+        // blocking read ends now instead of finishing in the background.
+        val watcher = launch {
+            try {
+                kotlinx.coroutines.awaitCancellation()
+            } finally {
+                conn.disconnect()
+            }
+        }
+        try {
+            conn.requestMethod = "POST"
+            conn.setRequestProperty("x-goog-api-key", apiKey)
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.doOutput = true
+            conn.connectTimeout = 45000
+            conn.readTimeout = 45000
+
+            val generationConfig = JSONObject().put("maxOutputTokens", 4096)
+            // thinkingLevel is only sent to the main model; the fallback may not accept it.
+            if (model == GEMINI_MODELS.first()) {
+                generationConfig.put("thinkingConfig", JSONObject().put("thinkingLevel", "low"))
+            }
+            val body = JSONObject().apply {
+                put(
+                    "systemInstruction",
+                    JSONObject().put(
+                        "parts",
+                        JSONArray().put(JSONObject().put("text", CLINICAL_SYSTEM_PROMPT))
+                    )
+                )
+                put("generationConfig", generationConfig)
+                put("contents", JSONArray().apply {
+                    history.forEach { exchange ->
+                        put(JSONObject().apply {
+                            put("role", "user")
+                            put("parts", JSONArray().put(JSONObject().put("text", exchange.question)))
+                        })
+                        exchange.answer?.let { ans ->
+                            put(JSONObject().apply {
+                                put("role", "model")
+                                put("parts", JSONArray().put(JSONObject().put("text", ans)))
+                            })
+                        }
+                    }
                 })
-                exchange.answer?.let { ans ->
-                    put(JSONObject().apply {
-                        put("role", "model")
-                        put("parts", JSONArray().put(JSONObject().put("text", ans)))
-                    })
+            }
+            conn.outputStream.use { it.write(body.toString().toByteArray()) }
+
+            val code = conn.responseCode
+            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+            val text = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
+
+            if (code !in 200..299) throw GeminiHttpException(code, text)
+
+            val root = JSONObject(text)
+            val candidate = root.optJSONArray("candidates")?.optJSONObject(0)
+            if (candidate == null) {
+                val reason = root.optJSONObject("promptFeedback")?.optString("blockReason").orEmpty()
+                Log.w("AiInsights", "Gemini returned no candidate. blockReason=$reason")
+                throw GeminiContentException(
+                    "Answer blocked\nGemini couldn't answer this question. Try rephrasing it."
+                )
+            }
+            val parts = candidate.optJSONObject("content")?.optJSONArray("parts")
+            val answer = StringBuilder()
+            if (parts != null) {
+                for (i in 0 until parts.length()) {
+                    val part = parts.getJSONObject(i)
+                    if (!part.optBoolean("thought", false)) answer.append(part.optString("text"))
                 }
             }
-        })
+            if (answer.isBlank()) {
+                Log.w("AiInsights", "Gemini empty answer. finishReason=${candidate.optString("finishReason")}")
+                throw GeminiContentException(
+                    "No answer returned\nGemini sent an empty response. Try again or rephrase."
+                )
+            }
+            answer.toString()
+        } finally {
+            watcher.cancel()
+            conn.disconnect()
+        }
     }
-    conn.outputStream.use { it.write(body.toString().toByteArray()) }
-
-    val code = conn.responseCode
-    val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-    val text = stream.bufferedReader().readText()
-    conn.disconnect()
-
-    if (code !in 200..299) throw GeminiHttpException(code, text)
-
-    return JSONObject(text)
-        .getJSONArray("candidates")
-        .getJSONObject(0)
-        .getJSONObject("content")
-        .getJSONArray("parts")
-        .getJSONObject(0)
-        .getString("text")
-}
 
 // ───────────────────────── Markdown → structured cards ─────────────────────────
 
