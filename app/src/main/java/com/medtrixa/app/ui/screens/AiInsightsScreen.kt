@@ -1920,7 +1920,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 onDismissRequest = { showSavedDialog = false },
                 title = {
                     Text(
-                        "Saved answers",
+                        "Saved Answers",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -2163,7 +2163,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Saved answers") },
+                            text = { Text("Saved Answers") },
                             leadingIcon = { Icon(Icons.Filled.Star, contentDescription = null) },
                             onClick = {
                                 showChatMenu = false
