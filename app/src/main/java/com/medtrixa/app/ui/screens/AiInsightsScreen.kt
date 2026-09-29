@@ -13,7 +13,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
@@ -45,6 +44,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -83,7 +83,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -108,6 +107,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.input.VisualTransformation
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -149,6 +157,18 @@ private fun removeApiKey(context: android.content.Context, provider: String) {
 // Keeps the full conversation thread (every question + answer, or question +
 // PubMed results) for each provider, so re-opening the screen after the app
 // was closed shows the whole thread where you left off, not just the last turn.
+
+private fun keyLink(provider: String): String = when (provider) {
+    "Groq" -> "https://console.groq.com/keys"
+    "Gemini" -> "https://aistudio.google.com/apikey"
+    else -> "https://openrouter.ai/keys"
+}
+
+private fun keyPrefixHint(provider: String): String = when (provider) {
+    "Groq" -> "Starts with gsk_"
+    "Gemini" -> "Starts with AIza"
+    else -> "Starts with sk-or-"
+}
 
 private const val AI_HISTORY_PREFS = "medtrixa_ai_history"
 
@@ -479,9 +499,10 @@ private class GeminiHttpException(val code: Int, val rawBody: String) : Exceptio
 
 private fun askGemini(apiKey: String, history: List<ChatExchange>): String {
     val conn = URL(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=$apiKey"
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
     ).openConnection() as HttpURLConnection
     conn.requestMethod = "POST"
+    conn.setRequestProperty("x-goog-api-key", apiKey)
     conn.setRequestProperty("Content-Type", "application/json")
     conn.doOutput = true
     conn.connectTimeout = 45000
@@ -671,7 +692,8 @@ private fun ProviderChip(
     provider: String,
     selected: Boolean,
     enabled: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val accent = providerColor(provider)
     val style = providerStyle(provider)
@@ -683,14 +705,25 @@ private fun ProviderChip(
         else -> Modifier.background(accent.copy(alpha = 0.12f), style.shape)
     }
     val borderModifier = if (style.bordered) Modifier.border(1.2.dp, accent, style.shape) else Modifier
+    // Each chip takes an equal share of the row's width (via the weight
+    // modifier passed in from the caller) and fills it, so all three chips
+    // are always the same size and the row always fits the screen exactly —
+    // no fixed dp values to guess, and no scrolling ever needed.
+    val chipPadding = PaddingValues(start = 10.dp, end = 12.dp, top = 9.dp, bottom = 9.dp)
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clip(style.shape)
             .then(backgroundModifier)
             .then(borderModifier)
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(start = 12.dp, end = 14.dp, top = 7.dp, bottom = 7.dp),
+            .fillMaxWidth()
+            // Fixed height so every chip is exactly the same height
+            // regardless of whether its content is an icon+text (taller,
+            // due to text line-height) or Groq's icon+logo (shorter).
+            .height(38.dp)
+            .padding(chipPadding),
+        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
         style.leadingIcon?.let { leading ->
@@ -698,7 +731,7 @@ private fun ProviderChip(
                 leading,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(17.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
         }
@@ -707,7 +740,7 @@ private fun ProviderChip(
                 ic.icon,
                 contentDescription = provider,
                 tint = contentColor,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(17.dp)
             )
             is ProviderIcon.Drawable -> Icon(
                 painter = painterResource(ic.resId),
@@ -717,19 +750,24 @@ private fun ProviderChip(
                     // Size by the wordmark's own aspect ratio (Groq's is
                     // 40:15) rather than the fixed square used by symbol
                     // icons, so the lettering isn't squashed or clipped.
-                    Modifier.height(16.dp).aspectRatio(40f / 15f)
+                    // Shrunk a bit smaller than the other providers' icons,
+                    // since the wordmark otherwise reads much larger than
+                    // Gemini/OpenRouter's icon+text at the same height.
+                    Modifier.height(13.dp).aspectRatio(40f / 15f)
                 } else {
-                    Modifier.size(16.dp)
+                    Modifier.size(17.dp)
                 }
             )
         }
         if (!style.isWordmark) {
-            Spacer(modifier = Modifier.width(7.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 provider,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f)
+                color = if (enabled) contentColor else contentColor.copy(alpha = 0.5f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -890,10 +928,16 @@ private fun InsightSkeleton() {
 }
 
 @Composable
-private fun AnswerActions(answer: String, provider: String) {
+private fun AnswerActions(answer: String, provider: String, onRegenerate: (() -> Unit)? = null) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     var copied by remember(answer) { mutableStateOf(false) }
+    LaunchedEffect(copied) {
+        if (copied) {
+            delay(2000)
+            copied = false
+        }
+    }
     val plain = remember(answer) {
         answer.replace("**", "")
             .replace(Regex("(?m)^#+\\s*"), "")
@@ -903,7 +947,7 @@ private fun AnswerActions(answer: String, provider: String) {
     val emoji = when (provider) {
         "Groq" -> "⚡"
         "Gemini" -> "✨"
-        "OpenRouter" -> "🤖"
+        "OpenRouter" -> "🧭"
         else -> ""
     }
     val line1Rest = when (provider) {
@@ -928,6 +972,9 @@ private fun AnswerActions(answer: String, provider: String) {
                 }
                 context.startActivity(Intent.createChooser(send, "Share answer"))
             }) { Text("Share", fontWeight = FontWeight.SemiBold) }
+            if (onRegenerate != null) {
+                TextButton(onClick = onRegenerate) { Text("Regenerate", fontWeight = FontWeight.SemiBold) }
+            }
         }
         Column(modifier = Modifier.padding(horizontal = 12.dp)) {
             Text("$emoji $line1Rest", style = footerStyle, color = footerColor)
@@ -1076,7 +1123,8 @@ private fun ComposerBar(
     onQueryChange: (String) -> Unit,
     placeholder: String,
     loading: Boolean,
-    onSend: () -> Unit
+    onSend: () -> Unit,
+    onStop: () -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
     val canSend = query.isNotBlank() && !loading
@@ -1102,11 +1150,12 @@ private fun ComposerBar(
                     .size(52.dp)
                     .clip(CircleShape)
                     .background(if (canSend) cs.primary else cs.onSurface.copy(alpha = 0.12f))
-                    .clickable(enabled = canSend, onClick = onSend),
+                    .clickable(enabled = canSend || loading, onClick = if (loading) onStop else onSend),
                 contentAlignment = Alignment.Center
             ) {
                 if (loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+                    CircularProgressIndicator(modifier = Modifier.size(40.dp), strokeWidth = 2.dp)
+                    Icon(Icons.Filled.Stop, contentDescription = "Stop", tint = cs.primary, modifier = Modifier.size(18.dp))
                 } else {
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
@@ -1120,6 +1169,35 @@ private fun ComposerBar(
 }
 
 // ───────────────────────── Screen ─────────────────────────
+
+@Composable
+private fun KeyBanner(provider: String, onAdd: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onAdd),
+        shape = RoundedCornerShape(14.dp),
+        color = cs.tertiaryContainer
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Outlined.Info, contentDescription = null, tint = cs.onTertiaryContainer, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                "Add your $provider key to start asking",
+                style = MaterialTheme.typography.bodyMedium,
+                color = cs.onTertiaryContainer,
+                modifier = Modifier.weight(1f)
+            )
+            Text("Add", fontWeight = FontWeight.SemiBold, color = cs.onTertiaryContainer)
+        }
+    }
+}
 
 @Composable
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -1150,8 +1228,11 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
 
     var showAiSourceDialog by remember { mutableStateOf(false) }
     var keyDraft by remember { mutableStateOf("") }
+    var searchJob by remember { mutableStateOf<Job?>(null) }
+    var keyVersion by remember { mutableStateOf(0) }
 
     val providers = listOf("Groq", "Gemini", "OpenRouter")
+    val hasKey = remember(provider, keyVersion) { getStoredApiKey(context, provider).isNotBlank() }
 
     // Freshly randomized per provider each time this screen is entered, so the
     // "try asking" suggestions differ on every app start rather than being static.
@@ -1232,6 +1313,32 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
 
 
 
+    fun removeSession(session: ChatSession) {
+        val updatedSessions = sessions.filterNot { it.id == session.id }
+        sessions = updatedSessions
+        saveSessions(context, provider, updatedSessions)
+        if (session.id == activeSessionId) {
+            activeSessionId = null
+            thread = emptyList()
+            pendingQuestion = ""
+            error = null
+            errorNeedsKey = false
+            saveActiveSessionId(context, provider, null)
+        }
+    }
+
+    fun shareSession(session: ChatSession) {
+        val text = session.exchanges.joinToString("\n\n") { ex ->
+            val ans = ex.answer?.replace("**", "")?.replace(Regex("(?m)^#+\\s*"), "")
+            "Q: ${ex.question}" + (if (ans != null) "\n\n$ans" else "")
+        }
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        context.startActivity(Intent.createChooser(send, "Share chat"))
+    }
+
     fun togglePin(session: ChatSession) {
         val updatedSessions = sessions.map { if (it.id == session.id) it.copy(pinned = !it.pinned) else it }
         sessions = updatedSessions
@@ -1262,7 +1369,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         // The new question is included as the last turn of the history sent to the
         // model, so each answer is aware of the whole conversation so far.
         val historyForCall = thread + ChatExchange(question)
-        scope.launch {
+        searchJob = scope.launch {
             try {
                 val answer = withContext(Dispatchers.IO) {
                     when (source) {
@@ -1275,14 +1382,31 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 thread = updated
                 persistThread(source, updated)
                 pendingQuestion = ""
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // askOpenAiCompatible / askGeminiWithRetry already produce a clean,
                 // labeled, user-facing message — no raw JSON or status-code noise.
                 error = e.message ?: "Couldn't reach $source. Please try again."
             } finally {
-                loading = false
+                if (isActive) loading = false
             }
         }
+    }
+
+    fun stopSearch() {
+        searchJob?.cancel()
+        searchJob = null
+        query = pendingQuestion
+        pendingQuestion = ""
+        loading = false
+    }
+
+    fun regenerateLast() {
+        if (loading) return
+        val last = thread.lastOrNull() ?: return
+        thread = thread.dropLast(1)
+        runSearch(last.question)
     }
 
     // With reverseLayout = true below, item index 0 is always the bottom-most (newest)
@@ -1302,13 +1426,45 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
 
         if (showAiSourceDialog) {
+            val uriHandler = LocalUriHandler.current
+            val clipboardMgr = LocalClipboardManager.current
+            var keyVisible by remember { mutableStateOf(false) }
+            var keySaved by remember { mutableStateOf(getStoredApiKey(context, provider).isNotBlank()) }
+            val keyRejected = error?.contains("invalid", ignoreCase = true) == true
+            val savedGreen = Color(0xFF2E7D32)
+
+            fun saveKey() {
+                val cleaned = keyDraft.trim()
+                if (cleaned.isEmpty()) return
+                saveApiKey(context, provider, cleaned)
+                keyVersion++
+                showAiSourceDialog = false
+                if (errorNeedsKey && pendingQuestion.isNotBlank()) {
+                    runSearch(pendingQuestion)
+                }
+            }
+
             AlertDialog(
                 onDismissRequest = { showAiSourceDialog = false },
-                title = { Text("AI Source") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("$provider API key", modifier = Modifier.weight(1f))
+                        if (keySaved) {
+                            Surface(shape = RoundedCornerShape(50), color = savedGreen.copy(alpha = 0.14f)) {
+                                Text(
+                                    "Saved",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = savedGreen,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+                    }
+                },
                 text = {
                     Column {
                         Text(
-                            "Enter your own $provider API key. It's stored only on this device, and stays saved until you remove it here.",
+                            "Stored only on this device, and stays saved until you remove it here.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1318,34 +1474,68 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                             onValueChange = { keyDraft = it },
                             label = { Text("$provider API key") },
                             singleLine = true,
-                            visualTransformation = PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            visualTransformation = if (keyVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { saveKey() }),
+                            trailingIcon = {
+                                Row {
+                                    IconButton(onClick = { keyVisible = !keyVisible }, modifier = Modifier.size(36.dp)) {
+                                        Icon(
+                                            if (keyVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                            contentDescription = if (keyVisible) "Hide key" else "Show key",
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { clipboardMgr.getText()?.text?.let { keyDraft = it.trim() } },
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Icon(Icons.Filled.ContentPaste, contentDescription = "Paste", modifier = Modifier.size(20.dp))
+                                    }
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth()
                         )
+                        if (!keySaved || keyRejected) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    keyPrefixHint(provider),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    if (keySaved) "Get a new key" else "Get a free key",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .clickable { uriHandler.openUri(keyLink(provider)) }
+                                        .padding(vertical = 4.dp)
+                                )
+                            }
+                        }
+                        if (keySaved) {
+                            TextButton(
+                                onClick = {
+                                    removeApiKey(context, provider)
+                                    keyDraft = ""
+                                    keySaved = false
+                                    keyVersion++
+                                },
+                                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                            ) { Text("Remove key") }
+                        }
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = {
-                        saveApiKey(context, provider, keyDraft.trim())
-                        showAiSourceDialog = false
-                        if (errorNeedsKey && pendingQuestion.isNotBlank() && keyDraft.isNotBlank()) {
-                            runSearch(pendingQuestion)
-                        }
-                    }) { Text("Save") }
+                    TextButton(onClick = { saveKey() }, enabled = keyDraft.isNotBlank()) { Text("Save") }
                 },
                 dismissButton = {
-                    Row {
-                        if (keyDraft.isNotBlank()) {
-                            TextButton(onClick = {
-                                // Stay open after removing so the user can type a
-                                // replacement key right away instead of having to
-                                // reopen "AI Source" from scratch.
-                                removeApiKey(context, provider)
-                                keyDraft = ""
-                            }) { Text("Remove key") }
-                        }
-                        TextButton(onClick = { showAiSourceDialog = false }) { Text("Cancel") }
-                    }
+                    TextButton(onClick = { showAiSourceDialog = false }) { Text("Cancel") }
                 }
             )
         }
@@ -1451,11 +1641,11 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                             )
                                             DropdownMenuItem(
                                                 text = { Text("Remove") },
-                                                onClick = { longPressedSessionId = null }
+                                                onClick = { removeSession(session); longPressedSessionId = null }
                                             )
                                             DropdownMenuItem(
                                                 text = { Text("Share") },
-                                                onClick = { longPressedSessionId = null }
+                                                onClick = { shareSession(session); longPressedSessionId = null }
                                             )
                                         }
                                     }
@@ -1508,7 +1698,17 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                     keyDraft = getStoredApiKey(context, provider)
                     showAiSourceDialog = true
                 }) {
-                    Icon(Icons.Outlined.Settings, contentDescription = "AI Source")
+                    Box {
+                        Icon(Icons.Outlined.Settings, contentDescription = "AI Source")
+                        if (!hasKey) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .size(8.dp)
+                                    .background(MaterialTheme.colorScheme.error, CircleShape)
+                            )
+                        }
+                    }
                 }
                 Box {
                     IconButton(onClick = { showChatMenu = true }) {
@@ -1549,11 +1749,15 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 providers.forEach { option ->
+                    // Gemini's name is short enough to need less room; giving
+                    // it a smaller share and putting that space toward Groq
+                    // and OpenRouter (kept equal to each other) stops
+                    // "OpenRouter" from being cut off with an ellipsis.
+                    val chipWeight = if (option == "Gemini") 0.8f else 1.1f
                     ProviderChip(
                         provider = option,
                         selected = provider == option,
@@ -1563,8 +1767,16 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                 provider = option
                                 startFreshFor(option)
                             }
-                        }
+                        },
+                        modifier = Modifier.weight(chipWeight)
                     )
+                }
+            }
+
+            if (!hasKey && !hasContent) {
+                KeyBanner(provider) {
+                    keyDraft = ""
+                    showAiSourceDialog = true
                 }
             }
 
@@ -1610,13 +1822,17 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                         }
                     }
 
-                    itemsIndexed(thread.asReversed()) { _, exchange ->
+                    itemsIndexed(thread.asReversed()) { index, exchange ->
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             QuestionBubble(exchange.question, provider)
                             exchange.answer?.let { ans ->
                                 val sections = remember(ans) { parseInsight(ans) }
-                                sections.forEach { InsightCard(it) }
-                                AnswerActions(ans, provider)
+                                SelectionContainer {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        sections.forEach { InsightCard(it) }
+                                    }
+                                }
+                                AnswerActions(ans, provider, if (index == 0 && !loading) ({ regenerateLast() }) else null)
                             }
                         }
                     }
@@ -1628,7 +1844,8 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 onQueryChange = { query = it },
                 placeholder = "Ask a Clinical Question",
                 loading = loading,
-                onSend = { runSearch() }
+                onSend = { runSearch() },
+                onStop = { stopSearch() }
             )
         }
     }
