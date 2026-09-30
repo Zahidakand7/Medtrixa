@@ -2,7 +2,18 @@ package com.medtrixa.app.ui.screens
 
 import android.content.Intent
 import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.Button
+import androidx.compose.ui.draw.scale
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -14,6 +25,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,8 +70,6 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
@@ -237,12 +247,6 @@ private fun keyLink(provider: String): String = when (provider) {
     else -> "https://openrouter.ai/keys"
 }
 
-private fun keyPrefixHint(provider: String): String = when (provider) {
-    "Groq" -> "Starts with gsk_"
-    "Gemini" -> "Starts with AIza"
-    else -> "Starts with sk-or-"
-}
-
 private const val AI_HISTORY_PREFS = "medtrixa_ai_history"
 
 private data class ChatExchange(
@@ -334,8 +338,7 @@ private data class ChatSession(
     val id: String,
     val title: String,
     val exchanges: List<ChatExchange> = emptyList(),
-    val timestamp: Long = System.currentTimeMillis(),
-    val pinned: Boolean = false
+    val timestamp: Long = System.currentTimeMillis()
 )
 
 private fun sessionTitle(exchanges: List<ChatExchange>): String {
@@ -360,7 +363,6 @@ private fun saveSessions(context: android.content.Context, provider: String, ses
                 put("id", session.id)
                 put("title", session.title)
                 put("timestamp", session.timestamp)
-                put("pinned", session.pinned)
                 put("exchanges", exchangesToJson(session.exchanges))
             })
         }
@@ -368,22 +370,29 @@ private fun saveSessions(context: android.content.Context, provider: String, ses
     prefs.edit().putString("sessions_$provider", arr.toString()).apply()
 }
 
+private const val CHAT_RETENTION_MS = 30L * 24 * 60 * 60 * 1000
+
 private fun loadSessions(context: android.content.Context, provider: String): List<ChatSession> {
     val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
     val raw = prefs.getString("sessions_$provider", null)
     if (raw != null) {
         return try {
             val arr = JSONArray(raw)
-            (0 until arr.length()).map { i ->
+            val all = (0 until arr.length()).map { i ->
                 val json = arr.getJSONObject(i)
                 ChatSession(
                     id = json.optString("id", UUID.randomUUID().toString()),
                     title = json.optString("title", "New chat"),
                     timestamp = json.optLong("timestamp", System.currentTimeMillis()),
-                    pinned = json.optBoolean("pinned", false),
                     exchanges = jsonToExchanges(json.optJSONArray("exchanges") ?: JSONArray())
                 )
             }
+            // Chat history auto-expires 30 days after its last activity.
+            // Saved Answers are stored separately and are never touched here.
+            val cutoff = System.currentTimeMillis() - CHAT_RETENTION_MS
+            val kept = all.filter { it.timestamp >= cutoff }
+            if (kept.size != all.size) saveSessions(context, provider, kept)
+            kept
         } catch (e: Exception) {
             emptyList()
         }
@@ -424,17 +433,24 @@ private fun loadSavedAnswers(context: android.content.Context): List<SavedAnswer
     val raw = prefs.getString("saved_answers", null) ?: return emptyList()
     return try {
         val arr = JSONArray(raw)
-        (0 until arr.length()).map { i ->
-            val j = arr.getJSONObject(i)
-            SavedAnswer(
-                id = j.optString("id", UUID.randomUUID().toString()),
-                provider = j.optString("provider", ""),
-                question = j.optString("q", ""),
-                answer = j.optString("a", ""),
-                timestamp = j.optLong("ts", 0L)
-            )
+        // One unreadable entry must never cost the user the rest of their list.
+        (0 until arr.length()).mapNotNull { i ->
+            try {
+                val j = arr.getJSONObject(i)
+                SavedAnswer(
+                    id = j.optString("id", UUID.randomUUID().toString()),
+                    provider = j.optString("provider", ""),
+                    question = j.optString("q", ""),
+                    answer = j.optString("a", ""),
+                    timestamp = j.optLong("ts", 0L)
+                )
+            } catch (e: Exception) {
+                null
+            }
         }
     } catch (e: Exception) {
+        // Unreadable list: keep the raw data aside so a later save can't erase it.
+        prefs.edit().putString("saved_answers_unreadable", raw).apply()
         emptyList()
     }
 }
@@ -460,7 +476,14 @@ private const val CLINICAL_SYSTEM_PROMPT =
         "Provide concise, evidence-based answers using precise clinical terminology. " +
         "Rely on medical knowledge reasoning and clinical safety guidelines. " +
         "Answer concisely and precisely, using clinical terminology, and note " +
-        "when a question needs the clinician's own judgment or a primary source."
+        "when a question needs the clinician's own judgment or a primary source. " +
+        "Organize the answer into several clearly titled sections using '## ' headings, " +
+        "with bullet points under each, so it is thorough and easy to scan. " +
+        "Do not add a separate Sources section. Instead, end each section with one short " +
+        "final line that starts with 'Source:' and names the guideline, trial or consensus " +
+        "statement (organization or study, and year) that section relies on. " +
+        "Only name sources you are confident exist; if you are not sure, write " +
+        "'Source: No specific guideline cited' instead of guessing."
 
 /** HTTP codes worth a short automatic retry with backoff before giving up. */
 private val RETRYABLE_HTTP_CODES = setOf(429, 500, 502, 503)
@@ -490,6 +513,48 @@ private fun friendlyNetworkError(label: String, e: Exception): String {
         else -> "Something went wrong\n$label couldn't complete the request. Please try again."
     }
 }
+
+// ───────────────────────── API key check ─────────────────────────
+
+private enum class KeyCheck { Idle, Checking, Verified, Unverified, Rejected }
+
+/**
+ * Checks a key with a lightweight read-only request (list models / key info).
+ * It generates no text, so it uses none of the free answer quota.
+ *  - Verified:   the provider accepted the key.
+ *  - Rejected:   the provider said the key is invalid or not allowed.
+ *  - Unverified: couldn't tell (offline, timeout, busy). The key is still saved.
+ */
+private suspend fun verifyApiKey(provider: String, key: String): KeyCheck =
+    withContext(Dispatchers.IO) {
+        try {
+            val url = when (provider) {
+                "Groq" -> "https://api.groq.com/openai/v1/models"
+                "Gemini" -> "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1"
+                else -> "https://openrouter.ai/api/v1/auth/key"
+            }
+            val conn = URL(url).openConnection() as HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.connectTimeout = 10000
+            conn.readTimeout = 10000
+            if (provider == "Gemini") conn.setRequestProperty("x-goog-api-key", key)
+            else conn.setRequestProperty("Authorization", "Bearer $key")
+            val code = conn.responseCode
+            val body = (if (code in 200..299) conn.inputStream else conn.errorStream)
+                ?.bufferedReader()?.readText().orEmpty()
+            conn.disconnect()
+            when {
+                code in 200..299 -> KeyCheck.Verified
+                code == 401 || code == 403 -> KeyCheck.Rejected
+                code == 400 && (body.contains("API_KEY_INVALID") || body.contains("API key not valid", ignoreCase = true)) -> KeyCheck.Rejected
+                else -> KeyCheck.Unverified
+            }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            KeyCheck.Unverified
+        }
+    }
 
 /**
  * Shared caller for OpenAI-compatible chat-completions endpoints.
@@ -780,7 +845,29 @@ private data class InsightSection(val title: String?, val blocks: List<InsightBl
 
 private val numberedRegex = Regex("^(\\d+)[.)]\\s+(.*)$")
 
-private fun parseInsight(md: String): List<InsightSection> {
+private val sourceLineRegex = Regex("^[*_\\s]*sources?\\s*:", RegexOption.IGNORE_CASE)
+
+private fun isSourceLine(text: String): Boolean = sourceLineRegex.containsMatchIn(text)
+
+/** Turns simple LaTeX the model sometimes emits into plain readable text. */
+private fun cleanLatex(md: String): String {
+    val math = Regex("\\$\\$?([^$]+?)\\$\\$?")
+    return math.replace(md) { m ->
+        var t = m.groupValues[1]
+        t = Regex("\\\\text\\{([^{}]*)\\}").replace(t) { it.groupValues[1] }
+        t = Regex("\\\\frac\\{([^{}]*)\\}\\{([^{}]*)\\}").replace(t) { "(${it.groupValues[1]}) / (${it.groupValues[2]})" }
+        t = t.replace("\\left", "").replace("\\right", "")
+            .replace("\\geq", "≥").replace("\\ge", "≥").replace("\\leq", "≤").replace("\\le", "≤")
+            .replace("\\times", "×").replace("\\cdot", "·").replace("\\approx", "≈")
+            .replace("\\%", "%")
+            .replace("^{-1}", "⁻¹").replace("^{2}", "²").replace("^{3}", "³")
+            .replace("^2", "²").replace("^3", "³")
+        t.replace("{", "").replace("}", "").replace("\\", "").replace(Regex("\\s+"), " ").trim()
+    }
+}
+
+private fun parseInsight(rawMd: String): List<InsightSection> {
+    val md = cleanLatex(rawMd)
     val out = mutableListOf<InsightSection>()
     var title: String? = null
     var blocks = mutableListOf<InsightBlock>()
@@ -812,10 +899,28 @@ private fun parseInsight(md: String): List<InsightSection> {
     return out
 }
 
-private fun String.withBold(): AnnotatedString = buildAnnotatedString {
+// Doses, lab values and thresholds ("5 mg/kg", "140 mmol/L", "30%") get picked
+// out in the card's accent colour so key numbers stand out in long answers.
+private val doseRegex = Regex(
+    "\\b\\d+(?:[.,]\\d+)?(?:\\s?[-–]\\s?\\d+(?:[.,]\\d+)?)?\\s?" +
+        "(?:mg/kg/day|mg/kg|mcg/kg|µg/kg|mg/dL|mmol/L|mEq/L|mL/kg|mL|mg|mcg|µg|IU|units|mmHg|bpm|kg|g|%)(?![A-Za-z])"
+)
+
+private fun String.withBold(highlight: Color? = null): AnnotatedString = buildAnnotatedString {
     split("**").forEachIndexed { i, part ->
-        if (i % 2 == 1) withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(part) }
-        else append(part)
+        if (i % 2 == 1) {
+            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(part) }
+        } else if (highlight == null) {
+            append(part)
+        } else {
+            var last = 0
+            doseRegex.findAll(part).forEach { m ->
+                append(part.substring(last, m.range.first))
+                withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = highlight)) { append(m.value) }
+                last = m.range.last + 1
+            }
+            append(part.substring(last))
+        }
     }
 }
 
@@ -1038,10 +1143,56 @@ private fun QuestionBubble(text: String, provider: String? = null) {
     }
 }
 
+// ───────────────────────── Links to the app's own calculators ─────────────────────────
+// When an answer mentions a score the app has a calculator for, offer a button
+// that opens it. Ids match the screen names used by MainActivity's navigation.
+
+private data class ScoreLink(val id: String, val label: String)
+
+private fun detectScoreLinks(text: String): List<ScoreLink> {
+    val t = text.lowercase()
+    val out = mutableListOf<ScoreLink>()
+    fun has(vararg keys: String) = keys.any { it in t }
+    fun word(re: String) = Regex(re).containsMatchIn(t)
+
+    if (has("curb-65", "curb65", "curb 65")) out += ScoreLink("curb65", "CURB-65")
+    if (has("heart score")) out += ScoreLink("heart_score", "HEART Score")
+    if (has("child-pugh", "child pugh")) out += ScoreLink("child_pugh", "Child-Pugh")
+    if (has("centor")) out += ScoreLink("centor", "Centor Score")
+    if (word("\\bmeld\\b")) out += ScoreLink("meld30", "MELD")
+    if (has("apgar")) out += ScoreLink("apgar", "APGAR")
+    if (has("glasgow coma") || word("\\bgcs\\b")) out += ScoreLink("gcs", "Glasgow Coma Scale")
+    if (has("qsofa")) out += ScoreLink("qsofa", "qSOFA")
+    if (has("cha2ds2", "cha₂ds₂")) out += ScoreLink("cha2ds2vasc", "CHA₂DS₂-VASc")
+    if (has("has-bled", "hasbled")) out += ScoreLink("hasbled", "HAS-BLED")
+    if (has("wells")) {
+        if (has("dvt", "deep vein")) out += ScoreLink("wells_dvt", "Wells (DVT)")
+        if (has("pulmonary embol")) out += ScoreLink("wells_pe", "Wells (PE)")
+    }
+    return out
+}
+
+@Composable
+private fun ScoreLinkChip(label: String, onClick: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    Surface(
+        modifier = Modifier.clip(RoundedCornerShape(50)).clickable(onClick = onClick),
+        shape = RoundedCornerShape(50),
+        color = cs.primaryContainer
+    ) {
+        Text(
+            "Open $label calculator →",
+            style = MaterialTheme.typography.labelLarge,
+            color = cs.onPrimaryContainer,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+        )
+    }
+}
+
 @Composable
 private fun InsightCard(section: InsightSection) {
     val ts = toneStyle(toneFor(section.title))
-    var expanded by remember { mutableStateOf(true) }
     val cardClipboard = LocalClipboardManager.current
     val cardHaptic = LocalHapticFeedback.current
     var cardCopied by remember { mutableStateOf(false) }
@@ -1055,15 +1206,13 @@ private fun InsightCard(section: InsightSection) {
     Surface(
         modifier = Modifier.fillMaxWidth().animateContentSize(),
         shape = RoundedCornerShape(22.dp),
-        color = ts.container
+        color = ts.container,
+        border = BorderStroke(1.dp, ts.accent.copy(alpha = 0.14f))
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             section.title?.let { title ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .clickable { expanded = !expanded },
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -1095,56 +1244,57 @@ private fun InsightCard(section: InsightSection) {
                             modifier = Modifier.size(18.dp)
                         )
                     }
-                    Icon(
-                        if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                        contentDescription = if (expanded) "Collapse" else "Expand",
-                        tint = ts.onContainer.copy(alpha = 0.7f)
-                    )
                 }
             }
 
-            if (expanded || section.title == null) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    section.blocks.forEach { b ->
-                        when (b) {
-                            is InsightBlock.Para -> Text(
-                                b.text.withBold(),
-                                style = if (section.title == null) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
-                                color = ts.onContainer,
-                                lineHeight = 22.sp
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                section.blocks.forEach { b ->
+                    when (b) {
+                        is InsightBlock.Para -> if (isSourceLine(b.text)) {
+                            Text(
+                                b.text.replace("**", "").trim('*', '_', ' '),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                color = ts.onContainer.copy(alpha = 0.7f),
+                                lineHeight = 18.sp
                             )
-                            is InsightBlock.Bullet -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Box(
-                                    modifier = Modifier.padding(top = 9.dp).size(6.dp).background(ts.accent, CircleShape)
-                                )
+                        } else Text(
+                            b.text.withBold(ts.accent),
+                            style = if (section.title == null) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
+                            color = ts.onContainer,
+                            lineHeight = 22.sp
+                        )
+                        is InsightBlock.Bullet -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Box(
+                                modifier = Modifier.padding(top = 9.dp).size(6.dp).background(ts.accent, CircleShape)
+                            )
+                            Text(
+                                b.text.withBold(ts.accent),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = ts.onContainer,
+                                lineHeight = 22.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        is InsightBlock.Step -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Box(
+                                modifier = Modifier.size(22.dp).background(ts.accent.copy(alpha = 0.16f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(
-                                    b.text.withBold(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = ts.onContainer,
-                                    lineHeight = 22.sp,
-                                    modifier = Modifier.weight(1f)
+                                    b.n,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = ts.accent,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
-                            is InsightBlock.Step -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Box(
-                                    modifier = Modifier.size(22.dp).background(ts.accent.copy(alpha = 0.16f), CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        b.n,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = ts.accent,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                                Text(
-                                    b.text.withBold(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = ts.onContainer,
-                                    lineHeight = 22.sp,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
+                            Text(
+                                b.text.withBold(ts.accent),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = ts.onContainer,
+                                lineHeight = 22.sp,
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
                 }
@@ -1177,7 +1327,7 @@ private fun InsightSkeleton() {
 }
 
 private fun plainAnswer(answer: String): String =
-    answer.replace("**", "")
+    cleanLatex(answer).replace("**", "")
         .replace(Regex("(?m)^#+\\s*"), "")
         .replace(Regex("(?m)^-{3,}$"), "")
         .trim()
@@ -1214,6 +1364,22 @@ private fun AnswerActions(
     val green = Color(0xFF2E7D32)
     val amber = Color(0xFFF9A825)
     var copied by remember(answer) { mutableStateOf(false) }
+    // Star pops when an answer is newly saved (not when an already-saved one is shown).
+    var prevSaved by remember { mutableStateOf(saved) }
+    var starBump by remember { mutableStateOf(false) }
+    val starScale by animateFloatAsState(
+        targetValue = if (starBump) 1.4f else 1f,
+        animationSpec = spring(dampingRatio = 0.35f),
+        label = "starPop"
+    )
+    LaunchedEffect(saved) {
+        if (saved && !prevSaved) {
+            starBump = true
+            delay(160)
+            starBump = false
+        }
+        prevSaved = saved
+    }
     LaunchedEffect(copied) {
         if (copied) {
             delay(2000)
@@ -1336,7 +1502,7 @@ private fun AnswerActions(
                     if (saved) Icons.Filled.Star else Icons.Filled.StarBorder,
                     contentDescription = if (saved) "Remove from saved" else "Save answer",
                     tint = if (saved) amber else cs.primary,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(22.dp).scale(starScale)
                 )
             }
             IconButton(onClick = { toggleListen() }) {
@@ -1528,6 +1694,7 @@ private fun EmptyState(provider: String, suggestions: List<String>, onPick: (Str
 
 @Composable
 private fun ComposerBar(
+    provider: String,
     query: String,
     onQueryChange: (String) -> Unit,
     placeholder: String,
@@ -1558,7 +1725,16 @@ private fun ComposerBar(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(CircleShape)
-                    .background(if (canSend) cs.primary else cs.onSurface.copy(alpha = 0.12f))
+                    .background(
+                        if (canSend) Brush.linearGradient(
+                            // Same colours as the provider's chip: Gemini keeps its
+                            // gradient, Groq and OpenRouter use their own solid accent.
+                            providerStyle(provider).gradient
+                                ?: providerColor(provider).let { listOf(it, it) }
+                        ) else Brush.linearGradient(
+                            listOf(cs.onSurface.copy(alpha = 0.12f), cs.onSurface.copy(alpha = 0.12f))
+                        )
+                    )
                     .clickable(enabled = canSend || loading, onClick = if (loading) onStop else onSend),
                 contentAlignment = Alignment.Center
             ) {
@@ -1569,7 +1745,7 @@ private fun ComposerBar(
                     Icon(
                         Icons.AutoMirrored.Filled.Send,
                         contentDescription = "Send",
-                        tint = if (canSend) cs.onPrimary else cs.onSurface.copy(alpha = 0.38f)
+                        tint = if (canSend) Color.White else cs.onSurface.copy(alpha = 0.38f)
                     )
                 }
             }
@@ -1610,7 +1786,11 @@ private fun KeyBanner(provider: String, onAdd: () -> Unit) {
 
 @Composable
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
-fun AiInsightsScreen(onBackClick: () -> Unit) {
+fun AiInsightsScreen(
+    onBackClick: () -> Unit,
+    resumeLast: Boolean = false,
+    onOpenScore: (String) -> Unit = {}
+) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val listState = rememberLazyListState()
@@ -1633,6 +1813,10 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
     var showClearConfirm by remember { mutableStateOf(false) }
     var showHistoryDialog by remember { mutableStateOf(false) }
     var showSavedDialog by remember { mutableStateOf(false) }
+    var viewSavedId by remember { mutableStateOf<String?>(null) }
+    var savedQuery by remember { mutableStateOf("") }
+    var historyQuery by remember { mutableStateOf("") }
+    val savedListState = rememberLazyListState()
     var savedAnswers by remember { mutableStateOf(loadSavedAnswers(context)) }
     var longPressedSessionId by remember { mutableStateOf<String?>(null) }
 
@@ -1760,15 +1944,31 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         writeSavedAnswers(context, updated)
     }
 
-    fun togglePin(session: ChatSession) {
-        val updatedSessions = sessions.map { if (it.id == session.id) it.copy(pinned = !it.pinned) else it }
-        sessions = updatedSessions
-        saveSessions(context, provider, updatedSessions)
-    }
-
     // Every time this screen is opened it starts a new session — the previous
     // thread (if any) is not restored, only the saved history list is.
-    LaunchedEffect(Unit) { startFreshFor(provider) }
+    LaunchedEffect(Unit) {
+        // Coming back from a calculator opened out of an answer: reopen that chat
+        // instead of starting a new one.
+        if (resumeLast) {
+            val prefs = context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+            val resumeProvider = prefs.getString("resume_provider", null)
+            if (resumeProvider != null && resumeProvider in providers) {
+                val activeId = loadActiveSessionId(context, resumeProvider)
+                provider = resumeProvider
+                startFreshFor(resumeProvider)
+                val session = sessions.firstOrNull { it.id == activeId }
+                if (session != null) switchToSession(session)
+                return@LaunchedEffect
+            }
+        }
+        startFreshFor(provider)
+    }
+
+    fun openScore(id: String) {
+        context.getSharedPreferences(AI_HISTORY_PREFS, android.content.Context.MODE_PRIVATE)
+            .edit().putString("resume_provider", provider).apply()
+        onOpenScore(id)
+    }
 
     fun runSearch(q: String = query) {
         val question = q.trim()
@@ -1854,19 +2054,41 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             val keyRejected = error?.startsWith("API key rejected") == true
             val savedGreen = Color(0xFF2E7D32)
 
+            var keyCheck by remember { mutableStateOf(KeyCheck.Idle) }
+            var checkJob by remember { mutableStateOf<Job?>(null) }
+            // Only locked while the check runs. The dialog never closes by itself:
+            // after a save it stays open until the user taps Close.
+            val keyLocked = keyCheck == KeyCheck.Checking
+            val storedKey = remember(keyVersion, provider) { getStoredApiKey(context, provider) }
+            val keyUnchanged = keySaved && keyDraft.trim() == storedKey
+
+            fun closeKeyDialog() {
+                checkJob?.cancel()
+                showAiSourceDialog = false
+            }
+
             fun saveKey() {
                 val cleaned = keyDraft.trim()
-                if (cleaned.isEmpty()) return
-                saveApiKey(context, provider, cleaned)
-                keyVersion++
-                showAiSourceDialog = false
-                if ((errorNeedsKey || keyRejected) && pendingQuestion.isNotBlank()) {
-                    runSearch(pendingQuestion)
+                if (cleaned.isEmpty() || keyLocked) return
+                val rerun = (errorNeedsKey || keyRejected) && pendingQuestion.isNotBlank()
+                keyCheck = KeyCheck.Checking
+                checkJob = scope.launch {
+                    val result = verifyApiKey(provider, cleaned)
+                    if (result == KeyCheck.Rejected) {
+                        // Wrong key: nothing is saved and the dialog stays open.
+                        keyCheck = KeyCheck.Rejected
+                        return@launch
+                    }
+                    saveApiKey(context, provider, cleaned)
+                    keySaved = true
+                    keyVersion++
+                    keyCheck = result
+                    if (rerun) runSearch(pendingQuestion)
                 }
             }
 
             AlertDialog(
-                onDismissRequest = { showAiSourceDialog = false },
+                onDismissRequest = { closeKeyDialog() },
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("$provider API key", modifier = Modifier.weight(1f))
@@ -1892,9 +2114,14 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                         Spacer(modifier = Modifier.height(10.dp))
                         OutlinedTextField(
                             value = keyDraft,
-                            onValueChange = { keyDraft = it },
+                            onValueChange = {
+                                keyDraft = it
+                                if (keyCheck != KeyCheck.Checking) keyCheck = KeyCheck.Idle
+                            },
                             label = { Text("$provider API key") },
                             singleLine = true,
+                            readOnly = keyLocked,
+                            isError = keyCheck == KeyCheck.Rejected,
                             visualTransformation = if (keyVisible) VisualTransformation.None else PasswordVisualTransformation(),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(onDone = { saveKey() }),
@@ -1908,7 +2135,12 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                         )
                                     }
                                     IconButton(
-                                        onClick = { clipboardMgr.getText()?.text?.let { keyDraft = it.trim() } },
+                                        onClick = {
+                                            if (!keyLocked) {
+                                                clipboardMgr.getText()?.text?.let { keyDraft = it.trim() }
+                                                keyCheck = KeyCheck.Idle
+                                            }
+                                        },
                                         modifier = Modifier.size(36.dp)
                                     ) {
                                         Icon(Icons.Filled.ContentPaste, contentDescription = "Paste", modifier = Modifier.size(20.dp))
@@ -1917,17 +2149,68 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
-                        if (!keySaved || keyRejected) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                        when (keyCheck) {
+                            KeyCheck.Checking -> Row(
+                                modifier = Modifier.padding(top = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Checking key…", style = MaterialTheme.typography.bodySmall)
+                            }
+                            KeyCheck.Verified -> Row(
+                                modifier = Modifier.padding(top = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Filled.Check, contentDescription = null, tint = savedGreen, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Key verified and saved", style = MaterialTheme.typography.bodySmall, color = savedGreen)
+                            }
+                            KeyCheck.Unverified -> Row(
+                                modifier = Modifier.padding(top = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Filled.Check, contentDescription = null, tint = savedGreen, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    keyPrefixHint(provider),
-                                    style = MaterialTheme.typography.labelSmall,
+                                    "Saved. Couldn't verify it right now (offline or busy).",
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                            }
+                            KeyCheck.Rejected -> Text(
+                                "This key was rejected. Check it and try again.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                            KeyCheck.Idle -> {}
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (keySaved) {
+                                Text(
+                                    "Remove key",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.error.copy(alpha = if (keyLocked) 0.38f else 1f),
+                                    modifier = Modifier
+                                        .clickable(enabled = !keyLocked) {
+                                            removeApiKey(context, provider)
+                                            keyDraft = ""
+                                            keySaved = false
+                                            keyCheck = KeyCheck.Idle
+                                            keyVersion++
+                                        }
+                                        .padding(vertical = 4.dp)
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.width(1.dp))
+                            }
+                            if (!keySaved || keyRejected) {
                                 Text(
                                     if (keySaved) "Get a new key" else "Get a free key",
                                     style = MaterialTheme.typography.labelMedium,
@@ -1939,25 +2222,19 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                 )
                             }
                         }
-                        if (keySaved) {
-                            TextButton(
-                                onClick = {
-                                    removeApiKey(context, provider)
-                                    keyDraft = ""
-                                    keySaved = false
-                                    keyVersion++
-                                },
-                                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                            ) { Text("Remove key") }
-                        }
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { saveKey() }, enabled = keyDraft.isNotBlank()) { Text("Save") }
+                    if (keyUnchanged) {
+                        // Key saved and nothing edited: nothing to cancel or save.
+                        TextButton(onClick = { closeKeyDialog() }) { Text("Close") }
+                    } else {
+                        TextButton(onClick = { saveKey() }, enabled = keyDraft.isNotBlank() && !keyLocked) { Text("Save") }
+                    }
                 },
-                dismissButton = {
-                    TextButton(onClick = { showAiSourceDialog = false }) { Text("Cancel") }
-                }
+                dismissButton = if (keyUnchanged) null else ({
+                    TextButton(onClick = { closeKeyDialog() }) { Text("Cancel") }
+                })
             )
         }
 
@@ -1984,8 +2261,6 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
         }
 
         if (showSavedDialog) {
-            val savedClipboard = LocalClipboardManager.current
-            var openSavedId by remember { mutableStateOf<String?>(null) }
             AlertDialog(
                 onDismissRequest = { showSavedDialog = false },
                 title = {
@@ -1997,59 +2272,76 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 },
                 text = {
                     if (savedAnswers.isEmpty()) {
-                        Text(
-                            "Nothing saved yet. Tap the star under an answer to keep it here.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.heightIn(max = 520.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            items(savedAnswers, key = { it.id }) { item ->
-                                val open = openSavedId == item.id
-                                Surface(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .clickable { openSavedId = if (open) null else item.id },
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(12.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                            Icon(
+                                Icons.Filled.StarBorder,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.size(40.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Nothing saved yet. Tap the star under an answer to keep it here.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    } else {
+                        val sq = savedQuery.trim()
+                        val filteredSaved = savedAnswers.filter {
+                            sq.isEmpty() || it.question.contains(sq, ignoreCase = true) ||
+                                it.answer.contains(sq, ignoreCase = true)
+                        }
+                        Column {
+                            OutlinedTextField(
+                                value = savedQuery,
+                                onValueChange = { savedQuery = it },
+                                singleLine = true,
+                                placeholder = { Text("Search Saved Answers") },
+                                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                                shape = RoundedCornerShape(24.dp),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                            )
+                            if (filteredSaved.isEmpty()) {
+                                Text("No matching answers.", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            LazyColumn(
+                                state = savedListState,
+                                modifier = Modifier.heightIn(max = 520.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                items(filteredSaved, key = { it.id }) { item ->
+                                    Surface(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .clickable {
+                                                // Opens the full-screen viewer; the list dialog
+                                                // is restored (same scroll position) on Back.
+                                                showSavedDialog = false
+                                                viewSavedId = item.id
+                                            },
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
                                     ) {
-                                        Text(
-                                            item.question,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            maxLines = if (open) Int.MAX_VALUE else 2,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Text(
-                                            "${item.provider} · ${formatSessionTimestamp(item.timestamp)}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        if (open) {
-                                            parseInsight(item.answer).forEach { InsightCard(it) }
-                                            Row {
-                                                TextButton(onClick = {
-                                                    savedClipboard.setText(AnnotatedString(plainAnswer(item.answer)))
-                                                }) { Text("Copy") }
-                                                TextButton(
-                                                    onClick = {
-                                                        val updated = savedAnswers.filterNot { it.id == item.id }
-                                                        savedAnswers = updated
-                                                        writeSavedAnswers(context, updated)
-                                                        openSavedId = null
-                                                    },
-                                                    colors = ButtonDefaults.textButtonColors(
-                                                        contentColor = MaterialTheme.colorScheme.error
-                                                    )
-                                                ) { Text("Remove") }
-                                            }
+                                        Column(
+                                            modifier = Modifier.padding(12.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                item.question,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            Text(
+                                                "${item.provider} · ${formatSessionTimestamp(item.timestamp)}",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
                                         }
                                     }
                                 }
@@ -2078,11 +2370,36 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 },
                 text = {
                     Column {
+                        Text(
+                            "Chats are deleted automatically after 30 days. Saved Answers are kept until you remove them.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 10.dp)
+                        )
                         if (sessions.isEmpty()) {
                             Text("No saved chats yet.", style = MaterialTheme.typography.bodyMedium)
                         } else {
-                            val sortedSessions = sessions.sortedWith(compareByDescending<ChatSession> { it.pinned }.thenByDescending { it.timestamp })
+                            val hq = historyQuery.trim()
+                            val sortedSessions = sessions.sortedByDescending { it.timestamp }.filter { sess ->
+                                hq.isEmpty() || sess.title.contains(hq, ignoreCase = true) ||
+                                    sess.exchanges.any { ex ->
+                                        ex.question.contains(hq, ignoreCase = true) ||
+                                            (ex.answer?.contains(hq, ignoreCase = true) == true)
+                                    }
+                            }
                             val visibleSessions = sortedSessions
+                            OutlinedTextField(
+                                value = historyQuery,
+                                onValueChange = { historyQuery = it },
+                                singleLine = true,
+                                placeholder = { Text("Search Chats") },
+                                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                                shape = RoundedCornerShape(24.dp),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                            )
+                            if (visibleSessions.isEmpty()) {
+                                Text("No matching chats.", style = MaterialTheme.typography.bodyMedium)
+                            }
                             LazyColumn(
                                 modifier = Modifier.heightIn(max = 520.dp),
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -2119,27 +2436,12 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
                                                 }
-                                                if (session.pinned) {
-                                                    Icon(
-                                                        Icons.Filled.PushPin,
-                                                        contentDescription = "Pinned",
-                                                        modifier = Modifier.size(16.dp),
-                                                        tint = MaterialTheme.colorScheme.primary
-                                                    )
-                                                }
                                             }
                                         }
                                         DropdownMenu(
                                             expanded = longPressedSessionId == session.id,
                                             onDismissRequest = { longPressedSessionId = null }
                                         ) {
-                                            DropdownMenuItem(
-                                                text = { Text(if (session.pinned) "Unpin" else "Pin") },
-                                                onClick = {
-                                                    togglePin(session)
-                                                    longPressedSessionId = null
-                                                }
-                                            )
                                             DropdownMenuItem(
                                                 text = { Text("Remove") },
                                                 onClick = { removeSession(session); longPressedSessionId = null }
@@ -2330,6 +2632,17 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                                         sections.forEach { InsightCard(it) }
                                     }
                                 }
+                                val scoreLinks = remember(ans) { detectScoreLinks(ans) }
+                                if (scoreLinks.isNotEmpty()) {
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        scoreLinks.forEach { link ->
+                                            ScoreLinkChip(link.label) { openScore(link.id) }
+                                        }
+                                    }
+                                }
                                 AnswerActions(
                                     answer = ans,
                                     provider = provider,
@@ -2345,6 +2658,7 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
             }
 
             ComposerBar(
+                provider = provider,
                 query = query,
                 onQueryChange = { query = it },
                 placeholder = "Ask a Clinical Question",
@@ -2352,6 +2666,153 @@ fun AiInsightsScreen(onBackClick: () -> Unit) {
                 onSend = { runSearch() },
                 onStop = { stopSearch() }
             )
+        }
+
+        // Full-screen viewer for one saved answer. Sits above the chat but is
+        // completely separate from it: nothing in the open thread is touched.
+        // Back (system gesture/button or the arrow) returns to the Saved Answers list.
+        val viewing = viewSavedId?.let { id -> savedAnswers.firstOrNull { it.id == id } }
+        // Keeps the last opened answer around so the slide-out animation has content.
+        var lastViewed by remember { mutableStateOf<SavedAnswer?>(null) }
+        LaunchedEffect(viewing) { if (viewing != null) lastViewed = viewing }
+        val shown = viewing ?: lastViewed
+        val viewerClipboard = LocalClipboardManager.current
+        var confirmRemoveSaved by remember { mutableStateOf(false) }
+        val closeViewer = {
+            viewSavedId = null
+            showSavedDialog = true
+        }
+        if (viewing != null) BackHandler { closeViewer() }
+
+        AnimatedVisibility(
+            visible = viewing != null,
+            enter = slideInVertically(initialOffsetY = { it / 3 }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it / 3 }) + fadeOut()
+        ) {
+            if (shown != null) {
+                val viewerSections = remember(shown.id) { parseInsight(shown.answer) }
+                if (confirmRemoveSaved) {
+                    AlertDialog(
+                        onDismissRequest = { confirmRemoveSaved = false },
+                        title = { Text("Remove saved answer?") },
+                        text = {
+                            Text(
+                                "This deletes the saved answer permanently.",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                confirmRemoveSaved = false
+                                val updated = savedAnswers.filterNot { it.id == shown.id }
+                                savedAnswers = updated
+                                writeSavedAnswers(context, updated)
+                                closeViewer()
+                            }) { Text("Remove") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { confirmRemoveSaved = false }) { Text("Cancel") }
+                        }
+                    )
+                }
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .statusBarsPadding()
+                            .windowInsetsPadding(WindowInsets.navigationBars)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(onClick = { closeViewer() }) {
+                                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "Saved Answer",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    "${shown.provider} · ${formatSessionTimestamp(shown.timestamp)}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        LazyColumn(
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            item { QuestionBubble(shown.question, shown.provider) }
+                            item {
+                                SelectionContainer {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        viewerSections.forEach { InsightCard(it) }
+                                    }
+                                }
+                            }
+                        }
+
+                        Button(
+                            onClick = {
+                                // Starts a new chat that already contains this saved
+                                // exchange, so the follow-up is answered with its context.
+                                val target = if (shown.provider in providers) shown.provider else provider
+                                provider = target
+                                startFreshFor(target)
+                                thread = listOf(ChatExchange(shown.question, answer = shown.answer))
+                                viewSavedId = null
+                                showSavedDialog = false
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Ask follow-up")
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextButton(onClick = {
+                                viewerClipboard.setText(AnnotatedString(plainAnswer(shown.answer)))
+                            }) {
+                                Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Copy")
+                            }
+                            TextButton(onClick = {
+                                val send = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, "Q: ${shown.question}\n\n${plainAnswer(shown.answer)}")
+                                }
+                                context.startActivity(Intent.createChooser(send, "Share answer"))
+                            }) {
+                                Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Share")
+                            }
+                            TextButton(
+                                onClick = { confirmRemoveSaved = true },
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Remove")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

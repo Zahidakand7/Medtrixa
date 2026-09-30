@@ -95,6 +95,25 @@ private fun MedtrixaRoot() {
         mutableStateOf("antibiotic_dosing")
     }
 
+    // Set when a score screen is opened from an AI answer, so Back returns to the
+    // AI chat instead of the score list.
+    var scoreReturnTo by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    var aiResume by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    fun backFromScore(default: String) {
+        if (scoreReturnTo.isNotEmpty()) {
+            currentScreen = scoreReturnTo
+            scoreReturnTo = ""
+        } else {
+            currentScreen = default
+        }
+    }
+
     val calculatorRepository = remember {
         CalculatorRepository()
     }
@@ -237,19 +256,19 @@ private fun MedtrixaRoot() {
             )
         }
 
-        "curb65" -> { Curb65Screen(onBackClick = { currentScreen = "clinical_scores" }) }
-        "heart_score" -> { HeartScoreScreen(onBackClick = { currentScreen = "clinical_scores" }) }
-        "child_pugh" -> { ChildPughScreen(onBackClick = { currentScreen = "clinical_scores" }) }
-        "centor" -> { CentorScoreScreen(onBackClick = { currentScreen = "clinical_scores" }) }
-        "meld30" -> { Meld30Screen(onBackClick = { currentScreen = "clinical_scores" }) }
-        "apgar" -> { ApgarScreen(onBackClick = { currentScreen = "clinical_scores" }) }
-        "gcs" -> { GcsScreen(onBackClick = { currentScreen = "clinical_scores" }) }
-        "qsofa" -> { QsofaScreen(onBackClick = { currentScreen = "clinical_scores" }) }
+        "curb65" -> { Curb65Screen(onBackClick = { backFromScore("clinical_scores") }) }
+        "heart_score" -> { HeartScoreScreen(onBackClick = { backFromScore("clinical_scores") }) }
+        "child_pugh" -> { ChildPughScreen(onBackClick = { backFromScore("clinical_scores") }) }
+        "centor" -> { CentorScoreScreen(onBackClick = { backFromScore("clinical_scores") }) }
+        "meld30" -> { Meld30Screen(onBackClick = { backFromScore("clinical_scores") }) }
+        "apgar" -> { ApgarScreen(onBackClick = { backFromScore("clinical_scores") }) }
+        "gcs" -> { GcsScreen(onBackClick = { backFromScore("clinical_scores") }) }
+        "qsofa" -> { QsofaScreen(onBackClick = { backFromScore("clinical_scores") }) }
 
-        "cha2ds2vasc" -> { Cha2ds2VascScreen(onBackClick = { currentScreen = "risk_assessment" }) }
-        "hasbled" -> { HasBledScreen(onBackClick = { currentScreen = "risk_assessment" }) }
-        "wells_dvt" -> { WellsDvtScreen(onBackClick = { currentScreen = "risk_assessment" }) }
-        "wells_pe" -> { WellsPeScreen(onBackClick = { currentScreen = "risk_assessment" }) }
+        "cha2ds2vasc" -> { Cha2ds2VascScreen(onBackClick = { backFromScore("risk_assessment") }) }
+        "hasbled" -> { HasBledScreen(onBackClick = { backFromScore("risk_assessment") }) }
+        "wells_dvt" -> { WellsDvtScreen(onBackClick = { backFromScore("risk_assessment") }) }
+        "wells_pe" -> { WellsPeScreen(onBackClick = { backFromScore("risk_assessment") }) }
 
         "calculators" -> {
             CalculatorLibraryScreen(
@@ -271,7 +290,16 @@ private fun MedtrixaRoot() {
 
         "ai_insights" -> {
             AiInsightsScreen(
-                onBackClick = { currentScreen = "home" }
+                onBackClick = {
+                    aiResume = false
+                    currentScreen = "home"
+                },
+                resumeLast = aiResume,
+                onOpenScore = { id ->
+                    scoreReturnTo = "ai_insights"
+                    aiResume = true
+                    currentScreen = id
+                }
             )
         }
 
@@ -283,7 +311,10 @@ private fun MedtrixaRoot() {
                 onAssessClick = { currentScreen = "assess" },
                 onDrugToolsClick = { currentScreen = "drug_tools" },
                 onReferenceClick = { currentScreen = "reference" },
-                onAiInsightsClick = { currentScreen = "ai_insights" }
+                onAiInsightsClick = {
+                    aiResume = false
+                    currentScreen = "ai_insights"
+                }
             )
         }
 
@@ -295,7 +326,10 @@ private fun MedtrixaRoot() {
                 onAssessClick = { currentScreen = "assess" },
                 onDrugToolsClick = { currentScreen = "drug_tools" },
                 onReferenceClick = { currentScreen = "reference" },
-                onAiInsightsClick = { currentScreen = "ai_insights" }
+                onAiInsightsClick = {
+                    aiResume = false
+                    currentScreen = "ai_insights"
+                }
             )
         }
     }
