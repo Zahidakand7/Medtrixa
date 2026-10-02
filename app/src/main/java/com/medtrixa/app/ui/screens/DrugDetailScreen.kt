@@ -119,12 +119,40 @@ private fun prettyCompany(name: String): String =
         else w.lowercase().replaceFirstChar { c -> c.uppercase() }
     }
 
+private val COMPANY_NOISE = setOf(
+    "llc", "inc", "ltd", "lp", "plc", "llp", "co", "corp", "corporation", "limited"
+)
+
+private val REPACKAGER_HINTS = listOf(
+    "remedyrepack", "a s medication", "nucare", "bryant ranch", "proficient rx",
+    "direct rx", "directrx", "quality care", "pd rx", "preferred pharmaceuticals",
+    "rebel distributors", "physicians total care", "lake erie medical", "northwind",
+    "henry schein", "medsource", "unit dose services", "asclemed", "enovachem",
+    "aidarex", "blenheim", "state health services", "department of", "cardinal health",
+    "major pharmaceuticals", "american health packaging", "avkare", "avpak",
+    "golden state medical", "denton pharma", "medvantx", "readymeds",
+    "liberty pharmaceuticals", "contract pharmacy services", "clinical solutions wholesale"
+)
+
+private fun companyKey(name: String): String =
+    name.lowercase()
+        .replace(Regex("[^a-z0-9 ]"), " ")
+        .split(Regex("\\s+"))
+        .filter { it.isNotEmpty() && it !in COMPANY_NOISE }
+        .joinToString(" ")
+
+private fun isRepackager(name: String): Boolean {
+    val key = companyKey(name)
+    return REPACKAGER_HINTS.any { key.contains(it) }
+}
+
 private fun parseCompanies(raw: String?): List<String> =
     raw.orEmpty().split(";")
         .map { it.trim() }
         .filter { it.isNotEmpty() }
         .map { prettyCompany(it) }
-        .distinctBy { it.lowercase() }
+        .distinctBy { companyKey(it) }
+        .sortedBy { isRepackager(it) }
 
 @Composable
 fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
