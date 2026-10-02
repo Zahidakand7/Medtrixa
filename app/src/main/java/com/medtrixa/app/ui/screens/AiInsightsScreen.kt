@@ -1,10 +1,44 @@
 package com.medtrixa.app.ui.screens
 
+import android.app.Activity
 import android.content.Intent
+import androidx.compose.material.icons.filled.Description
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import androidx.compose.foundation.text.contextmenu.builder.item
+import androidx.compose.foundation.text.contextmenu.data.ProcessTextKey
+import androidx.compose.foundation.text.contextmenu.data.TextContextMenuItem
+import androidx.compose.foundation.text.contextmenu.data.TextContextMenuKeys
+import androidx.compose.foundation.text.contextmenu.data.TextContextMenuSession
+import androidx.compose.foundation.text.contextmenu.modifier.appendTextContextMenuComponents
+import androidx.compose.foundation.text.contextmenu.modifier.filterTextContextMenuComponents
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalTextToolbar
+import androidx.compose.ui.platform.TextToolbar
+import androidx.compose.ui.platform.TextToolbarStatus
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import android.speech.RecognizerIntent
+import androidx.compose.material.icons.filled.Mic
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.PictureAsPdf
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -36,6 +70,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
@@ -56,7 +91,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -90,6 +124,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -566,15 +603,22 @@ private suspend fun verifyApiKey(provider: String, key: String): KeyCheck =
  * Transient failures (429 rate limits, 500/502/503) are retried automatically with
  * exponential backoff (2s, 4s, 8s) before surfacing an error to the user.
  */
+/** A clean, already user-facing failure while streaming. Never retried. */
+private class StreamFailure(message: String) : Exception(message)
+
 private fun askOpenAiCompatible(
     endpoint: String,
     apiKey: String,
     model: String,
     history: List<ChatExchange>,
-    label: String
+    label: String,
+    onPartial: (String) -> Unit = {},
+    cancelled: () -> Boolean = { false }
 ): String {
     val maxAttempts = 3
     var lastError: Exception = Exception("$label: Something went wrong. Please try again.")
+    // Once text has started arriving there is no silent retry: that would restart the answer.
+    var started = false
 
     repeat(maxAttempts) { attempt ->
         try {
@@ -588,6 +632,7 @@ private fun askOpenAiCompatible(
 
             val body = JSONObject().apply {
                 put("model", model)
+                put("stream", true)
                 put("messages", JSONArray().apply {
                     put(JSONObject().apply {
                         put("role", "system")
@@ -610,22 +655,56 @@ private fun askOpenAiCompatible(
             conn.outputStream.use { it.write(body.toString().toByteArray()) }
 
             val code = conn.responseCode
-            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-            val text = stream.bufferedReader().readText()
-            conn.disconnect()
-
             if (code in 200..299) {
-                return JSONObject(text)
-                    .getJSONArray("choices")
-                    .getJSONObject(0)
-                    .getJSONObject("message")
-                    .getString("content")
+                val answer = StringBuilder()
+                var lastEmit = 0L
+                try {
+                    conn.inputStream.bufferedReader().use { reader ->
+                        while (true) {
+                            if (cancelled()) throw kotlinx.coroutines.CancellationException("Stopped")
+                            val line = reader.readLine() ?: break
+                            if (!line.startsWith("data:")) continue
+                            val payload = line.removePrefix("data:").trim()
+                            if (payload.isEmpty()) continue
+                            if (payload == "[DONE]") break
+                            val chunk = try { JSONObject(payload) } catch (e: Exception) { continue }
+                            chunk.optJSONObject("error")?.let { err ->
+                                throw StreamFailure("$label: ${err.optString("message", "The answer was interrupted. Please try again.")}")
+                            }
+                            val delta = chunk.optJSONArray("choices")?.optJSONObject(0)?.optJSONObject("delta")
+                            if (delta != null && !delta.isNull("content")) {
+                                val piece = delta.getString("content")
+                                if (piece.isNotEmpty()) {
+                                    started = true
+                                    answer.append(piece)
+                                    val now = System.currentTimeMillis()
+                                    if (now - lastEmit >= 60) {
+                                        lastEmit = now
+                                        onPartial(answer.toString())
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    conn.disconnect()
+                }
+                if (answer.isBlank()) throw StreamFailure("$label: The answer came back empty. Please try again.")
+                onPartial(answer.toString())
+                return answer.toString()
             }
+
+            val text = conn.errorStream?.bufferedReader()?.readText().orEmpty()
+            conn.disconnect()
 
             val message = friendlyApiError(label, code, text)
             lastError = Exception(message)
             val retryable = code in RETRYABLE_HTTP_CODES
             if (!retryable || attempt == maxAttempts - 1) throw lastError
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: StreamFailure) {
+            throw e
         } catch (e: Exception) {
             if (e === lastError) {
                 // Already-classified HTTP error from above; only sleep-and-retry
@@ -634,7 +713,7 @@ private fun askOpenAiCompatible(
             } else {
                 // Low-level network failure (timeout, DNS, connection reset, etc).
                 lastError = Exception(friendlyNetworkError(label, e))
-                if (attempt == maxAttempts - 1) throw lastError
+                if (started || attempt == maxAttempts - 1) throw lastError
             }
         }
         Thread.sleep(2000L * (1L shl attempt)) // 2s, 4s, 8s
@@ -642,10 +721,20 @@ private fun askOpenAiCompatible(
     throw lastError
 }
 
-private fun askGroq(apiKey: String, history: List<ChatExchange>): String =
-    askOpenAiCompatible("https://api.groq.com/openai/v1/chat/completions", apiKey, "openai/gpt-oss-120b", history, "Groq")
+private fun askGroq(
+    apiKey: String,
+    history: List<ChatExchange>,
+    onPartial: (String) -> Unit = {},
+    cancelled: () -> Boolean = { false }
+): String =
+    askOpenAiCompatible("https://api.groq.com/openai/v1/chat/completions", apiKey, "openai/gpt-oss-120b", history, "Groq", onPartial, cancelled)
 
-private fun askOpenRouter(apiKey: String, history: List<ChatExchange>): String =
+private fun askOpenRouter(
+    apiKey: String,
+    history: List<ChatExchange>,
+    onPartial: (String) -> Unit = {},
+    cancelled: () -> Boolean = { false }
+): String =
     askOpenAiCompatible(
         "https://openrouter.ai/api/v1/chat/completions",
         apiKey,
@@ -653,7 +742,9 @@ private fun askOpenRouter(apiKey: String, history: List<ChatExchange>): String =
         // versus paid routes for the same underlying model.
         "inclusionai/ling-3.0-flash-sante:free",
         history,
-        "OpenRouter"
+        "OpenRouter",
+        onPartial,
+        cancelled
     )
 
 /** Carries the HTTP status and raw body so the retry wrapper can classify the failure. */
@@ -708,7 +799,11 @@ private fun geminiIsDailyQuota(rawBody: String): Boolean =
  *    technical one).
  * Suspend + delay() so the Stop button cancels it instantly.
  */
-private suspend fun askGeminiWithRetry(apiKey: String, history: List<ChatExchange>): String {
+private suspend fun askGeminiWithRetry(
+    apiKey: String,
+    history: List<ChatExchange>,
+    onPartial: (String) -> Unit = {}
+): String {
     var lastError: Exception = Exception("Gemini is temporarily unavailable. Please try again.")
     var busyError: Exception? = null
     for (model in GEMINI_MODELS) {
@@ -716,7 +811,7 @@ private suspend fun askGeminiWithRetry(apiKey: String, history: List<ChatExchang
         while (attempt < 2) {
             var waitMs = 0L
             try {
-                return askGemini(apiKey, model, history)
+                return askGemini(apiKey, model, history, onPartial)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: GeminiContentException) {
@@ -744,10 +839,15 @@ private suspend fun askGeminiWithRetry(apiKey: String, history: List<ChatExchang
     throw busyError ?: lastError
 }
 
-private suspend fun askGemini(apiKey: String, model: String, history: List<ChatExchange>): String =
+private suspend fun askGemini(
+    apiKey: String,
+    model: String,
+    history: List<ChatExchange>,
+    onPartial: (String) -> Unit = {}
+): String =
     withContext(Dispatchers.IO) {
         val conn = URL(
-            "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent"
+            "https://generativelanguage.googleapis.com/v1beta/models/$model:streamGenerateContent?alt=sse"
         ).openConnection() as HttpURLConnection
         // If the coroutine is cancelled (Stop button), close the socket so the
         // blocking read ends now instead of finishing in the background.
@@ -798,34 +898,58 @@ private suspend fun askGemini(apiKey: String, model: String, history: List<ChatE
             conn.outputStream.use { it.write(body.toString().toByteArray()) }
 
             val code = conn.responseCode
-            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-            val text = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
-
-            if (code !in 200..299) throw GeminiHttpException(code, text)
-
-            val root = JSONObject(text)
-            val candidate = root.optJSONArray("candidates")?.optJSONObject(0)
-            if (candidate == null) {
-                val reason = root.optJSONObject("promptFeedback")?.optString("blockReason").orEmpty()
-                Log.w("AiInsights", "Gemini returned no candidate. blockReason=$reason")
-                throw GeminiContentException(
-                    "Answer blocked\nGemini couldn't answer this question. Try rephrasing it."
-                )
+            if (code !in 200..299) {
+                val errText = conn.errorStream?.bufferedReader()?.use { it.readText() }.orEmpty()
+                throw GeminiHttpException(code, errText)
             }
-            val parts = candidate.optJSONObject("content")?.optJSONArray("parts")
+
             val answer = StringBuilder()
-            if (parts != null) {
-                for (i in 0 until parts.length()) {
-                    val part = parts.getJSONObject(i)
-                    if (!part.optBoolean("thought", false)) answer.append(part.optString("text"))
+            var lastEmit = 0L
+            var blockReason = ""
+            var finishReason = ""
+            conn.inputStream.bufferedReader().use { reader ->
+                while (true) {
+                    val line = reader.readLine() ?: break
+                    if (!line.startsWith("data:")) continue
+                    val payload = line.removePrefix("data:").trim()
+                    if (payload.isEmpty()) continue
+                    val root = try { JSONObject(payload) } catch (e: Exception) { continue }
+                    val candidate = root.optJSONArray("candidates")?.optJSONObject(0)
+                    if (candidate == null) {
+                        blockReason = root.optJSONObject("promptFeedback")?.optString("blockReason").orEmpty()
+                        continue
+                    }
+                    finishReason = candidate.optString("finishReason", finishReason)
+                    val parts = candidate.optJSONObject("content")?.optJSONArray("parts")
+                    if (parts != null) {
+                        for (i in 0 until parts.length()) {
+                            val part = parts.getJSONObject(i)
+                            if (part.optBoolean("thought", false)) continue
+                            val piece = part.optString("text")
+                            if (piece.isNotEmpty()) {
+                                answer.append(piece)
+                                val now = System.currentTimeMillis()
+                                if (now - lastEmit >= 60) {
+                                    lastEmit = now
+                                    onPartial(answer.toString())
+                                }
+                            }
+                        }
+                    }
                 }
             }
             if (answer.isBlank()) {
-                Log.w("AiInsights", "Gemini empty answer. finishReason=${candidate.optString("finishReason")}")
+                Log.w("AiInsights", "Gemini empty answer. blockReason=$blockReason finishReason=$finishReason")
+                if (blockReason.isNotEmpty()) {
+                    throw GeminiContentException(
+                        "Answer blocked\nGemini couldn't answer this question. Try rephrasing it."
+                    )
+                }
                 throw GeminiContentException(
                     "No answer returned\nGemini sent an empty response. Try again or rephrase."
                 )
             }
+            onPartial(answer.toString())
             answer.toString()
         } finally {
             watcher.cancel()
@@ -1190,9 +1314,15 @@ private fun ScoreLinkChip(label: String, onClick: () -> Unit) {
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun InsightCard(section: InsightSection) {
+private fun InsightCard(section: InsightSection, highlighted: Boolean = false) {
     val ts = toneStyle(toneFor(section.title))
+    // While being read aloud the card gets a strong outline and is kept in view.
+    val bringIntoView = remember { BringIntoViewRequester() }
+    LaunchedEffect(highlighted) {
+        if (highlighted) bringIntoView.bringIntoView()
+    }
     val cardClipboard = LocalClipboardManager.current
     val cardHaptic = LocalHapticFeedback.current
     var cardCopied by remember { mutableStateOf(false) }
@@ -1204,10 +1334,13 @@ private fun InsightCard(section: InsightSection) {
     }
 
     Surface(
-        modifier = Modifier.fillMaxWidth().animateContentSize(),
+        modifier = Modifier.fillMaxWidth().bringIntoViewRequester(bringIntoView),
         shape = RoundedCornerShape(22.dp),
         color = ts.container,
-        border = BorderStroke(1.dp, ts.accent.copy(alpha = 0.14f))
+        border = BorderStroke(
+            if (highlighted) 2.dp else 1.dp,
+            if (highlighted) ts.accent else ts.accent.copy(alpha = 0.14f)
+        )
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             section.title?.let { title ->
@@ -1264,7 +1397,16 @@ private fun InsightCard(section: InsightSection) {
                             color = ts.onContainer,
                             lineHeight = 22.sp
                         )
-                        is InsightBlock.Bullet -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        is InsightBlock.Bullet -> if (isSourceLine(b.text)) {
+                            // The model sometimes writes the source as a bullet; show it as the source line.
+                            Text(
+                                b.text.replace("**", "").trim('*', '_', ' '),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
+                                color = ts.onContainer.copy(alpha = 0.7f),
+                                lineHeight = 18.sp
+                            )
+                        } else Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Box(
                                 modifier = Modifier.padding(top = 9.dp).size(6.dp).background(ts.accent, CircleShape)
                             )
@@ -1348,6 +1490,415 @@ private fun sectionPlain(section: InsightSection): String = buildString {
     }
 }.replace("**", "").trim()
 
+// Google's recognizer often leaves end punctuation off. If the spoken text opens like
+// a question ("what is...", "can you...", "is X better than Y"), end it with "?";
+// anything else without end punctuation gets a full stop.
+private val questionStarters = setOf(
+    "what", "whats", "why", "how", "when", "where", "which", "who", "whom", "whose",
+    "is", "are", "was", "were", "am", "can", "could", "do", "does", "did",
+    "should", "would", "will", "shall", "may", "might", "has", "have", "had"
+)
+
+private fun capitalizeSentences(text: String, startsSentence: Boolean): String {
+    var t = text
+    if (startsSentence && t.isNotEmpty() && t[0].isLowerCase()) t = t[0].uppercaseChar() + t.substring(1)
+    // A lower-case letter right after ". ", "? " or "! " starts a new sentence ("e.g. the" is left alone).
+    return Regex("(?<=\\w{2}[.?!] )[a-z]").replace(t) { it.value.uppercase() }
+}
+
+private fun withQuestionMark(spoken: String): String {
+    val text = spoken.trim()
+    if (text.isEmpty() || text.endsWith("?") || text.endsWith("!")) return text
+    val first = text.substringBefore(' ').lowercase().trim(',', '.', '\'', '’')
+    val isQuestion = first.removeSuffix("s") in questionStarters || first in questionStarters
+    return if (isQuestion) text.trimEnd('.', ',', ' ') + "?" else text.trimEnd(',', ' ').trimEnd('.') + "."
+}
+
+// ───────────────────────── Read aloud ─────────────────────────
+
+private class SpeechChunk(val section: Int, val text: String)
+
+/** Rewrites written clinical text so a speech engine says it the way a person would. */
+private fun cleanForSpeech(raw: String): String {
+    var t = raw
+        .replace("**", "").replace("*", "").replace("`", "").replace("#", "")
+        .replace("e.g.", "for example").replace("i.e.", "that is").replace("vs.", "versus")
+        .replace("mg/kg/day", "milligrams per kilogram per day")
+        .replace("mg/kg", "milligrams per kilogram")
+        .replace("mcg/kg", "micrograms per kilogram")
+        .replace("µg/kg", "micrograms per kilogram")
+        .replace("mL/kg", "milliliters per kilogram")
+        .replace("mg/dL", "milligrams per deciliter")
+        .replace("mmol/L", "millimoles per liter")
+        .replace("mEq/L", "milliequivalents per liter")
+        .replace("mmHg", "millimeters of mercury")
+        .replace("kg/m²", "kilograms per square meter")
+        .replace("kg/m^2", "kilograms per square meter")
+        .replace("≥", " at least ").replace("≤", " at most ")
+        .replace("×", " times ").replace("→", " to ").replace("±", " plus or minus ")
+        .replace("•", "")
+    t = Regex("(\\d)\\s?(?:–|-)\\s?(\\d)").replace(t) { "${it.groupValues[1]} to ${it.groupValues[2]}" }
+    t = Regex("(\\d)\\s?%").replace(t) { "${it.groupValues[1]} percent" }
+    t = Regex("(\\d)\\s?mg\\b").replace(t) { "${it.groupValues[1]} milligrams" }
+    t = Regex("(\\d)\\s?(?:mcg|µg)\\b").replace(t) { "${it.groupValues[1]} micrograms" }
+    t = Regex("(\\d)\\s?mL\\b").replace(t) { "${it.groupValues[1]} milliliters" }
+    t = Regex("(\\d)\\s?kg\\b").replace(t) { "${it.groupValues[1]} kilograms" }
+    t = Regex("(\\d)\\s?bpm\\b").replace(t) { "${it.groupValues[1]} beats per minute" }
+    return t.replace(Regex("\\s+"), " ").trim()
+}
+
+/** Splits an answer into short spoken pieces, each tagged with the card it belongs to. */
+private fun buildSpeechChunks(answer: String): List<SpeechChunk> {
+    val out = mutableListOf<SpeechChunk>()
+    parseInsight(answer).forEachIndexed { si, section ->
+        val pieces = mutableListOf<String>()
+        section.title?.let { pieces += cleanForSpeech(it).trimEnd('.', ':') + "." }
+        section.blocks.forEach { b ->
+            val raw = when (b) {
+                is InsightBlock.Para -> b.text
+                is InsightBlock.Bullet -> b.text
+                is InsightBlock.Step -> b.text
+            }
+            if (isSourceLine(raw)) return@forEach   // sources are not read out
+            val t = cleanForSpeech(raw)
+            if (t.isNotBlank()) pieces += if (t.last() in ".!?:;") t else "$t."
+        }
+        var buf = StringBuilder()
+        for (piece in pieces) {
+            for (sentence in piece.split(Regex("(?<=[.!?])\\s+"))) {
+                if (buf.isNotEmpty() && buf.length + sentence.length > 320) {
+                    out += SpeechChunk(si, buf.toString().trim())
+                    buf = StringBuilder()
+                }
+                buf.append(sentence).append(' ')
+            }
+        }
+        if (buf.isNotBlank()) out += SpeechChunk(si, buf.toString().trim())
+    }
+    return out
+}
+
+// ───────────────────────── Selection menu: Medtrixa's "Read aloud" ─────────────────────────
+
+private val nativeReadAloudLabel = Regex("read|aloud|speak|listen", RegexOption.IGNORE_CASE)
+
+/**
+ * Lets answer text be selected using Android's own menu (Copy, Select all, ...), but swaps
+ * the phone's built-in "Read aloud" item for Medtrixa's, in the same place in the menu.
+ */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun ReadAloudSelection(onReadAloud: (String) -> Unit, content: @Composable () -> Unit) {
+    val clipboard = LocalClipboardManager.current
+    // The menu's own Copy action is kept, so Medtrixa can read what is selected.
+    val copyAction = remember { arrayOfNulls<(TextContextMenuSession) -> Unit>(1) }
+    Box(
+        modifier = Modifier
+            .filterTextContextMenuComponents { component ->
+                if (component is TextContextMenuItem && component.key == TextContextMenuKeys.CopyKey) {
+                    copyAction[0] = component.onClick
+                }
+                // true = keep. Only the phone's own read-aloud entry is dropped.
+                !(component is TextContextMenuItem &&
+                    component.key is ProcessTextKey &&
+                    nativeReadAloudLabel.containsMatchIn(component.label))
+            }
+            .appendTextContextMenuComponents {
+                val action: TextContextMenuSession.() -> Unit = {
+                    // Copy the selection, read it, then put back whatever was on the clipboard.
+                    val previous = clipboard.getText()
+                    copyAction[0]?.invoke(this)
+                    val selected = clipboard.getText()?.text.orEmpty()
+                    if (previous != null) clipboard.setText(previous)
+                    close()
+                    if (selected.isNotBlank()) onReadAloud(selected)
+                }
+                item("medtrixa_read_aloud", "Read aloud", 0, action)
+            }
+    ) {
+        SelectionContainer { content() }
+    }
+}
+
+/** The mini player shown above the question box while an answer is being read. */
+@Composable
+private fun ReaderBar(
+    position: Int,
+    total: Int,
+    paused: Boolean,
+    rate: Float,
+    onPauseResume: () -> Unit,
+    onRate: () -> Unit,
+    onStop: () -> Unit
+) {
+    val cs = MaterialTheme.colorScheme
+    val fraction = if (total > 0) (position.toFloat() / total).coerceIn(0f, 1f) else 0f
+    val rateLabel = when {
+        rate < 0.95f -> "0.8×"
+        rate > 1.1f -> "1.25×"
+        else -> "1×"
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = cs.primaryContainer
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onPauseResume) {
+                Icon(
+                    if (paused) Icons.Filled.PlayArrow else Icons.Filled.Pause,
+                    contentDescription = if (paused) "Resume reading" else "Pause reading",
+                    tint = cs.onPrimaryContainer
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    if (paused) "Paused · section $position of $total" else "Reading · section $position of $total",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = cs.onPrimaryContainer
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(cs.onPrimaryContainer.copy(alpha = 0.18f))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(fraction)
+                            .fillMaxHeight()
+                            .background(cs.onPrimaryContainer)
+                    )
+                }
+            }
+            TextButton(onClick = onRate) {
+                Text(rateLabel, color = cs.onPrimaryContainer, fontWeight = FontWeight.SemiBold)
+            }
+            IconButton(onClick = onStop) {
+                Icon(Icons.Filled.Close, contentDescription = "Stop reading", tint = cs.onPrimaryContainer)
+            }
+        }
+    }
+}
+
+// ───────────────────────── Word (.docx) export ─────────────────────────
+
+private fun xmlEscape(text: String): String =
+    text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
+
+/** One Word paragraph. "**bold**" in the text becomes bold runs. */
+private fun docxParagraph(
+    text: String,
+    halfPoints: Int,
+    bold: Boolean = false,
+    italic: Boolean = false,
+    color: String? = null,
+    indentLeft: Int = 0,
+    hanging: Int = 0,
+    afterTwips: Int = 100
+): String {
+    val sb = StringBuilder()
+    sb.append("<w:p><w:pPr><w:spacing w:after=\"").append(afterTwips).append("\"/>")
+    if (indentLeft > 0) {
+        sb.append("<w:ind w:left=\"").append(indentLeft).append("\" w:hanging=\"").append(hanging).append("\"/>")
+    }
+    sb.append("</w:pPr>")
+    text.split("**").forEachIndexed { i, part ->
+        if (part.isEmpty()) return@forEachIndexed
+        val isBold = bold || i % 2 == 1
+        sb.append("<w:r><w:rPr><w:rFonts w:ascii=\"Calibri\" w:hAnsi=\"Calibri\" w:cs=\"Calibri\"/>")
+        if (isBold) sb.append("<w:b/>")
+        if (italic) sb.append("<w:i/>")
+        if (color != null) sb.append("<w:color w:val=\"").append(color).append("\"/>")
+        sb.append("<w:sz w:val=\"").append(halfPoints).append("\"/></w:rPr>")
+        sb.append("<w:t xml:space=\"preserve\">").append(xmlEscape(part)).append("</w:t></w:r>")
+    }
+    sb.append("</w:p>")
+    return sb.toString()
+}
+
+/** Writes one answer as a Word document (.docx), built directly with no extra library. */
+private fun buildAnswerDocx(question: String, provider: String, answer: String, out: java.io.OutputStream) {
+    val gray = "6E6E78"
+    val blue = "1A56A0"
+    val body = StringBuilder()
+    body.append(docxParagraph("Medtrixa · AI Insights", 18, color = gray, afterTwips = 120))
+    body.append(docxParagraph(question, 32, bold = true, afterTwips = 60))
+    body.append(
+        docxParagraph(
+            provider + " · " + formatSessionTimestamp(System.currentTimeMillis()),
+            18, color = gray, afterTwips = 280
+        )
+    )
+    for (section in parseInsight(answer)) {
+        section.title?.let { body.append(docxParagraph(it, 25, bold = true, color = blue, afterTwips = 80)) }
+        for (b in section.blocks) {
+            when (b) {
+                is InsightBlock.Para ->
+                    if (isSourceLine(b.text)) {
+                        body.append(docxParagraph(b.text.replace("**", "").trim('*', '_', ' '), 18, italic = true, color = gray, afterTwips = 120))
+                    } else {
+                        body.append(docxParagraph(b.text, 21, afterTwips = 100))
+                    }
+                is InsightBlock.Bullet ->
+                    if (isSourceLine(b.text)) {
+                        body.append(docxParagraph(b.text.replace("**", "").trim('*', '_', ' '), 18, italic = true, color = gray, afterTwips = 120))
+                    } else {
+                        body.append(docxParagraph("•  " + b.text, 21, indentLeft = 360, hanging = 260, afterTwips = 60))
+                    }
+                is InsightBlock.Step ->
+                    body.append(docxParagraph(b.n + ".  " + b.text, 21, indentLeft = 360, hanging = 300, afterTwips = 60))
+            }
+        }
+        body.append(docxParagraph("", 12, afterTwips = 120))
+    }
+    body.append(docxParagraph("AI-generated. Verify against current clinical guidelines.", 17, italic = true, color = gray, afterTwips = 0))
+
+    val documentXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+        "<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body>" +
+        body +
+        "<w:sectPr><w:pgSz w:w=\"11906\" w:h=\"16838\"/>" +
+        "<w:pgMar w:top=\"1134\" w:right=\"1134\" w:bottom=\"1134\" w:left=\"1134\" w:header=\"708\" w:footer=\"708\" w:gutter=\"0\"/>" +
+        "</w:sectPr></w:body></w:document>"
+    val contentTypes = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+        "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">" +
+        "<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>" +
+        "<Default Extension=\"xml\" ContentType=\"application/xml\"/>" +
+        "<Override PartName=\"/word/document.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml\"/>" +
+        "</Types>"
+    val rels = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+        "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+        "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"word/document.xml\"/>" +
+        "</Relationships>"
+
+    ZipOutputStream(out).use { zip ->
+        fun put(name: String, content: String) {
+            zip.putNextEntry(ZipEntry(name))
+            zip.write(content.toByteArray(Charsets.UTF_8))
+            zip.closeEntry()
+        }
+        put("[Content_Types].xml", contentTypes)
+        put("_rels/.rels", rels)
+        put("word/document.xml", documentXml)
+    }
+}
+
+// ───────────────────────── PDF export ─────────────────────────
+
+/** Writes one answer (question + section cards + disclaimer) as an A4 PDF. */
+private fun buildAnswerPdf(question: String, provider: String, answer: String, out: java.io.OutputStream) {
+    val doc = android.graphics.pdf.PdfDocument()
+    val pageW = 595
+    val pageH = 842
+    val margin = 40
+    val contentW = pageW - margin * 2
+    val bottom = pageH - margin
+    val gray = android.graphics.Color.rgb(110, 110, 120)
+
+    fun paint(size: Float, bold: Boolean = false, italic: Boolean = false, color: Int = android.graphics.Color.rgb(25, 25, 30)): android.text.TextPaint {
+        val tp = android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        tp.textSize = size
+        tp.color = color
+        val style = when {
+            bold && italic -> android.graphics.Typeface.BOLD_ITALIC
+            bold -> android.graphics.Typeface.BOLD
+            italic -> android.graphics.Typeface.ITALIC
+            else -> android.graphics.Typeface.NORMAL
+        }
+        tp.typeface = android.graphics.Typeface.create(android.graphics.Typeface.SANS_SERIF, style)
+        return tp
+    }
+
+    var pageNo = 0
+    var page: android.graphics.pdf.PdfDocument.Page? = null
+    var canvas: android.graphics.Canvas? = null
+    var y = margin.toFloat()
+
+    fun newPage() {
+        page?.let { doc.finishPage(it) }
+        pageNo++
+        val p = doc.startPage(android.graphics.pdf.PdfDocument.PageInfo.Builder(pageW, pageH, pageNo).create())
+        page = p
+        canvas = p.canvas
+        y = margin.toFloat()
+    }
+
+    fun styled(text: String): CharSequence {
+        val sb = android.text.SpannableStringBuilder()
+        text.split("**").forEachIndexed { i, part ->
+            val start = sb.length
+            sb.append(part)
+            if (i % 2 == 1) {
+                sb.setSpan(
+                    android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                    start, sb.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+        }
+        return sb
+    }
+
+    fun drawText(text: CharSequence, tp: android.text.TextPaint, indent: Int = 0, after: Float = 6f) {
+        val width = contentW - indent
+        val layout = android.text.StaticLayout.Builder.obtain(text, 0, text.length, tp, width)
+            .setLineSpacing(2f, 1f)
+            .build()
+        for (i in 0 until layout.lineCount) {
+            val top = layout.getLineTop(i)
+            val bot = layout.getLineBottom(i)
+            if (y + (bot - top) > bottom) newPage()
+            val c = canvas ?: return
+            c.save()
+            c.translate((margin + indent).toFloat(), y - top)
+            c.clipRect(0f, top.toFloat(), width.toFloat(), bot.toFloat())
+            layout.draw(c)
+            c.restore()
+            y += (bot - top)
+        }
+        y += after
+    }
+
+    newPage()
+    drawText("Medtrixa · AI Insights", paint(9f, color = gray), after = 10f)
+    drawText(question, paint(16f, bold = true), after = 4f)
+    drawText("$provider · ${formatSessionTimestamp(System.currentTimeMillis())}", paint(9f, color = gray), after = 14f)
+
+    for (section in parseInsight(answer)) {
+        section.title?.let {
+            drawText(it, paint(12.5f, bold = true, color = android.graphics.Color.rgb(26, 86, 160)), after = 4f)
+        }
+        for (b in section.blocks) {
+            when (b) {
+                is InsightBlock.Para ->
+                    if (isSourceLine(b.text)) {
+                        drawText(b.text.replace("**", "").trim('*', '_', ' '), paint(9f, italic = true, color = gray), after = 6f)
+                    } else {
+                        drawText(styled(b.text), paint(10.5f), after = 5f)
+                    }
+                is InsightBlock.Bullet ->
+                    if (isSourceLine(b.text)) {
+                        drawText(b.text.replace("**", "").trim('*', '_', ' '), paint(9f, italic = true, color = gray), after = 6f)
+                    } else {
+                        drawText(styled("•  " + b.text), paint(10.5f), indent = 10, after = 3f)
+                    }
+                is InsightBlock.Step -> drawText(styled(b.n + ".  " + b.text), paint(10.5f), indent = 10, after = 3f)
+            }
+        }
+        y += 8f
+    }
+    y += 6f
+    drawText("AI-generated. Verify against current clinical guidelines.", paint(8.5f, italic = true, color = gray), after = 0f)
+
+    page?.let { doc.finishPage(it) }
+    doc.writeTo(out)
+    doc.close()
+}
+
 @Composable
 private fun AnswerActions(
     answer: String,
@@ -1355,7 +1906,11 @@ private fun AnswerActions(
     question: String,
     saved: Boolean,
     onToggleSave: () -> Unit,
-    onRegenerate: (() -> Unit)? = null
+    onRegenerate: (() -> Unit)? = null,
+    onPdf: (() -> Unit)? = null,
+    onDocx: (() -> Unit)? = null,
+    reading: Boolean = false,
+    onListen: () -> Unit = {}
 ) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
@@ -1387,55 +1942,6 @@ private fun AnswerActions(
         }
     }
     val plain = remember(answer) { plainAnswer(answer) }
-
-    // Listen (text-to-speech), using the phone's own voice engine.
-    var speaking by remember { mutableStateOf(false) }
-    val ttsHolder = remember { arrayOfNulls<TextToSpeech>(1) }
-    DisposableEffect(Unit) {
-        onDispose {
-            ttsHolder[0]?.stop()
-            ttsHolder[0]?.shutdown()
-            ttsHolder[0] = null
-        }
-    }
-    fun speakNow(engine: TextToSpeech) {
-        engine.setLanguage(java.util.Locale.getDefault())
-        engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onStart(utteranceId: String?) {}
-            override fun onDone(utteranceId: String?) {
-                if (utteranceId == "last") speaking = false
-            }
-            @Deprecated("Deprecated in Java")
-            override fun onError(utteranceId: String?) {
-                speaking = false
-            }
-        })
-        val lines = toSpeakable(plain).lines().filter { it.isNotBlank() }
-        lines.forEachIndexed { i, line ->
-            val id = if (i == lines.lastIndex) "last" else "u$i"
-            engine.speak(line.take(3900), TextToSpeech.QUEUE_ADD, null, id)
-        }
-        speaking = true
-    }
-    fun toggleListen() {
-        if (speaking) {
-            ttsHolder[0]?.stop()
-            speaking = false
-            return
-        }
-        val existing = ttsHolder[0]
-        if (existing != null) {
-            speakNow(existing)
-            return
-        }
-        var engine: TextToSpeech? = null
-        engine = TextToSpeech(context) { status ->
-            val e = engine
-            if (status == TextToSpeech.SUCCESS && e != null) speakNow(e)
-        }
-        ttsHolder[0] = engine
-    }
-
 
     val emoji = when (provider) {
         "Groq" -> "⚡"
@@ -1492,6 +1998,16 @@ private fun AnswerActions(
             }) {
                 Icon(Icons.Filled.Share, contentDescription = "Share", tint = cs.primary, modifier = Modifier.size(22.dp))
             }
+            if (onPdf != null) {
+                IconButton(onClick = onPdf) {
+                    Icon(Icons.Filled.PictureAsPdf, contentDescription = "Save as PDF", tint = cs.primary, modifier = Modifier.size(22.dp))
+                }
+            }
+            if (onDocx != null) {
+                IconButton(onClick = onDocx) {
+                    Icon(Icons.Filled.Description, contentDescription = "Save as Word document", tint = cs.primary, modifier = Modifier.size(22.dp))
+                }
+            }
             if (onRegenerate != null) {
                 IconButton(onClick = onRegenerate) {
                     Icon(Icons.Filled.Refresh, contentDescription = "Regenerate", tint = cs.primary, modifier = Modifier.size(22.dp))
@@ -1505,10 +2021,10 @@ private fun AnswerActions(
                     modifier = Modifier.size(22.dp).scale(starScale)
                 )
             }
-            IconButton(onClick = { toggleListen() }) {
+            IconButton(onClick = onListen) {
                 Icon(
-                    if (speaking) Icons.Filled.Stop else Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = if (speaking) "Stop reading" else "Listen",
+                    if (reading) Icons.Filled.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+                    contentDescription = if (reading) "Stop reading" else "Read aloud",
                     tint = cs.primary,
                     modifier = Modifier.size(22.dp)
                 )
@@ -1700,9 +2216,17 @@ private fun ComposerBar(
     placeholder: String,
     loading: Boolean,
     onSend: () -> Unit,
-    onStop: () -> Unit
+    onStop: () -> Unit,
+    onMic: () -> Unit
 ) {
     val cs = MaterialTheme.colorScheme
+    // The box keeps its own cursor. When the text is changed from outside (voice input,
+    // or cleared after sending) the cursor is placed at the end so typing can continue.
+    var field by remember { mutableStateOf(TextFieldValue(query, TextRange(query.length))) }
+    val shownField = if (field.text == query) field else TextFieldValue(query, TextRange(query.length))
+    LaunchedEffect(query) {
+        if (field.text != query) field = TextFieldValue(query, TextRange(query.length))
+    }
     val canSend = query.isNotBlank() && !loading
     Surface(color = cs.surface, tonalElevation = 3.dp) {
         Row(
@@ -1710,11 +2234,19 @@ private fun ComposerBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(
-                value = query,
-                onValueChange = onQueryChange,
+                value = shownField,
+                onValueChange = {
+                    field = it
+                    onQueryChange(it.text)
+                },
                 singleLine = true,
                 placeholder = { Text(placeholder) },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    IconButton(onClick = onMic, enabled = !loading) {
+                        Icon(Icons.Filled.Mic, contentDescription = "Ask by voice", tint = cs.primary)
+                    }
+                },
                 shape = RoundedCornerShape(28.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(onSend = { if (canSend) onSend() }),
@@ -1793,12 +2325,246 @@ fun AiInsightsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // PDF export: the system "save as" picker lets the user choose where the file goes,
+    // so no storage permission is needed.
+    var pdfPending by remember { mutableStateOf<Triple<String, String, String>?>(null) }
+    val pdfLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri ->
+        val job = pdfPending
+        pdfPending = null
+        if (uri != null && job != null) {
+            scope.launch {
+                val ok = withContext(Dispatchers.IO) {
+                    try {
+                        context.contentResolver.openOutputStream(uri)?.use {
+                            buildAnswerPdf(job.first, job.second, job.third, it)
+                        }
+                        true
+                    } catch (e: Exception) {
+                        false
+                    }
+                }
+                Toast.makeText(context, if (ok) "PDF saved" else "Couldn't save the PDF", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    fun exportPdf(question: String, answerProvider: String, answer: String) {
+        pdfPending = Triple(question, answerProvider, answer)
+        pdfLauncher.launch("Medtrixa-answer.pdf")
+    }
+
+    // Word export works the same way: the system "save as" screen picks the location.
+    var docxPending by remember { mutableStateOf<Triple<String, String, String>?>(null) }
+    val docxLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    ) { uri ->
+        val job = docxPending
+        docxPending = null
+        if (uri != null && job != null) {
+            scope.launch {
+                val ok = withContext(Dispatchers.IO) {
+                    try {
+                        context.contentResolver.openOutputStream(uri)?.use {
+                            buildAnswerDocx(job.first, job.second, job.third, it)
+                        }
+                        true
+                    } catch (e: Exception) {
+                        false
+                    }
+                }
+                Toast.makeText(context, if (ok) "Word document saved" else "Couldn't save the document", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    fun exportDocx(question: String, answerProvider: String, answer: String) {
+        docxPending = Triple(question, answerProvider, answer)
+        docxLauncher.launch("Medtrixa-answer.docx")
+    }
+
+    // ── Read aloud: one reader for the whole screen, with a mini player ──
+    var readingKey by remember { mutableStateOf<String?>(null) }
+    var readerSection by remember { mutableStateOf(0) }
+    var readerPaused by remember { mutableStateOf(false) }
+    var readerRate by remember { mutableStateOf(1.0f) }
+    val readerChunks = remember { arrayOf<List<SpeechChunk>>(emptyList()) }
+    val readerSections = remember { arrayOf<List<Int>>(emptyList()) }
+    val readerChunkIndex = remember { intArrayOf(0) }
+    val readerGen = remember { intArrayOf(0) }
+    val ttsHolder = remember { arrayOfNulls<TextToSpeech>(1) }
+    val ttsReady = remember { booleanArrayOf(false) }
+    DisposableEffect(Unit) {
+        onDispose {
+            ttsHolder[0]?.stop()
+            ttsHolder[0]?.shutdown()
+            ttsHolder[0] = null
+        }
+    }
+
+    fun resetReader() {
+        readingKey = null
+        readerPaused = false
+        readerSection = 0
+        readerChunkIndex[0] = 0
+    }
+
+    fun speakFrom(startChunk: Int) {
+        val engine = ttsHolder[0] ?: return
+        val chunks = readerChunks[0]
+        if (startChunk >= chunks.size) {
+            resetReader()
+            return
+        }
+        // Stop first, then register the new listener. Every utterance carries a "generation"
+        // number so late callbacks from an interrupted run can be told apart and ignored.
+        engine.stop()
+        val gen = ++readerGen[0]
+        engine.setLanguage(java.util.Locale.getDefault())
+        engine.setSpeechRate(readerRate)
+        engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            private fun parse(id: String?): Int? {
+                val m = id?.removePrefix("g") ?: return null
+                val parts = m.split("c")
+                if (parts.size != 2 || parts[0].toIntOrNull() != gen) return null
+                return parts[1].toIntOrNull()
+            }
+            override fun onStart(utteranceId: String?) {
+                val j = parse(utteranceId) ?: return
+                readerChunkIndex[0] = j
+                readerSection = chunks.getOrNull(j)?.section ?: 0
+            }
+            override fun onDone(utteranceId: String?) {
+                val j = parse(utteranceId) ?: return
+                if (j == chunks.size - 1) resetReader()
+            }
+            @Deprecated("Deprecated in Java")
+            override fun onError(utteranceId: String?) {
+                if (parse(utteranceId) != null) resetReader()
+            }
+        })
+        for (j in startChunk until chunks.size) {
+            engine.speak(chunks[j].text, TextToSpeech.QUEUE_ADD, null, "g${gen}c$j")
+        }
+    }
+
+    fun stopReading() {
+        readerGen[0]++
+        ttsHolder[0]?.stop()
+        resetReader()
+    }
+
+    fun startReading(key: String, answer: String) {
+        val chunks = buildSpeechChunks(answer)
+        if (chunks.isEmpty()) return
+        readerChunks[0] = chunks
+        readerSections[0] = chunks.map { it.section }.distinct()
+        readerChunkIndex[0] = 0
+        readerSection = chunks.first().section
+        readerPaused = false
+        readingKey = key
+        if (ttsHolder[0] != null && ttsReady[0]) {
+            speakFrom(0)
+        } else if (ttsHolder[0] == null) {
+            var engine: TextToSpeech? = null
+            engine = TextToSpeech(context) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    ttsReady[0] = true
+                    speakFrom(readerChunkIndex[0])
+                } else {
+                    resetReader()
+                    Toast.makeText(context, "Read aloud isn't available on this phone", Toast.LENGTH_SHORT).show()
+                }
+            }
+            ttsHolder[0] = engine
+        }
+    }
+
+    fun toggleListen(key: String, answer: String) {
+        if (readingKey == key) stopReading() else startReading(key, answer)
+    }
+
+    fun pauseResumeReading() {
+        if (readerPaused) {
+            readerPaused = false
+            speakFrom(readerChunkIndex[0])
+        } else {
+            readerGen[0]++
+            ttsHolder[0]?.stop()
+            readerPaused = true
+        }
+    }
+
+    fun cycleReadingSpeed() {
+        readerRate = when {
+            readerRate < 0.95f -> 1.0f
+            readerRate < 1.1f -> 1.25f
+            else -> 0.8f
+        }
+        if (readingKey != null && !readerPaused) speakFrom(readerChunkIndex[0])
+    }
     val listState = rememberLazyListState()
 
     var query by remember { mutableStateOf("") }
     var pendingQuestion by remember { mutableStateOf("") }
     var provider by remember { mutableStateOf("Groq") }
     var loading by remember { mutableStateOf(false) }
+    var streamingText by remember { mutableStateOf("") }
+    // What is actually on screen. It follows streamingText at a steady pace, so text that
+    // arrives in bursts still appears smoothly, like typing, instead of in jumps.
+    var displayedText by remember { mutableStateOf("") }
+    // True once the provider has sent the whole answer; the rest is then shown at once.
+    var streamDone by remember { mutableStateOf(false) }
+    LaunchedEffect(loading) {
+        var shown = 0
+        var budget = 0f   // characters we are allowed to reveal, built up tick by tick
+        while (loading) {
+            val target = streamingText
+            if (target.isEmpty()) {
+                shown = 0
+                budget = 0f
+                if (displayedText.isNotEmpty()) displayedText = ""
+            } else {
+                if (target.length < shown) shown = target.length
+                val backlog = target.length - shown
+                if (streamDone && backlog > 0) {
+                    // The answer is complete: show whatever is left immediately.
+                    shown = target.length
+                    budget = 0f
+                    displayedText = target
+                } else if (backlog > 0) {
+                    // Dynamic pace: about 140 characters a second while keeping up, faster
+                    // when the answer is getting ahead, fastest when far behind.
+                    val charsPerSecond = when {
+                        backlog > 600 -> 450f
+                        backlog > 150 -> 250f
+                        else -> 140f
+                    }
+                    budget = minOf(budget + charsPerSecond * 0.04f, 40f)
+                    var next = minOf(target.length, shown + budget.toInt())
+                    if (next < target.length) {
+                        // Reveal whole words only. A half-typed long word would otherwise
+                        // jump to the next line the moment it no longer fits.
+                        val boundary = target.lastIndexOfAny(charArrayOf(' ', '\n'), next - 1)
+                        next = when {
+                            boundary >= shown -> boundary + 1
+                            backlog > 40 -> next   // very long token: don't stall
+                            else -> shown          // wait for the word to finish
+                        }
+                    }
+                    if (next != shown) {
+                        budget = (budget - (next - shown)).coerceAtLeast(0f)
+                        shown = next
+                        displayedText = target.substring(0, shown)
+                    }
+                } else {
+                    budget = 0f
+                }
+            }
+            delay(40)
+        }
+        displayedText = ""
+    }
     var error by remember { mutableStateOf<String?>(null) }
     var errorNeedsKey by remember { mutableStateOf(false) }
     var thread by remember { mutableStateOf<List<ChatExchange>>(emptyList()) }
@@ -1970,6 +2736,36 @@ fun AiInsightsScreen(
         onOpenScore(id)
     }
 
+    // Voice input: the phone's own speech recognizer (no microphone permission needed
+    // by the app). The spoken question is placed in the box for review, not sent automatically.
+    val voiceLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val spoken = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+            if (!spoken.isNullOrBlank()) {
+                val startsSentence = query.isBlank() || query.trimEnd().last() in ".?!"
+                val fixed = capitalizeSentences(withQuestionMark(spoken), startsSentence)
+                query = if (query.isBlank()) fixed else query.trimEnd() + " " + fixed
+            }
+        }
+    }
+    fun startVoiceInput() {
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PROMPT, "Ask a clinical question")
+            // Asks the recognizer for punctuation where the phone supports it (Android 13+).
+            putExtra("android.speech.extra.ENABLE_FORMATTING", "quality")
+        }
+        try {
+            voiceLauncher.launch(intent)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Voice input isn't available on this phone", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     fun runSearch(q: String = query) {
         val question = q.trim()
         if (question.isEmpty() || loading) return
@@ -1987,21 +2783,41 @@ fun AiInsightsScreen(
         }
 
         loading = true
+        streamingText = ""
+        streamDone = false
         // The new question is included as the last turn of the history sent to the
         // model, so each answer is aware of the whole conversation so far.
         val historyForCall = thread + ChatExchange(question)
         searchJob = scope.launch {
+            val myJob = coroutineContext[Job]
+            // Text is shown as it arrives; ignored once Stop has been tapped.
+            val onPartial: (String) -> Unit = { text ->
+                if (myJob?.isActive == true) streamingText = text
+            }
+            val cancelled: () -> Boolean = { myJob?.isActive != true }
             try {
                 val answer = withContext(Dispatchers.IO) {
                     when (source) {
-                        "Groq" -> askGroq(apiKey, historyForCall)
-                        "OpenRouter" -> askOpenRouter(apiKey, historyForCall)
-                        else -> askGeminiWithRetry(apiKey, historyForCall)
+                        "Groq" -> askGroq(apiKey, historyForCall, onPartial, cancelled)
+                        "OpenRouter" -> askOpenRouter(apiKey, historyForCall, onPartial, cancelled)
+                        else -> askGeminiWithRetry(apiKey, historyForCall, onPartial)
                     }
                 }
+                // Saved to history straight away, so nothing is lost if you leave while the
+                // text is still being revealed.
                 val updated = thread + ChatExchange(question, answer = answer)
-                thread = updated
                 persistThread(source, updated)
+                // Let the on-screen text finish revealing before the final answer replaces it.
+                streamingText = answer
+                streamDone = true
+                var waited = 0
+                while (displayedText.length < answer.length && waited < 40000) {
+                    delay(40)
+                    waited += 40
+                }
+                thread = updated
+                streamingText = ""
+                displayedText = ""
                 pendingQuestion = ""
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
@@ -2010,6 +2826,9 @@ fun AiInsightsScreen(
                 // labeled, user-facing message — no raw JSON or status-code noise.
                 error = e.message ?: "Couldn't reach $source. Please try again."
             } finally {
+                streamingText = ""
+                displayedText = ""
+                streamDone = false
                 if (isActive) loading = false
             }
         }
@@ -2020,6 +2839,9 @@ fun AiInsightsScreen(
         searchJob = null
         query = pendingQuestion
         pendingQuestion = ""
+        streamingText = ""
+        displayedText = ""
+        streamDone = false
         loading = false
     }
 
@@ -2038,6 +2860,9 @@ fun AiInsightsScreen(
     LaunchedEffect(thread.size, loading, error) {
         if (hasContent) listState.animateScrollToItem(0)
     }
+
+    // A new question, another chat, or a regenerated answer ends any reading in progress.
+    LaunchedEffect(thread.size, activeSessionId, loading) { stopReading() }
 
     val imeVisible = WindowInsets.isImeVisible
     LaunchedEffect(imeVisible) {
@@ -2617,7 +3442,18 @@ fun AiInsightsScreen(
                         item {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 QuestionBubble(pendingQuestion, provider)
-                                InsightSkeleton()
+                                if (displayedText.isBlank()) {
+                                    InsightSkeleton()
+                                } else {
+                                    // A half-typed **bold** would show raw asterisks; close it for now.
+                                    val liveText = if (displayedText.split("**").size % 2 == 0) displayedText + "**" else displayedText
+                                    val liveSections = remember(liveText) { parseInsight(liveText) }
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        liveSections.forEachIndexed { i, section ->
+                                            key(i) { InsightCard(section) }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -2627,9 +3463,12 @@ fun AiInsightsScreen(
                             QuestionBubble(exchange.question, provider)
                             exchange.answer?.let { ans ->
                                 val sections = remember(ans) { parseInsight(ans) }
-                                SelectionContainer {
+                                val readKey = "t${thread.size - 1 - index}"
+                                ReadAloudSelection(onReadAloud = { text -> startReading("sel", text) }) {
                                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        sections.forEach { InsightCard(it) }
+                                        sections.forEachIndexed { si, sec ->
+                                            InsightCard(sec, highlighted = readingKey == readKey && readerSection == si)
+                                        }
                                     }
                                 }
                                 val scoreLinks = remember(ans) { detectScoreLinks(ans) }
@@ -2649,12 +3488,29 @@ fun AiInsightsScreen(
                                     question = exchange.question,
                                     saved = savedAnswers.any { it.answer == ans && it.provider == provider },
                                     onToggleSave = { toggleSaveAnswer(exchange.question, ans) },
-                                    onRegenerate = if (index == 0 && !loading) ({ regenerateLast() }) else null
+                                    onRegenerate = if (index == 0 && !loading) ({ regenerateLast() }) else null,
+                                    onPdf = { exportPdf(exchange.question, provider, ans) },
+                                    onDocx = { exportDocx(exchange.question, provider, ans) },
+                                    reading = readingKey == readKey,
+                                    onListen = { toggleListen(readKey, ans) }
                                 )
                             }
                         }
                     }
                 }
+            }
+
+            AnimatedVisibility(visible = readingKey != null) {
+                val sectionList = readerSections[0]
+                ReaderBar(
+                    position = (sectionList.indexOf(readerSection) + 1).coerceAtLeast(1),
+                    total = sectionList.size,
+                    paused = readerPaused,
+                    rate = readerRate,
+                    onPauseResume = { pauseResumeReading() },
+                    onRate = { cycleReadingSpeed() },
+                    onStop = { stopReading() }
+                )
             }
 
             ComposerBar(
@@ -2664,7 +3520,8 @@ fun AiInsightsScreen(
                 placeholder = "Ask a Clinical Question",
                 loading = loading,
                 onSend = { runSearch() },
-                onStop = { stopSearch() }
+                onStop = { stopSearch() },
+                onMic = { startVoiceInput() }
             )
         }
 
@@ -2679,6 +3536,7 @@ fun AiInsightsScreen(
         val viewerClipboard = LocalClipboardManager.current
         var confirmRemoveSaved by remember { mutableStateOf(false) }
         val closeViewer = {
+            if (readingKey?.startsWith("s:") == true) stopReading()
             viewSavedId = null
             showSavedDialog = true
         }
@@ -2741,6 +3599,14 @@ fun AiInsightsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                            val viewerReading = readingKey == "s:${shown.id}"
+                            IconButton(onClick = { toggleListen("s:${shown.id}", shown.answer) }) {
+                                Icon(
+                                    if (viewerReading) Icons.Filled.Stop else Icons.AutoMirrored.Filled.VolumeUp,
+                                    contentDescription = if (viewerReading) "Stop reading" else "Read aloud",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
 
                         LazyColumn(
@@ -2750,12 +3616,27 @@ fun AiInsightsScreen(
                         ) {
                             item { QuestionBubble(shown.question, shown.provider) }
                             item {
-                                SelectionContainer {
+                                ReadAloudSelection(onReadAloud = { text -> startReading("sel", text) }) {
                                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        viewerSections.forEach { InsightCard(it) }
+                                        viewerSections.forEachIndexed { si, sec ->
+                                            InsightCard(sec, highlighted = readingKey == "s:${shown.id}" && readerSection == si)
+                                        }
                                     }
                                 }
                             }
+                        }
+
+                        AnimatedVisibility(visible = readingKey == "s:${shown.id}") {
+                            val sectionList = readerSections[0]
+                            ReaderBar(
+                                position = (sectionList.indexOf(readerSection) + 1).coerceAtLeast(1),
+                                total = sectionList.size,
+                                paused = readerPaused,
+                                rate = readerRate,
+                                onPauseResume = { pauseResumeReading() },
+                                onRate = { cycleReadingSpeed() },
+                                onStop = { stopReading() }
+                            )
                         }
 
                         Button(
@@ -2798,6 +3679,31 @@ fun AiInsightsScreen(
                                 Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(6.dp))
                                 Text("Share")
+                            }
+                            // One Export button holds both formats so the row doesn't overflow.
+                            var exportMenu by remember { mutableStateOf(false) }
+                            Box {
+                                TextButton(onClick = { exportMenu = true }) {
+                                    Icon(Icons.Filled.Description, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Export")
+                                }
+                                DropdownMenu(expanded = exportMenu, onDismissRequest = { exportMenu = false }) {
+                                    DropdownMenuItem(
+                                        text = { Text("PDF") },
+                                        onClick = {
+                                            exportMenu = false
+                                            exportPdf(shown.question, shown.provider, shown.answer)
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Word (.docx)") },
+                                        onClick = {
+                                            exportMenu = false
+                                            exportDocx(shown.question, shown.provider, shown.answer)
+                                        }
+                                    )
+                                }
                             }
                             TextButton(
                                 onClick = { confirmRemoveSaved = true },

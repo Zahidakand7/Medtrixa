@@ -22,7 +22,6 @@ android {
     }
 
     androidResources {
-        noCompress += "db"
     }
 
     packaging {

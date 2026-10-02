@@ -64,7 +64,7 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 private fun cleanLabelText(raw: String?): String {
-    if (raw.isNullOrBlank()) return "No information available for this section."
+    if (raw.isNullOrBlank()) return ""
     return raw
         .replace("•", "")
         .lines()
@@ -109,6 +109,22 @@ private fun strengthValue(strength: String?): Double {
     val match = Regex("\\d+(\\.\\d+)?").find(strength)
     return match?.value?.toDoubleOrNull() ?: Double.MAX_VALUE
 }
+
+private val COMPANY_UPPER = setOf("LLC", "INC", "LP", "LTD", "PLC", "LLP", "USA", "US")
+
+private fun prettyCompany(name: String): String =
+    name.trim().split(Regex("\\s+")).joinToString(" ") { w ->
+        val up = w.uppercase()
+        if (up.trim('.', ',') in COMPANY_UPPER) up
+        else w.lowercase().replaceFirstChar { c -> c.uppercase() }
+    }
+
+private fun parseCompanies(raw: String?): List<String> =
+    raw.orEmpty().split(";")
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .map { prettyCompany(it) }
+        .distinctBy { it.lowercase() }
 
 @Composable
 fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
@@ -215,14 +231,10 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                         IconInfoRow(
                             icon = Icons.Outlined.Sell,
                             iconColor = CARD_ACCENT_COLORS[3],
-                            text = "Brand Name: ${it.brandName ?: "N/A"}"
+                            text = "Brand Name: ${it.brandName?.trim()?.takeIf { b -> b.isNotEmpty() && !b.startsWith(genericName.trim(), ignoreCase = true) } ?: "N/A"}"
                         )
-                        if (!it.company.isNullOrBlank()) {
-                            IconInfoRow(
-                                icon = Icons.Outlined.Business,
-                                iconColor = CARD_ACCENT_COLORS[2],
-                                text = "Company: ${it.company}"
-                            )
+                        parseCompanies(it.company).let { cs ->
+                            if (cs.isNotEmpty()) CompanyRow(cs, CARD_ACCENT_COLORS[2])
                         }
                         formatMarketingDate(it.marketingDate)?.let { d ->
                             IconInfoRow(
@@ -261,7 +273,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                         "Adverse reactions" to cleanLabelText(l.adverseReactions),
                         "Pregnancy" to cleanLabelText(l.pregnancy),
                         "Mechanism of action" to cleanLabelText(l.mechanism)
-                    )
+                    ).filter { s -> s.second.isNotBlank() }
 
                     Column(
                         modifier = Modifier
@@ -418,6 +430,55 @@ private fun AccordionRow(
         }
         if (showDivider) {
             Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+        }
+    }
+}
+
+@Composable
+private fun CompanyRow(companies: List<String>, iconColor: Color) {
+    var expanded by remember { mutableStateOf(false) }
+    val extra = companies.size - 1
+    Row(modifier = Modifier.padding(bottom = 6.dp)) {
+        Box(
+            modifier = Modifier
+                .size(26.dp)
+                .background(iconColor.copy(alpha = 0.15f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Business,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(14.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(
+                text = "Company: ${companies.first()}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (extra > 0) {
+                if (expanded) {
+                    companies.drop(1).forEach { c ->
+                        Text(
+                            text = c,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Text(
+                    text = if (expanded) "Show less" else "+$extra more labelers",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = iconColor,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .clickable { expanded = !expanded }
+                        .padding(vertical = 4.dp)
+                )
+            }
         }
     }
 }
