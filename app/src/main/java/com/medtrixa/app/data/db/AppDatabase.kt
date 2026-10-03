@@ -5,7 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [DrugEntity::class, DrugLabelEntity::class], version = 4, exportSchema = false)
+@Database(
+    entities = [IngredientEntity::class, ProductEntity::class, BrandEntity::class, DrugLabelEntity::class],
+    version = 5,
+    exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun drugDao(): DrugDao
 
@@ -14,15 +18,13 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "drugs.db"
-                )
-                    .createFromAsset("database/drugs.db")
-                    .fallbackToDestructiveMigration(true)
-                    .build()
-                    .also { INSTANCE = it }
+                INSTANCE ?: run {
+                    val app = context.applicationContext
+                    app.deleteDatabase("drugs.db")
+                    Room.databaseBuilder(app, AppDatabase::class.java, "drugs_v5.db")
+                        .createFromAsset("database/drugs.db")
+                        .build()
+                }.also { INSTANCE = it }
             }
         }
     }

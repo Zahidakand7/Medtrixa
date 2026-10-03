@@ -1,512 +1,518 @@
 package com.medtrixa.app.ui.screens
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Business
-import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.LocalPharmacy
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.ChildCare
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Healing
+import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material.icons.outlined.Medication
-import androidx.compose.material.icons.outlined.Sell
+import androidx.compose.material.icons.outlined.Opacity
+import androidx.compose.material.icons.outlined.ReportProblem
+import androidx.compose.material.icons.outlined.Science
+import androidx.compose.material.icons.outlined.Vaccines
 import androidx.compose.material.icons.outlined.VerifiedUser
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medtrixa.app.data.RecentDrugStore
 import com.medtrixa.app.data.db.AppDatabase
-import com.medtrixa.app.data.db.DrugEntity
 import com.medtrixa.app.data.db.DrugLabelEntity
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
-import java.util.Locale
+import com.medtrixa.app.data.db.IngredientEntity
+import com.medtrixa.app.data.db.ProductEntity
+import kotlinx.coroutines.launch
+
+private val HeroStart = Color(0xFF3B3FC4)
+private val HeroEnd = Color(0xFF7B4FE0)
+private const val FIRST_SECTION_INDEX = 4
+
+private data class LabelSection(
+    val title: String,
+    val icon: ImageVector,
+    val color: Color,
+    val text: String,
+    val group: String
+)
+
+private data class DrugFact(val label: String, val value: String, val extras: List<String> = emptyList())
 
 private fun cleanLabelText(raw: String?): String {
     if (raw.isNullOrBlank()) return ""
     return raw
-        .replace("•", "")
-        .lines()
-        .map { it.trim() }
+        .split(Regex("\\n\\s*\\n"))
+        .map { para ->
+            para.lines().map { it.trim() }.filter { it.isNotEmpty() }
+                .joinToString(" ")
+                .replace(Regex("\\s{2,}"), " ")
+                .trim()
+        }
         .filter { it.isNotEmpty() }
-        .joinToString(" ")
-        .replace(Regex("\\s{2,}"), " ")
-        .trim()
+        .joinToString("\n\n")
 }
 
-private fun formatMarketingDate(raw: String?): String? = try {
-    val d = LocalDate.parse(raw)
-    "${d.dayOfMonth} ${d.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)}, ${d.year}"
-} catch (e: Exception) { null }
-
-private val CARD_ACCENT_COLORS = listOf(
-    Color(0xFF6C5CE7), // purple
-    Color(0xFF0984E3), // blue
-    Color(0xFF00B894), // teal/green
-    Color(0xFFE17055), // orange
-    Color(0xFFE84393), // pink
-    Color(0xFFFDA13B)  // amber
-)
-
-private fun formatApproval(raw: String?): String? = try {
-    val d = LocalDate.parse(raw)
-    "${d.dayOfMonth} ${d.month.getDisplayName(TextStyle.FULL, Locale.ENGLISH)}, ${d.year}"
-} catch (e: Exception) { raw }
-
-private val FORMULATION_ORDER = listOf(
-    "tablet", "capsule", "syrup", "suspension", "powder for suspension", "powder", "cream", "ointment"
-)
-
-private fun formulationRank(formulation: String?): Int {
-    val f = formulation?.trim()?.lowercase() ?: return FORMULATION_ORDER.size
-    val idx = FORMULATION_ORDER.indexOfFirst { f.contains(it) }
-    return if (idx >= 0) idx else FORMULATION_ORDER.size
-}
+private fun buildSections(l: DrugLabelEntity): List<LabelSection> = listOf(
+    LabelSection("Indications", Icons.Outlined.MedicalServices, Color(0xFF5B5FD6), cleanLabelText(l.indications), "Overview"),
+    LabelSection("Adult dose", Icons.Outlined.Opacity, Color(0xFF1F9D6B), cleanLabelText(l.adultDose), "Dosing"),
+    LabelSection("Administration", Icons.Outlined.Vaccines, Color(0xFF1F9D6B), cleanLabelText(l.adultAdministration), "Dosing"),
+    LabelSection("Child dose", Icons.Outlined.ChildCare, Color(0xFF0984E3), cleanLabelText(l.childDose), "Dosing"),
+    LabelSection("Renal / hepatic dose", Icons.Outlined.Healing, Color(0xFF00A8A8), cleanLabelText(l.renalHepaticDose), "Dosing"),
+    LabelSection("Contraindications", Icons.Outlined.Block, Color(0xFFE5484D), cleanLabelText(l.contraindications), "Safety"),
+    LabelSection("Warnings", Icons.Outlined.WarningAmber, Color(0xFFC27A00), cleanLabelText(l.warnings), "Safety"),
+    LabelSection("Adverse reactions", Icons.Outlined.ReportProblem, Color(0xFFE17055), cleanLabelText(l.adverseReactions), "Safety"),
+    LabelSection("Pregnancy", Icons.Outlined.FavoriteBorder, Color(0xFFD6456B), cleanLabelText(l.pregnancy), "Pregnancy"),
+    LabelSection("Mechanism of action", Icons.Outlined.Science, Color(0xFF7B4FE0), cleanLabelText(l.mechanism), "Mechanism")
+).filter { it.text.isNotBlank() }
 
 private fun strengthValue(strength: String?): Double {
     if (strength.isNullOrBlank()) return Double.MAX_VALUE
-    val match = Regex("\\d+(\\.\\d+)?").find(strength)
-    return match?.value?.toDoubleOrNull() ?: Double.MAX_VALUE
+    return Regex("\\d+(\\.\\d+)?").find(strength)?.value?.toDoubleOrNull() ?: Double.MAX_VALUE
 }
 
-private val COMPANY_UPPER = setOf("LLC", "INC", "LP", "LTD", "PLC", "LLP", "USA", "US")
-
-private fun prettyCompany(name: String): String =
-    name.trim().split(Regex("\\s+")).joinToString(" ") { w ->
-        val up = w.uppercase()
-        if (up.trim('.', ',') in COMPANY_UPPER) up
-        else w.lowercase().replaceFirstChar { c -> c.uppercase() }
-    }
-
-private val COMPANY_NOISE = setOf(
-    "llc", "inc", "ltd", "lp", "plc", "llp", "co", "corp", "corporation", "limited"
-)
-
-private val REPACKAGER_HINTS = listOf(
-    "remedyrepack", "a s medication", "nucare", "bryant ranch", "proficient rx",
-    "direct rx", "directrx", "quality care", "pd rx", "preferred pharmaceuticals",
-    "rebel distributors", "physicians total care", "lake erie medical", "northwind",
-    "henry schein", "medsource", "unit dose services", "asclemed", "enovachem",
-    "aidarex", "blenheim", "state health services", "department of", "cardinal health",
-    "major pharmaceuticals", "american health packaging", "avkare", "avpak",
-    "golden state medical", "denton pharma", "medvantx", "readymeds",
-    "liberty pharmaceuticals", "contract pharmacy services", "clinical solutions wholesale"
-)
-
-private fun companyKey(name: String): String =
-    name.lowercase()
-        .replace(Regex("[^a-z0-9 ]"), " ")
-        .split(Regex("\\s+"))
-        .filter { it.isNotEmpty() && it !in COMPANY_NOISE }
-        .joinToString(" ")
-
-private fun isRepackager(name: String): Boolean {
-    val key = companyKey(name)
-    return REPACKAGER_HINTS.any { key.contains(it) }
+private fun labelYear(raw: String?): String? {
+    val t = raw?.trim() ?: return null
+    return if (t.length >= 4 && t.take(4).all { it.isDigit() }) t.take(4) else null
 }
 
-private fun parseCompanies(raw: String?): List<String> =
-    raw.orEmpty().split(";")
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-        .map { prettyCompany(it) }
-        .distinctBy { companyKey(it) }
-        .sortedBy { isRepackager(it) }
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
     val context = LocalContext.current
-    var strengths by remember { mutableStateOf<List<DrugEntity>>(emptyList()) }
+    val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+
+    var ingredient by remember { mutableStateOf<IngredientEntity?>(null) }
+    var products by remember { mutableStateOf<List<ProductEntity>>(emptyList()) }
+    var brands by remember { mutableStateOf<List<String>>(emptyList()) }
     var label by remember { mutableStateOf<DrugLabelEntity?>(null) }
     var loaded by remember { mutableStateOf(false) }
-    var expandedSection by remember { mutableStateOf<String?>(null) }
+    var expanded by remember { mutableStateOf(setOf("Indications")) }
+    var showAllBrands by remember { mutableStateOf(false) }
 
     LaunchedEffect(genericName) {
-        RecentDrugStore.addRecent(context, genericName)
         val dao = AppDatabase.getInstance(context).drugDao()
-        strengths = dao.getStrengths(genericName).sortedWith(
-            compareBy({ formulationRank(it.formulation) }, { strengthValue(it.strength) })
-        )
-        label = dao.getLabel(genericName)
+        val ing = dao.getIngredientByName(genericName)
+        ingredient = ing
+        if (ing != null) {
+            RecentDrugStore.addRecent(context, ing.name)
+            products = dao.getProducts(ing.rxcui)
+            brands = dao.getBrands(ing.rxcui)
+            label = dao.getLabel(ing.rxcui)
+        }
         loaded = true
     }
 
+    val sections = remember(label) { label?.let { buildSections(it) } ?: emptyList() }
+    val groups = remember(sections) { sections.map { it.group }.distinct() }
+    val activeGroup by remember(sections) {
+        derivedStateOf {
+            val idx = listState.firstVisibleItemIndex - FIRST_SECTION_INDEX
+            sections.getOrNull(idx.coerceIn(0, (sections.size - 1).coerceAtLeast(0)))?.group
+        }
+    }
+    val strengths = remember(products) {
+        products.mapNotNull { it.strength }.distinct().sortedBy { strengthValue(it) }
+    }
+    val facts = remember(products, label) {
+        buildList<DrugFact> {
+            val forms = products.mapNotNull { it.form }.distinct()
+            if (forms.isNotEmpty()) add(DrugFact("FORM", forms.take(2).joinToString(", "), forms.drop(2)))
+            val routes = products.mapNotNull { it.route }.distinct()
+            if (routes.isNotEmpty()) add(DrugFact("ROUTE", routes.take(2).joinToString(", "), routes.drop(2)))
+            val m = label?.manufacturer
+            if (!m.isNullOrBlank()) {
+                val others = label?.otherManufacturers.orEmpty().split(";")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() && !it.equals(m, ignoreCase = true) }
+                add(DrugFact("MANUFACTURER", m, others))
+            }
+            labelYear(label?.effectiveDate)?.let { add(DrugFact("LABEL UPDATED", it)) }
+        }
+    }
+
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 12.dp)) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Search Result", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        if (!loaded) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-
-            if (loaded) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    CARD_ACCENT_COLORS[0].copy(alpha = 0.12f),
-                                    CARD_ACCENT_COLORS[2].copy(alpha = 0.08f)
-                                )
-                            ),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    val primary = strengths.firstOrNull()
-                    val distinctStrengths = strengths.mapNotNull { it.strength }.distinct()
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .background(CARD_ACCENT_COLORS[0].copy(alpha = 0.16f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Medication,
-                                contentDescription = null,
-                                tint = CARD_ACCENT_COLORS[0],
-                                modifier = Modifier.size(22.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(genericName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            primary?.pharmacologicClass?.let {
-                                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-
-                    if (distinctStrengths.isNotEmpty()) {
-                        Spacer(modifier = Modifier.padding(top = 10.dp))
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            items(distinctStrengths.size) { idx ->
-                                Tag(distinctStrengths[idx], CARD_ACCENT_COLORS[idx % CARD_ACCENT_COLORS.size])
-                            }
-                        }
-                        Spacer(modifier = Modifier.padding(top = 10.dp))
-                    }
-
-                    primary?.let { p ->
-                        if (!p.formulation.isNullOrBlank()) {
-                            IconInfoRow(
-                                icon = Icons.Outlined.LocalPharmacy,
-                                iconColor = CARD_ACCENT_COLORS[1],
-                                text = buildString {
-                                    append("Formulation: ${p.formulation}")
-                                    if (!p.route.isNullOrBlank()) append(", Route - ${p.route}")
-                                }
-                            )
-                        }
-                    }
-
-                    StylishDivider()
-
-                    primary?.let {
-                        IconInfoRow(
-                            icon = Icons.Outlined.Sell,
-                            iconColor = CARD_ACCENT_COLORS[3],
-                            text = "Brand Name: ${it.brandName?.trim()?.takeIf { b -> b.isNotEmpty() && !b.startsWith(genericName.trim(), ignoreCase = true) } ?: "N/A"}"
-                        )
-                        parseCompanies(it.company).let { cs ->
-                            if (cs.isNotEmpty()) CompanyRow(cs, CARD_ACCENT_COLORS[2])
-                        }
-                        formatMarketingDate(it.marketingDate)?.let { d ->
-                            IconInfoRow(
-                                icon = Icons.Outlined.CalendarToday,
-                                iconColor = CARD_ACCENT_COLORS[4],
-                                text = "Marketing Date: $d"
-                            )
-                        }
-                        val approval = formatApproval(it.initialApproval) ?: it.initialApproval
-                        if (approval != null || it.rxcui != null) {
-                            IconInfoRow(
-                                icon = Icons.Outlined.VerifiedUser,
-                                iconColor = CARD_ACCENT_COLORS[5],
-                                text = buildString {
-                                    approval?.let { a -> append("FDA Approval: $a") }
-                                    if (approval != null && it.rxcui != null) append(", ")
-                                    it.rxcui?.let { r -> append("RxCUI: $r") }
-                                }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.padding(top = 16.dp))
-
-                if (label != null) {
-                    val l = label!!
-                    val sections = listOf(
-                        "Indications" to cleanLabelText(l.indications),
-                        "Adult dose" to cleanLabelText(l.adultDose),
-                        "Child dose" to cleanLabelText(l.childDose),
-                        "Renal / hepatic dose" to cleanLabelText(l.renalHepaticDose),
-                        "Administration" to cleanLabelText(l.adultAdministration),
-                        "Contraindications" to cleanLabelText(l.contraindications),
-                        "Warnings" to cleanLabelText(l.warnings),
-                        "Adverse reactions" to cleanLabelText(l.adverseReactions),
-                        "Pregnancy" to cleanLabelText(l.pregnancy),
-                        "Mechanism of action" to cleanLabelText(l.mechanism)
-                    ).filter { s -> s.second.isNotBlank() }
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
-                    ) {
-                        sections.forEachIndexed { index, (title, content) ->
-                            AccordionRow(
-                                title = title,
-                                content = content,
-                                expanded = expandedSection == title,
-                                onToggle = {
-                                    expandedSection = if (expandedSection == title) null else title
-                                },
-                                showDivider = index != sections.lastIndex
-                            )
-                        }
-                    }
-                } else {
-                    Text(
-                        "Clinical details aren't available for this drug yet.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 24.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.padding(bottom = 24.dp))
-        }
-    }
-}
-
-@Composable
-private fun Eyebrow(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(bottom = 8.dp)
-    )
-}
-
-@Composable
-private fun StylishDivider() {
-    Spacer(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .padding(vertical = 16.dp)
-            .background(MaterialTheme.colorScheme.outlineVariant)
-    )
-}
-
-@Composable
-private fun IconInfoRow(icon: ImageVector, iconColor: Color, text: String) {
-    if (text.isBlank()) return
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(bottom = 6.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(26.dp)
-                .background(iconColor.copy(alpha = 0.15f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(14.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun InfoLine(label1: String, value1: String?, label2: String?, value2: String?) {
-    if (value1.isNullOrBlank()) return
-    Text(
-        text = buildString {
-            append("$label1: $value1")
-            if (label2 != null && !value2.isNullOrBlank()) append(", $label2 $value2")
-        },
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(bottom = 3.dp)
-    )
-}
-
-@Composable
-private fun Tag(text: String, color: Color = MaterialTheme.colorScheme.primary) {
-    if (text.isBlank()) return
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelSmall,
-        color = color,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier
-            .background(color.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
-            .padding(horizontal = 10.dp, vertical = 3.dp)
-    )
-}
-
-@Composable
-private fun AccordionRow(
-    title: String,
-    content: String,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    showDivider: Boolean
-) {
-    Column {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onToggle() }
-                .animateContentSize()
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .navigationBarsPadding(),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (expanded) FontWeight.Medium else FontWeight.Normal
-                )
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (expanded) {
-                Spacer(modifier = Modifier.padding(top = 8.dp))
-                Text(
-                    text = content,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Justify
-                )
-            }
-        }
-        if (showDivider) {
-            Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-        }
-    }
-}
-
-@Composable
-private fun CompanyRow(companies: List<String>, iconColor: Color) {
-    var expanded by remember { mutableStateOf(false) }
-    val extra = companies.size - 1
-    Row(modifier = Modifier.padding(bottom = 6.dp)) {
-        Box(
-            modifier = Modifier
-                .size(26.dp)
-                .background(iconColor.copy(alpha = 0.15f), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Business,
-                contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(14.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        Column {
-            Text(
-                text = "Company: ${companies.first()}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (extra > 0) {
-                if (expanded) {
-                    companies.drop(1).forEach { c ->
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    ) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
+                        }
                         Text(
-                            text = c,
-                            style = MaterialTheme.typography.bodySmall,
+                            "Search results",
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-                Text(
-                    text = if (expanded) "Show less" else "+$extra more labelers",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = iconColor,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier
-                        .clickable { expanded = !expanded }
-                        .padding(vertical = 4.dp)
-                )
+
+                val ing = ingredient
+                if (ing == null) {
+                    item {
+                        Text(
+                            "We couldn't find this drug in the database.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    item {
+                        DrugHeroCard(
+                            name = ing.name,
+                            drugClass = ing.drugClass,
+                            brands = brands,
+                            strengths = strengths,
+                            showAllBrands = showAllBrands,
+                            onToggleBrands = { showAllBrands = !showAllBrands }
+                        )
+                    }
+                    item { DrugFactsGrid(facts) }
+
+                    if (sections.isEmpty()) {
+                        item {
+                            Text(
+                                "Clinical details aren't available for this drug yet.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 12.dp)
+                            )
+                        }
+                    } else {
+                        stickyHeader {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.background)
+                                    .horizontalScroll(rememberScrollState())
+                                    .padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                groups.forEach { g ->
+                                    DrugNavChip(g, g == activeGroup) {
+                                        val i = sections.indexOfFirst { it.group == g }
+                                        if (i >= 0) {
+                                            expanded = expanded + sections[i].title
+                                            scope.launch {
+                                                listState.animateScrollToItem(
+                                                    FIRST_SECTION_INDEX + i,
+                                                    -with(density) { 64.dp.roundToPx() }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        itemsIndexed(sections, key = { _, s -> s.title }) { _, s ->
+                            DrugSectionCard(
+                                section = s,
+                                expanded = s.title in expanded,
+                                onToggle = {
+                                    expanded = if (s.title in expanded) expanded - s.title else expanded + s.title
+                                }
+                            )
+                        }
+                    }
+                    item { DrugSourceFooter(label) }
+                }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DrugHeroCard(
+    name: String,
+    drugClass: String?,
+    brands: List<String>,
+    strengths: List<String>,
+    showAllBrands: Boolean,
+    onToggleBrands: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Brush.linearGradient(listOf(HeroStart, HeroEnd)), RoundedCornerShape(24.dp))
+            .padding(18.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Outlined.Medication, contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    name,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                if (!drugClass.isNullOrBlank()) {
+                    Text(drugClass, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f))
+                }
+            }
+        }
+
+        if (brands.isNotEmpty()) {
+            DrugHeroLabel("BRAND NAMES")
+            val shownBrands = if (showAllBrands) brands else brands.take(8)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                shownBrands.forEach { DrugHeroChip(it, filled = false) }
+                if (brands.size > 8) {
+                    DrugHeroChip(
+                        if (showAllBrands) "Show less" else "+${brands.size - 8} more",
+                        filled = false,
+                        onClick = onToggleBrands
+                    )
+                }
+            }
+        }
+
+        if (strengths.isNotEmpty()) {
+            DrugHeroLabel("STRENGTHS")
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                strengths.take(10).forEach { DrugHeroChip(it, filled = true) }
+                if (strengths.size > 10) DrugHeroChip("+${strengths.size - 10} more", filled = false)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DrugHeroLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
+        color = Color.White.copy(alpha = 0.75f),
+        modifier = Modifier.padding(top = 14.dp, bottom = 6.dp)
+    )
+}
+
+@Composable
+private fun DrugHeroChip(text: String, filled: Boolean, onClick: (() -> Unit)? = null) {
+    val bg = if (filled) Color.White else Color.White.copy(alpha = 0.22f)
+    val fg = if (filled) HeroStart else Color.White
+    var m = Modifier
+        .clip(RoundedCornerShape(20.dp))
+        .background(bg)
+    if (onClick != null) m = m.clickable { onClick() }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = fg,
+        fontWeight = FontWeight.SemiBold,
+        modifier = m.padding(horizontal = 12.dp, vertical = 4.dp)
+    )
+}
+
+@Composable
+private fun DrugFactsGrid(facts: List<DrugFact>) {
+    if (facts.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        facts.chunked(2).forEach { pair ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                pair.forEach { fact ->
+                    DrugFactCard(fact, Modifier.weight(1f).fillMaxHeight())
+                }
+                if (pair.size == 1) Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DrugFactCard(fact: DrugFact, modifier: Modifier) {
+    var open by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(16.dp)
+    Column(
+        modifier = modifier
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape)
+            .padding(12.dp)
+    ) {
+        Text(
+            fact.label,
+            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.5.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(fact.value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+        if (open) {
+            fact.extras.forEach {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        if (fact.extras.isNotEmpty()) {
+            Text(
+                text = if (open) "Show less" else "+${fact.extras.size} more",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .clickable { open = !open }
+                    .padding(top = 3.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DrugNavChip(text: String, selected: Boolean, onClick: () -> Unit) {
+    val bg = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val fg = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        color = fg,
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(bg)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 6.dp)
+    )
+}
+
+@Composable
+private fun DrugSectionCard(section: LabelSection, expanded: Boolean, onToggle: () -> Unit) {
+    var full by remember { mutableStateOf(false) }
+    val long = section.text.length > 700
+    val shape = RoundedCornerShape(18.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape)
+            .animateContentSize()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onToggle() }
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .background(section.color.copy(alpha = 0.15f), RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = section.icon, contentDescription = null, tint = section.color, modifier = Modifier.size(19.dp))
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                section.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (expanded) {
+            Column(modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp)) {
+                Text(
+                    text = section.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                    maxLines = if (long && !full) 8 else Int.MAX_VALUE,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (long) {
+                    Text(
+                        text = if (full) "Show less" else "Read more",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier
+                            .clickable { full = !full }
+                            .padding(top = 8.dp, bottom = 2.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DrugSourceFooter(label: DrugLabelEntity?) {
+    val text = buildString {
+        append("Sources: RxNorm (U.S. National Library of Medicine, Sep 2026)")
+        val m = label?.manufacturer
+        if (!m.isNullOrBlank()) append(" and the FDA drug label from $m")
+        append(". For clinical reference only; always verify against current prescribing information.")
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), RoundedCornerShape(14.dp))
+            .padding(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            Icons.Outlined.VerifiedUser,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

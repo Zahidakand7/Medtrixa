@@ -22,7 +22,6 @@ import com.medtrixa.app.ui.screens.ComingSoonScreen
 import com.medtrixa.app.ui.screens.DrugToolsScreen
 import com.medtrixa.app.ui.screens.DrugSearchScreen
 import com.medtrixa.app.ui.screens.DrugDetailScreen
-import com.medtrixa.app.data.db.DrugEntity
 import com.medtrixa.app.ui.screens.drugtools.InteractionCheckerScreen
 import com.medtrixa.app.ui.screens.drugtools.ContraindicationCheckerScreen
 import com.medtrixa.app.ui.screens.calculators.WeightBasedDoseScreen
