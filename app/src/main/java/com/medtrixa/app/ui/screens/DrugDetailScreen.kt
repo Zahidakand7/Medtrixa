@@ -38,6 +38,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -52,6 +60,7 @@ import kotlinx.coroutines.launch
 private val HeroStart = Color(0xFF3B3FC4)
 private val HeroEnd = Color(0xFF7B4FE0)
 private const val FIRST_SECTION_INDEX = 4
+private const val CUT_MARKER = " \u2026 (continued in the full prescribing information)"
 
 private data class LabelSection(
     val title: String,
@@ -89,6 +98,23 @@ private fun buildSections(l: DrugLabelEntity): List<LabelSection> = listOf(
     LabelSection("Pregnancy", Icons.Outlined.FavoriteBorder, Color(0xFFD6456B), cleanLabelText(l.pregnancy), "Pregnancy"),
     LabelSection("Mechanism of action", Icons.Outlined.Science, Color(0xFF7B4FE0), cleanLabelText(l.mechanism), "Mechanism")
 ).filter { it.text.isNotBlank() }
+
+private fun justifiedParagraphs(text: String): AnnotatedString = buildAnnotatedString {
+    val paras = text.split("\n\n")
+    paras.forEachIndexed { i, p ->
+        val justify = !p.startsWith("\u2022") && p.length >= 90
+        withStyle(
+            ParagraphStyle(
+                textAlign = if (justify) TextAlign.Justify else TextAlign.Start,
+                lineBreak = LineBreak.Paragraph,
+                hyphens = Hyphens.Auto
+            )
+        ) {
+            append(p)
+            if (i < paras.lastIndex) append("\n")
+        }
+    }
+}
 
 private fun strengthValue(strength: String?): Double {
     if (strength.isNullOrBlank()) return Double.MAX_VALUE
@@ -131,9 +157,12 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
 
     val sections = remember(label) { label?.let { buildSections(it) } ?: emptyList() }
     val groups = remember(sections) { sections.map { it.group }.distinct() }
+    val thresholdPx = with(density) { 80.dp.roundToPx() }
     val activeGroup by remember(sections) {
         derivedStateOf {
-            val idx = listState.firstVisibleItemIndex - FIRST_SECTION_INDEX
+            val info = listState.layoutInfo.visibleItemsInfo
+                .firstOrNull { it.index >= FIRST_SECTION_INDEX && it.offset + it.size > thresholdPx }
+            val idx = (info?.index ?: FIRST_SECTION_INDEX) - FIRST_SECTION_INDEX
             sections.getOrNull(idx.coerceIn(0, (sections.size - 1).coerceAtLeast(0)))?.group
         }
     }
@@ -248,6 +277,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                         itemsIndexed(sections, key = { _, s -> s.title }) { _, s ->
                             DrugSectionCard(
                                 section = s,
+                                setId = label?.setId,
                                 expanded = s.title in expanded,
                                 onToggle = {
                                     expanded = if (s.title in expanded) expanded - s.title else expanded + s.title
@@ -426,9 +456,12 @@ private fun DrugNavChip(text: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun DrugSectionCard(section: LabelSection, expanded: Boolean, onToggle: () -> Unit) {
+private fun DrugSectionCard(section: LabelSection, setId: String?, expanded: Boolean, onToggle: () -> Unit) {
     var full by remember { mutableStateOf(false) }
-    val long = section.text.length > 700
+    val uriHandler = LocalUriHandler.current
+    val cut = section.text.contains(CUT_MARKER)
+    val body = section.text.replace(CUT_MARKER, "")
+    val long = body.length > 700
     val shape = RoundedCornerShape(18.dp)
     Column(
         modifier = Modifier
@@ -469,8 +502,8 @@ private fun DrugSectionCard(section: LabelSection, expanded: Boolean, onToggle: 
         if (expanded) {
             Column(modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 14.dp)) {
                 Text(
-                    text = section.text,
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = justifiedParagraphs(body),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, lineHeight = 19.sp),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                     maxLines = if (long && !full) 8 else Int.MAX_VALUE,
                     overflow = TextOverflow.Ellipsis

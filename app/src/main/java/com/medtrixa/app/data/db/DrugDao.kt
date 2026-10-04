@@ -20,7 +20,7 @@ interface DrugDao {
         FROM ingredient i
         WHERE i.name LIKE '%' || :q || '%'
            OR EXISTS (SELECT 1 FROM brand b WHERE b.ingredientRxcui = i.rxcui AND b.name LIKE :q || '%')
-        ORDER BY (i.name LIKE :q || '%') DESC, i.name ASC
+        ORDER BY ((i.name LIKE :q || '%') OR EXISTS (SELECT 1 FROM brand b WHERE b.ingredientRxcui = i.rxcui AND b.name LIKE :q || '%')) DESC, (length(i.name) - length(replace(i.name, '/', ''))) ASC, i.name ASC
         LIMIT 50"""
     )
     suspend fun search(q: String): List<SearchHit>
