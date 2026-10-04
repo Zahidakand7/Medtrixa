@@ -141,6 +141,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
     var loaded by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(setOf("Indications")) }
     var showAllBrands by remember { mutableStateOf(false) }
+    var showAllStrengths by remember { mutableStateOf(false) }
 
     LaunchedEffect(genericName) {
         val dao = AppDatabase.getInstance(context).drugDao()
@@ -234,7 +235,9 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                             brands = brands,
                             strengths = strengths,
                             showAllBrands = showAllBrands,
-                            onToggleBrands = { showAllBrands = !showAllBrands }
+                            onToggleBrands = { showAllBrands = !showAllBrands },
+                            showAllStrengths = showAllStrengths,
+                            onToggleStrengths = { showAllStrengths = !showAllStrengths }
                         )
                     }
                     item { DrugFactsGrid(facts) }
@@ -300,7 +303,9 @@ private fun DrugHeroCard(
     brands: List<String>,
     strengths: List<String>,
     showAllBrands: Boolean,
-    onToggleBrands: () -> Unit
+    onToggleBrands: () -> Unit,
+    showAllStrengths: Boolean,
+    onToggleStrengths: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -349,8 +354,12 @@ private fun DrugHeroCard(
         if (strengths.isNotEmpty()) {
             DrugHeroLabel("STRENGTHS")
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                strengths.take(10).forEach { DrugHeroChip(it, filled = true) }
-                if (strengths.size > 10) DrugHeroChip("+${strengths.size - 10} more", filled = false)
+                (if (showAllStrengths) strengths else strengths.take(10)).forEach { DrugHeroChip(it, filled = true) }
+                if (strengths.size > 10) DrugHeroChip(
+                    if (showAllStrengths) "Show less" else "+${strengths.size - 10} more",
+                    filled = false,
+                    onClick = onToggleStrengths
+                )
             }
         }
     }
