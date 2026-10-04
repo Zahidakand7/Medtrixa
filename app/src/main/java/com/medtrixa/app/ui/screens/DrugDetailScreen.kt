@@ -139,7 +139,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
     var brands by remember { mutableStateOf<List<String>>(emptyList()) }
     var label by remember { mutableStateOf<DrugLabelEntity?>(null) }
     var loaded by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(setOf("Indications")) }
+    var expanded by remember { mutableStateOf(emptySet<String>()) }
     var showAllBrands by remember { mutableStateOf(false) }
     var showAllStrengths by remember { mutableStateOf(false) }
 
@@ -168,11 +168,11 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
         }
     }
     val strengths = remember(products) {
-        products.mapNotNull { it.strength }.distinct().sortedBy { strengthValue(it) }
+        products.filter { it.strength != null }.sortedWith(compareBy({ formRank(it.form, it.route) }, { strengthValue(it.strength) })).mapNotNull { it.strength }.distinct()
     }
     val facts = remember(products, label) {
         buildList<DrugFact> {
-            val forms = products.mapNotNull { it.form }.distinct()
+            val forms = products.sortedBy { formRank(it.form, it.route) }.mapNotNull { it.form }.distinct()
             if (forms.isNotEmpty()) add(DrugFact("FORM", forms.take(2).joinToString(", "), forms.drop(2)))
             val routes = products.mapNotNull { it.route }.distinct()
             if (routes.isNotEmpty()) add(DrugFact("ROUTE", routes.take(2).joinToString(", "), routes.drop(2)))
@@ -265,7 +265,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                                     DrugNavChip(g, g == activeGroup) {
                                         val i = sections.indexOfFirst { it.group == g }
                                         if (i >= 0) {
-                                            expanded = expanded + sections[i].title
+                                            expanded = setOf(sections[i].title)
                                             scope.launch {
                                                 listState.animateScrollToItem(
                                                     FIRST_SECTION_INDEX + i,
@@ -277,13 +277,23 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                                 }
                             }
                         }
-                        itemsIndexed(sections, key = { _, s -> s.title }) { _, s ->
+                        itemsIndexed(sections, key = { _, s -> s.title }) { idx, s ->
                             DrugSectionCard(
                                 section = s,
                                 setId = label?.setId,
                                 expanded = s.title in expanded,
                                 onToggle = {
-                                    expanded = if (s.title in expanded) expanded - s.title else expanded + s.title
+                                    if (s.title in expanded) {
+                                        expanded = expanded - s.title
+                                    } else {
+                                        expanded = setOf(s.title)
+                                        scope.launch {
+                                            listState.animateScrollToItem(
+                                                FIRST_SECTION_INDEX + idx,
+                                                -with(density) { 64.dp.roundToPx() }
+                                            )
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -556,5 +566,19 @@ private fun DrugSourceFooter(label: DrugLabelEntity?) {
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+private fun formRank(form: String?, route: String?): Int {
+    val f = (form ?: "").lowercase()
+    val r = (route ?: "").lowercase()
+    return when {
+        "tablet" in f -> 0
+        "capsule" in f -> 1
+        "ophthalmic" in r || "ophthalmic" in f -> 5
+        "inject" in f || "syringe" in f || "cartridge" in f -> 2
+        "syrup" in f || ("solution" in f && r == "oral") -> 3
+        "suspension" in f -> 4
+        else -> 6
     }
 }
