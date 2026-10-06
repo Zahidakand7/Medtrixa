@@ -358,23 +358,31 @@ private fun DrugHeroCard(
             }
         }
 
-        if (brands.isNotEmpty()) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                DrugHeroLabel("BRAND NAMES")
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    DrugHeroStat("RXCUI", rxcui)
-                    if (!halfLife.isNullOrBlank()) DrugHeroStat("HALF-LIFE", halfLife)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (brands.isNotEmpty()) {
+                Column(Modifier.weight(1f)) {
+                    DrugHeroLabel("BRAND NAMES")
+                    val shownBrands = if (showAllBrands) brands else brands.take(8)
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        shownBrands.forEach { DrugHeroChip(it, filled = false) }
+                        if (brands.size > 8) {
+                            DrugHeroChip(
+                                if (showAllBrands) "Show less" else "+${brands.size - 8} more",
+                                filled = false,
+                                onClick = onToggleBrands
+                            )
+                        }
+                    }
                 }
             }
-            val shownBrands = if (showAllBrands) brands else brands.take(8)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                shownBrands.forEach { DrugHeroChip(it, filled = false) }
-                if (brands.size > 8) {
-                    DrugHeroChip(
-                        if (showAllBrands) "Show less" else "+${brands.size - 8} more",
-                        filled = false,
-                        onClick = onToggleBrands
-                    )
+            Column {
+                DrugHeroLabel("RXCUI")
+                DrugHeroChip(rxcui, filled = false)
+            }
+            if (!halfLife.isNullOrBlank()) {
+                Column {
+                    DrugHeroLabel("HALF-LIFE")
+                    DrugHeroChip(halfLife, filled = false)
                 }
             }
         }
@@ -397,27 +405,10 @@ private fun DrugHeroCard(
 private fun DrugHeroLabel(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
+        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp, fontSize = 10.sp),
         color = Color.White.copy(alpha = 0.75f),
-        modifier = Modifier.padding(top = 14.dp, bottom = 6.dp)
+        modifier = Modifier.padding(top = 10.dp, bottom = 4.dp)
     )
-}
-
-@Composable
-private fun DrugHeroStat(label: String, value: String) {
-    Column(modifier = Modifier.padding(top = 14.dp), horizontalAlignment = Alignment.End) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp, fontSize = 10.sp),
-            color = Color.White.copy(alpha = 0.75f)
-        )
-        Text(
-            value,
-            style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White
-        )
-    }
 }
 
 @Composable
@@ -430,10 +421,10 @@ private fun DrugHeroChip(text: String, filled: Boolean, onClick: (() -> Unit)? =
     if (onClick != null) m = m.clickable { onClick() }
     Text(
         text = text,
-        style = MaterialTheme.typography.labelMedium,
+        style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp),
         color = fg,
         fontWeight = FontWeight.SemiBold,
-        modifier = m.padding(horizontal = 12.dp, vertical = 4.dp)
+        modifier = m.padding(horizontal = 10.dp, vertical = 3.dp)
     )
 }
 
