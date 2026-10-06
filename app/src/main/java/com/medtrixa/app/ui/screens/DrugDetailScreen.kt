@@ -240,6 +240,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                         DrugHeroCard(
                             name = ing.name,
                             drugClass = ing.drugClass,
+                            rxcui = ing.rxcui.toString(),
                             halfLife = label?.halfLife,
                             brands = brands,
                             strengths = strengths,
@@ -319,6 +320,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
 private fun DrugHeroCard(
     name: String,
     drugClass: String?,
+    rxcui: String,
     halfLife: String?,
     brands: List<String>,
     strengths: List<String>,
@@ -359,7 +361,10 @@ private fun DrugHeroCard(
         if (brands.isNotEmpty()) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 DrugHeroLabel("BRAND NAMES")
-                if (!halfLife.isNullOrBlank()) DrugHeroLabel("HALF-LIFE: $halfLife")
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    DrugHeroStat("RXCUI", rxcui)
+                    if (!halfLife.isNullOrBlank()) DrugHeroStat("HALF-LIFE", halfLife)
+                }
             }
             val shownBrands = if (showAllBrands) brands else brands.take(8)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -396,6 +401,23 @@ private fun DrugHeroLabel(text: String) {
         color = Color.White.copy(alpha = 0.75f),
         modifier = Modifier.padding(top = 14.dp, bottom = 6.dp)
     )
+}
+
+@Composable
+private fun DrugHeroStat(label: String, value: String) {
+    Column(modifier = Modifier.padding(top = 14.dp), horizontalAlignment = Alignment.End) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp, fontSize = 10.sp),
+            color = Color.White.copy(alpha = 0.75f)
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.sp),
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White
+        )
+    }
 }
 
 @Composable
