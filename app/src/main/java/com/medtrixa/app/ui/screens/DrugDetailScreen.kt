@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -87,16 +88,16 @@ private fun cleanLabelText(raw: String?): String {
 }
 
 private fun buildSections(l: DrugLabelEntity): List<LabelSection> = listOf(
-    LabelSection("Indications", Icons.Outlined.MedicalServices, Color(0xFF5B5FD6), cleanLabelText(l.indications), "Overview"),
-    LabelSection("Adult dose", Icons.Outlined.Opacity, Color(0xFF1F9D6B), cleanLabelText(l.adultDose), "Dosing"),
-    LabelSection("Administration", Icons.Outlined.Vaccines, Color(0xFF1F9D6B), cleanLabelText(l.adultAdministration), "Dosing"),
-    LabelSection("Child dose", Icons.Outlined.ChildCare, Color(0xFF0984E3), cleanLabelText(l.childDose), "Dosing"),
-    LabelSection("Renal / hepatic dose", Icons.Outlined.Healing, Color(0xFF00A8A8), cleanLabelText(l.renalHepaticDose), "Dosing"),
-    LabelSection("Contraindications", Icons.Outlined.Block, Color(0xFFE5484D), cleanLabelText(l.contraindications), "Safety"),
-    LabelSection("Warnings", Icons.Outlined.WarningAmber, Color(0xFFC27A00), cleanLabelText(l.warnings), "Safety"),
-    LabelSection("Adverse reactions", Icons.Outlined.ReportProblem, Color(0xFFE17055), cleanLabelText(l.adverseReactions), "Safety"),
-    LabelSection("Pregnancy", Icons.Outlined.FavoriteBorder, Color(0xFFD6456B), cleanLabelText(l.pregnancy), "Pregnancy"),
-    LabelSection("Mechanism of action", Icons.Outlined.Science, Color(0xFF7B4FE0), cleanLabelText(l.mechanism), "Mechanism")
+    LabelSection("Indications", Icons.Outlined.MedicalServices, Color(0xFF5B5FD6), tidyLabel(cleanLabelText(l.indications)), "Overview"),
+    LabelSection("Adult Dose", Icons.Outlined.Opacity, Color(0xFF1F9D6B), tidyLabel(cleanLabelText(l.adultDose), true), "Dosing"),
+    LabelSection("Administration", Icons.Outlined.Vaccines, Color(0xFF1F9D6B), tidyLabel(cleanLabelText(l.adultAdministration), true), "Dosing"),
+    LabelSection("Child Dose", Icons.Outlined.ChildCare, Color(0xFF0984E3), headColon(tidyLabel(cleanLabelText(l.childDose), true), "Pediatric Use"), "Dosing"),
+    LabelSection("Renal / hepatic dose", Icons.Outlined.Healing, Color(0xFF00A8A8), tidyLabel(cleanLabelText(l.renalHepaticDose), true), "Dosing"),
+    LabelSection("Contraindications", Icons.Outlined.Block, Color(0xFFE5484D), tidyLabel(cleanLabelText(l.contraindications)), "Safety"),
+    LabelSection("Warnings", Icons.Outlined.WarningAmber, Color(0xFFC27A00), tidyLabel(cleanLabelText(l.warnings)), "Safety"),
+    LabelSection("Adverse Reactions", Icons.Outlined.ReportProblem, Color(0xFFE17055), tidyLabel(cleanLabelText(l.adverseReactions)), "Safety"),
+    LabelSection("Pregnancy", Icons.Outlined.FavoriteBorder, Color(0xFFD6456B), headColon(tidyLabel(cleanLabelText(l.pregnancy)), "Pregnancy Risk Summary"), "Pregnancy"),
+    LabelSection("Mechanism of Action", Icons.Outlined.Science, Color(0xFF7B4FE0), headColon(tidyLabel(cleanLabelText(l.mechanism)), "Mechanism of Action"), "Mechanism")
 ).filter { it.text.isNotBlank() }
 
 private fun justifiedParagraphs(text: String): AnnotatedString = buildAnnotatedString {
@@ -159,6 +160,13 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
     val sections = remember(label) { label?.let { buildSections(it) } ?: emptyList() }
     val groups = remember(sections) { sections.map { it.group }.distinct() }
     val thresholdPx = with(density) { 80.dp.roundToPx() }
+    var tappedGroup by remember { mutableStateOf<String?>(null) }
+    var autoScrolling by remember { mutableStateOf(false) }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
+            if (scrolling && !autoScrolling) tappedGroup = null
+        }
+    }
     val activeGroup by remember(sections) {
         derivedStateOf {
             val info = listState.layoutInfo.visibleItemsInfo
@@ -168,7 +176,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
         }
     }
     val strengths = remember(products) {
-        products.filter { it.strength != null }.sortedWith(compareBy({ formRank(it.form, it.route) }, { strengthValue(it.strength) })).mapNotNull { it.strength }.distinct()
+        products.filter { it.strength != null }.sortedWith(compareBy({ formRank(it.form, it.route) }, { if ((it.strength ?: "").contains("ml", ignoreCase = true)) 1 else 0 }, { strengthValue(it.strength) })).mapNotNull { it.strength }.distinct()
     }
     val facts = remember(products, label) {
         buildList<DrugFact> {
@@ -183,7 +191,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                     .filter { it.isNotEmpty() && !it.equals(m, ignoreCase = true) }
                 add(DrugFact("MANUFACTURER", m, others))
             }
-            labelYear(label?.effectiveDate)?.let { add(DrugFact("LABEL UPDATED", it)) }
+            approvalText(label?.effectiveDate)?.let { add(DrugFact("FDA APPROVED", it)) }
         }
     }
 
@@ -232,6 +240,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                         DrugHeroCard(
                             name = ing.name,
                             drugClass = ing.drugClass,
+                            halfLife = label?.halfLife,
                             brands = brands,
                             strengths = strengths,
                             showAllBrands = showAllBrands,
@@ -262,15 +271,15 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 groups.forEach { g ->
-                                    DrugNavChip(g, g == activeGroup) {
+                                    DrugNavChip(g, g == (tappedGroup ?: activeGroup)) {
+                                    tappedGroup = g
                                         val i = sections.indexOfFirst { it.group == g }
                                         if (i >= 0) {
                                             expanded = setOf(sections[i].title)
                                             scope.launch {
-                                                listState.animateScrollToItem(
-                                                    FIRST_SECTION_INDEX + i,
-                                                    -with(density) { 64.dp.roundToPx() }
-                                                )
+                                                autoScrolling = true
+                                    listState.animateScrollToItem(FIRST_SECTION_INDEX + i, -with(density) { 64.dp.roundToPx() })
+                                    autoScrolling = false
                                             }
                                         }
                                     }
@@ -310,6 +319,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
 private fun DrugHeroCard(
     name: String,
     drugClass: String?,
+    halfLife: String?,
     brands: List<String>,
     strengths: List<String>,
     showAllBrands: Boolean,
@@ -347,7 +357,10 @@ private fun DrugHeroCard(
         }
 
         if (brands.isNotEmpty()) {
-            DrugHeroLabel("BRAND NAMES")
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                DrugHeroLabel("BRAND NAMES")
+                if (!halfLife.isNullOrBlank()) DrugHeroLabel("HALF-LIFE: $halfLife")
+            }
             val shownBrands = if (showAllBrands) brands else brands.take(8)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 shownBrands.forEach { DrugHeroChip(it, filled = false) }
@@ -416,7 +429,6 @@ private fun DrugFactsGrid(facts: List<DrugFact>) {
                 pair.forEach { fact ->
                     DrugFactCard(fact, Modifier.weight(1f).fillMaxHeight())
                 }
-                if (pair.size == 1) Spacer(modifier = Modifier.weight(1f))
             }
         }
     }
@@ -427,6 +439,8 @@ private fun DrugFactCard(fact: DrugFact, modifier: Modifier) {
     var open by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(16.dp)
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier = modifier
             .clip(shape)
             .background(MaterialTheme.colorScheme.surface)
@@ -435,13 +449,13 @@ private fun DrugFactCard(fact: DrugFact, modifier: Modifier) {
     ) {
         Text(
             fact.label,
-            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.5.sp),
+            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.5.sp), textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Text(fact.value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+        Text(fact.value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
         if (open) {
             fact.extras.forEach {
-                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
             }
         }
         if (fact.extras.isNotEmpty()) {
@@ -581,4 +595,48 @@ private fun formRank(form: String?, route: String?): Int {
         "suspension" in f -> 4
         else -> 6
     }
+}
+
+
+private fun headColon(text: String, heading: String): String {
+    val t = text.trimStart()
+    return if (t.startsWith("$heading ", ignoreCase = true))
+        heading + ": " + t.substring(heading.length).trimStart()
+    else text
+}
+
+
+private val approvalMonths = listOf("January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December")
+
+private fun approvalText(s: String?): String? {
+    val p = s?.trim()?.take(10)?.split("-") ?: return null
+    if (p.size != 3) return null
+    val y = p[0].toIntOrNull() ?: return null
+    if (y < 1982) return "Before 1982"
+    val m = p[1].toIntOrNull() ?: return null
+    val d = p[2].toIntOrNull() ?: return null
+    if (m !in 1..12) return null
+    return "$d ${approvalMonths[m - 1]}, $y"
+}
+
+
+private val labelHeadings = listOf(
+    "Indications and Usage", "Dosage and Administration", "Warnings and Precautions",
+    "Use in Specific Populations", "Pregnancy Risk Summary", "Mechanism of Action",
+    "Contraindications", "Adverse Reactions", "Drug Interactions", "Pediatric Use",
+    "Overdosage", "Warnings")
+
+private fun tidyLabel(text: String?, keepTables: Boolean = false): String {
+    var t = text ?: return ""
+    if (!keepTables) t = t.replace(Regex("""[\(\[]\s*(?:see\s+)?Tables?\s[^)\]]*[\)\]]""", RegexOption.IGNORE_CASE), "")
+    if (!keepTables) t = t.replace(Regex("""\bTables?\s+\d+[A-Za-z]?\s+(?:illustrates|shows|lists|presents|summarizes|provides|describes|displays)\b[^.]*\."""), "")
+    if (!keepTables) t = t.replace(Regex("""\bTables?\s+\d+(?:\.\d+)?[A-Za-z]?(?:\s*(?:,|and|-|through)\s*\d+[A-Za-z]?)*"""), "")
+    t = t.replace(Regex("""\(\s*\d+(?:\.\d+)*(?:\s*,\s*\d+(?:\.\d+)*)*\s*\)"""), "")
+    t = t.replace(Regex("""\s{2,}"""), " ").replace(Regex("""\s+([.,;:])"""), "\$1").trim()
+    val num = Regex("""^\d+(?:\.\d+)*\s+""").find(t)
+    val rest = if (num != null) t.substring(num.range.last + 1) else t
+    val h = labelHeadings.firstOrNull { rest.startsWith(it + " ", ignoreCase = true) }
+    if (h != null) t = h + ": " + rest.substring(h.length).trimStart()
+    return t
 }

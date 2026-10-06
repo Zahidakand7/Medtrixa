@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [IngredientEntity::class, ProductEntity::class, BrandEntity::class, DrugLabelEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,7 +21,7 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE ?: run {
                     val app = context.applicationContext
                     app.deleteDatabase("drugs.db")
-                    Room.databaseBuilder(app, AppDatabase::class.java, "drugs_v5.db")
+                    Room.databaseBuilder(app, AppDatabase::class.java, "drugs_v6.db")
                         .createFromAsset("database/drugs.db")
                         .build()
                 }.also { INSTANCE = it }
