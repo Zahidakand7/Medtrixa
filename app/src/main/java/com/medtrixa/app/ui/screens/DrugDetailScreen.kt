@@ -242,6 +242,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                             drugClass = ing.drugClass,
                             rxcui = ing.rxcui.toString(),
                             halfLife = label?.halfLife,
+                            eliminationRoute = label?.eliminationRoute,
                             brands = brands,
                             strengths = strengths,
                             showAllBrands = showAllBrands,
@@ -322,6 +323,7 @@ private fun DrugHeroCard(
     drugClass: String?,
     rxcui: String,
     halfLife: String?,
+    eliminationRoute: String?,
     brands: List<String>,
     strengths: List<String>,
     showAllBrands: Boolean,
@@ -358,13 +360,13 @@ private fun DrugHeroCard(
             }
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             if (brands.isNotEmpty()) {
-                Column(Modifier.weight(1f)) {
-                    DrugHeroLabel("BRAND NAMES")
+                Column(Modifier.weight(1f, fill = false), horizontalAlignment = Alignment.CenterHorizontally) {
+                    DrugHeroLabel(if (brands.size == 1) "BRAND NAME" else "BRAND NAMES")
                     val shownBrands = if (showAllBrands) brands else brands.take(8)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        shownBrands.forEach { DrugHeroChip(it, filled = false) }
+                        shownBrands.forEach { DrugHeroChip(it, filled = true) }
                         if (brands.size > 8) {
                             DrugHeroChip(
                                 if (showAllBrands) "Show less" else "+${brands.size - 8} more",
@@ -375,27 +377,31 @@ private fun DrugHeroCard(
                     }
                 }
             }
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 DrugHeroLabel("RXCUI")
-                DrugHeroChip(rxcui, filled = false)
+                DrugHeroChip(rxcui, filled = true)
             }
             if (!halfLife.isNullOrBlank()) {
-                Column {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     DrugHeroLabel("HALF-LIFE")
-                    DrugHeroChip(halfLife, filled = false)
+                    DrugHeroChip(halfLife, filled = true)
+                }
+            }
+            if (!eliminationRoute.isNullOrBlank()) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    DrugHeroLabel("ELIMINATION")
+                    DrugHeroChip(eliminationRoute, filled = true)
                 }
             }
         }
 
         if (strengths.isNotEmpty()) {
             DrugHeroLabel("STRENGTHS")
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                (if (showAllStrengths) strengths else strengths.take(10)).forEach { DrugHeroChip(it, filled = true) }
-                if (strengths.size > 10) DrugHeroChip(
-                    if (showAllStrengths) "Show less" else "+${strengths.size - 10} more",
-                    filled = false,
-                    onClick = onToggleStrengths
-                )
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                strengths.forEach { DrugHeroChip(it, filled = true) }
             }
         }
     }

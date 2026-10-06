@@ -20,5 +20,6 @@ data class DrugLabelEntity(
     val adverseReactions: String?,
     val pregnancy: String?,
     val mechanism: String?,
-    val halfLife: String?
+    val halfLife: String?,
+    val eliminationRoute: String?
 )
