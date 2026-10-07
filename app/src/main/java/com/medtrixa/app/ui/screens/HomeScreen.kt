@@ -1,5 +1,12 @@
 package com.medtrixa.app.ui.screens
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.speech.RecognizerIntent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +33,7 @@ import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocalPharmacy
 import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Star
@@ -88,6 +96,16 @@ fun HomeScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val voiceLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val spoken = result.data
+                ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                ?.firstOrNull()
+            if (!spoken.isNullOrBlank()) searchQuery = spoken
+        }
+    }
     var hits by remember { mutableStateOf<List<SearchHit>>(emptyList()) }
     val q = searchQuery.trim()
 
@@ -256,8 +274,28 @@ fun HomeScreen(
                                     contentDescription = "Search"
                                 )
                             },
+                            trailingIcon = {
+                                IconButton(onClick = {
+                                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                        putExtra(
+                                            RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                                        )
+                                    }
+                                    try {
+                                        voiceLauncher.launch(intent)
+                                    } catch (e: ActivityNotFoundException) {
+                                        Toast.makeText(context, "Voice input is not available on this device", Toast.LENGTH_SHORT).show()
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Mic,
+                                        contentDescription = "Voice search"
+                                    )
+                                }
+                            },
                             placeholder = {
-                                Text("Search generic and brand name")
+                                Text("Search Generic Name")
                             }
                         )
                     }
