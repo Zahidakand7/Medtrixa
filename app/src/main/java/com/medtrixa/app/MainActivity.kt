@@ -3,6 +3,7 @@ package com.medtrixa.app
 import com.medtrixa.app.ui.screens.preloadAntibioticGuidelines
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
@@ -114,6 +115,36 @@ private fun MedtrixaRoot() {
             scoreReturnTo = ""
         } else {
             currentScreen = default
+        }
+    }
+
+    // Phone/system Back button: does the same thing as each screen's own on-screen back arrow
+    // (otherwise Android closes the app). On "home" it is disabled so Back exits the app.
+    BackHandler(enabled = currentScreen != "home") {
+        when (currentScreen) {
+            "drug_detail" -> {
+                if (drugDetailReturnTo.isNotEmpty()) {
+                    currentScreen = drugDetailReturnTo
+                    drugDetailReturnTo = ""
+                } else {
+                    currentScreen = "drug_tool_detail"
+                }
+            }
+            "drug_tool_detail" -> currentScreen = "drug_tools"
+            "pubmed", "antibiotic_stewardship", "antibiotic_dosing" -> currentScreen = "reference"
+            "antibiotic_dosing_guidelines" -> currentScreen = antibioticGuidelinesReturnTo
+            "bacterial_atlas" -> currentScreen = bacterialAtlasReturnTo
+            "clinical_scores", "risk_assessment" -> currentScreen = "assess"
+            "curb65", "heart_score", "child_pugh", "centor", "meld30", "apgar", "gcs", "qsofa" ->
+                backFromScore("clinical_scores")
+            "cha2ds2vasc", "hasbled", "wells_dvt", "wells_pe" ->
+                backFromScore("risk_assessment")
+            "calculator" -> currentScreen = "calculators"
+            "ai_insights" -> {
+                aiResume = false
+                currentScreen = "home"
+            }
+            else -> currentScreen = "home"
         }
     }
 
