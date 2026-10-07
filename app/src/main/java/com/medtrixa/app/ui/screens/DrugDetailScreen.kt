@@ -360,6 +360,10 @@ private fun DrugHeroCard(
             }
         }
 
+        val strengthUnderBrand = if (brands.isNotEmpty()) strengths.getOrNull(0) else null
+        val strengthUnderRxcui = if (brands.isNotEmpty()) strengths.getOrNull(1) else null
+        val restStrengths = if (brands.isNotEmpty()) strengths.drop(2) else strengths
+
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             if (brands.isNotEmpty()) {
                 Column(Modifier.weight(1f, fill = false), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -375,11 +379,19 @@ private fun DrugHeroCard(
                             )
                         }
                     }
+                    if (strengthUnderBrand != null) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        DrugHeroChip(strengthUnderBrand, filled = true)
+                    }
                 }
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 DrugHeroLabel("RXCUI")
                 DrugHeroChip(rxcui, filled = true)
+                if (strengthUnderRxcui != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    DrugHeroChip(strengthUnderRxcui, filled = true)
+                }
             }
             if (!halfLife.isNullOrBlank()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -395,13 +407,13 @@ private fun DrugHeroCard(
             }
         }
 
-        if (strengths.isNotEmpty()) {
+        if (restStrengths.isNotEmpty()) {
             DrugHeroLabel("STRENGTHS")
             Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                strengths.forEach { DrugHeroChip(it, filled = true) }
+                restStrengths.forEach { DrugHeroChip(it, filled = true) }
             }
         }
     }
