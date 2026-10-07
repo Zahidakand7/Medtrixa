@@ -114,7 +114,15 @@ fun HomeScreen(
 
     LaunchedEffect(q) {
         hits = if (q.isNotEmpty()) {
-            AppDatabase.getInstance(context).drugDao().search(q)
+            val found = AppDatabase.getInstance(context).drugDao().search(q)
+            if (q.length == 1) {
+                // Single letter: only names starting with it, in alphabetical order
+                found
+                    .filter { it.name.startsWith(q, ignoreCase = true) }
+                    .sortedBy { it.name.lowercase() }
+            } else {
+                found
+            }
         } else {
             emptyList()
         }
