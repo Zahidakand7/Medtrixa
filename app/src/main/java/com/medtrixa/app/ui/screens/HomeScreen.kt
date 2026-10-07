@@ -57,7 +57,9 @@ import androidx.compose.ui.platform.LocalContext
 import com.medtrixa.app.data.db.AppDatabase
 import com.medtrixa.app.data.db.SearchHit
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.DropdownMenu
@@ -94,7 +96,8 @@ fun HomeScreen(
     onPrivacyClick: () -> Unit = {},
     onDrugClick: (String) -> Unit = {}
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    var searchField by remember { mutableStateOf(TextFieldValue("")) }
+    val searchQuery = searchField.text
     val context = LocalContext.current
     val voiceLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -103,7 +106,7 @@ fun HomeScreen(
             val spoken = result.data
                 ?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
                 ?.firstOrNull()
-            if (!spoken.isNullOrBlank()) searchQuery = spoken
+            if (!spoken.isNullOrBlank()) searchField = TextFieldValue(spoken, TextRange(spoken.length))
         }
     }
     var hits by remember { mutableStateOf<List<SearchHit>>(emptyList()) }
@@ -263,8 +266,8 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.height(14.dp))
 
                         OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
+                            value = searchField,
+                            onValueChange = { searchField = it },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             shape = RoundedCornerShape(16.dp),
