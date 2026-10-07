@@ -284,7 +284,7 @@ internal fun DrugResultCard(hit: SearchHit, q: String, onClick: () -> Unit) {
                 )
             }
             val brandMatched = hit.matchedBrand != null && !hit.name.contains(q, ignoreCase = true)
-            if (brandMatched || hit.brandCount > 0) {
+            if (brandMatched) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -296,12 +296,6 @@ internal fun DrugResultCard(hit: SearchHit, q: String, onClick: () -> Unit) {
                             DrugPill("+${hit.brandCount - 1} more", MaterialTheme.colorScheme.primary,
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
                         }
-                    } else {
-                        DrugPill(
-                            if (hit.brandCount == 1) "1 brand" else "${hit.brandCount} brands",
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                        )
                     }
                 }
             }
