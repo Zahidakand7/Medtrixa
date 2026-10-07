@@ -411,20 +411,7 @@ private fun DrugHeroCard(
         if (strengths.isNotEmpty()) {
             DrugHeroLabel("STRENGTHS")
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                Layout(content = { strengths.forEach { DrugHeroChip(it, filled = true) } }) { measurables, _ ->
-                    val gap = 6.dp.roundToPx()
-                    val placeables = measurables.map { it.measure(Constraints()) }
-                    val xs = IntArray(placeables.size)
-                    var prevEnd = -gap
-                    placeables.forEachIndexed { i, pl ->
-                        val wanted = colCenters[i]?.let { (it - pl.width / 2f).toInt() } ?: Int.MIN_VALUE
-                        xs[i] = maxOf(wanted, prevEnd + gap, 0)
-                        prevEnd = xs[i] + pl.width
-                    }
-                    layout(maxOf(prevEnd, 0), placeables.maxOfOrNull { it.height } ?: 0) {
-                        placeables.forEachIndexed { i, pl -> pl.placeRelative(xs[i], 0) }
-                    }
-                }
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { strengths.filter { it.isNotBlank() }.forEach { DrugHeroChip(it, filled = true) } }
             }
         }
     }
