@@ -1,5 +1,9 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -364,6 +368,8 @@ private fun DrugHeroCard(
             }
         }
 
+        DrugHeroDivider()
+
         // Horizontal centre of each header column, used to line up the strength chips beneath them
         val colCenters = remember { mutableStateMapOf<Int, Float>() }
         val rxCol = if (brands.isNotEmpty()) 1 else 0
@@ -409,9 +415,25 @@ private fun DrugHeroCard(
         }
 
         if (strengths.isNotEmpty()) {
+            DrugHeroDivider()
             DrugHeroLabel("STRENGTHS")
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) { strengths.filter { it.isNotBlank() }.forEach { DrugHeroChip(it, filled = true) } }
+                Layout(content = { strengths.forEach { DrugHeroChip(it, filled = true, glass = true) } }) { measurables, _ ->
+                    val gap = 6.dp.roundToPx()
+                    val placeables = measurables.map { it.measure(Constraints()) }
+                    val xs = IntArray(placeables.size)
+                    var prevEnd = -gap
+                            var lastGap = gap
+                    placeables.forEachIndexed { i, pl ->
+                        val wanted = colCenters[i]?.let { (it - pl.width / 2f).toInt() }
+                            xs[i] = if (wanted != null) maxOf(wanted, prevEnd + gap, 0) else prevEnd + lastGap
+                            if (i > 0) lastGap = maxOf(xs[i] - prevEnd, gap)
+                            prevEnd = xs[i] + pl.width
+                    }
+                    layout(maxOf(prevEnd, 0), placeables.maxOfOrNull { it.height } ?: 0) {
+                        placeables.forEachIndexed { i, pl -> pl.placeRelative(xs[i], 0) }
+                    }
+                }
             }
         }
     }
@@ -421,19 +443,20 @@ private fun DrugHeroCard(
 private fun DrugHeroLabel(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp, fontSize = 10.sp),
-        color = Color.White.copy(alpha = 0.75f),
-        modifier = Modifier.padding(top = 10.dp, bottom = 4.dp)
+        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.6.sp, fontSize = 10.sp),
+        color = Color.White.copy(alpha = 0.7f),
+        modifier = Modifier.padding(top = 10.dp, bottom = 6.dp)
     )
 }
 
 @Composable
-private fun DrugHeroChip(text: String, filled: Boolean, onClick: (() -> Unit)? = null) {
-    val bg = if (filled) Color.White else Color.White.copy(alpha = 0.22f)
-    val fg = if (filled) HeroStart else Color.White
+private fun DrugHeroChip(text: String, filled: Boolean, onClick: (() -> Unit)? = null, glass: Boolean = false) {
+    val bg = if (glass) Color.White.copy(alpha = 0.14f) else if (filled) Color.White else Color.White.copy(alpha = 0.22f)
+    val fg = if (filled && !glass) HeroStart else Color.White
     var m = Modifier
         .clip(RoundedCornerShape(20.dp))
         .background(bg)
+    if (glass) m = m.border(0.5.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(20.dp))
     if (onClick != null) m = m.clickable { onClick() }
     Text(
         text = text,
@@ -668,4 +691,19 @@ private fun tidyLabel(text: String?, keepTables: Boolean = false): String {
     val h = labelHeadings.firstOrNull { rest.startsWith(it + " ", ignoreCase = true) }
     if (h != null) t = h + ": " + rest.substring(h.length).trimStart()
     return t
+}
+
+@Composable
+private fun DrugHeroDivider() {
+    Box(
+        Modifier
+            .padding(top = 14.dp)
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(
+                Brush.horizontalGradient(
+                    listOf(Color.Transparent, Color.White.copy(alpha = 0.45f), Color.Transparent)
+                )
+            )
+    )
 }
