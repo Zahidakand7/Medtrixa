@@ -252,7 +252,7 @@ private fun DrugPill(text: String, fg: Color, bg: Color) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun DrugResultCard(hit: SearchHit, q: String, onClick: () -> Unit) {
+internal fun DrugResultCard(hit: SearchHit, q: String, onClick: () -> Unit) {
     val accent = SearchAccents[(hit.name.hashCode() and 0x7fffffff) % SearchAccents.size]
     val shape = RoundedCornerShape(18.dp)
     Row(

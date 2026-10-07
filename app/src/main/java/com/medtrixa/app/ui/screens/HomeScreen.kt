@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Assessment
@@ -37,12 +38,16 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import com.medtrixa.app.data.db.AppDatabase
+import com.medtrixa.app.data.db.SearchHit
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -78,9 +83,21 @@ fun HomeScreen(
     onClinicalSourcesClick: () -> Unit = {},
     onFeedbackClick: () -> Unit = {},
     onAboutClick: () -> Unit = {},
-    onPrivacyClick: () -> Unit = {}
+    onPrivacyClick: () -> Unit = {},
+    onDrugClick: (String) -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    var hits by remember { mutableStateOf<List<SearchHit>>(emptyList()) }
+    val q = searchQuery.trim()
+
+    LaunchedEffect(q) {
+        hits = if (q.isNotEmpty()) {
+            AppDatabase.getInstance(context).drugDao().search(q)
+        } else {
+            emptyList()
+        }
+    }
     var overflowExpanded by remember { mutableStateOf(false) }
 
     Surface(
@@ -243,6 +260,22 @@ fun HomeScreen(
                                 Text("Search generic and brand name")
                             }
                         )
+                    }
+                }
+
+                if (q.isNotEmpty()) {
+                    if (hits.isEmpty()) {
+                        item {
+                            Text(
+                                text = "No matches. Try a generic or brand name.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        items(hits, key = { it.rxcui }) { hit ->
+                            DrugResultCard(hit, q) { onDrugClick(hit.name) }
+                        }
                     }
                 }
 

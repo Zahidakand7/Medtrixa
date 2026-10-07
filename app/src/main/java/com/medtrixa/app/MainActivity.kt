@@ -104,6 +104,10 @@ private fun MedtrixaRoot() {
         mutableStateOf(false)
     }
 
+    var drugDetailReturnTo by rememberSaveable {
+        mutableStateOf("")
+    }
+
     fun backFromScore(default: String) {
         if (scoreReturnTo.isNotEmpty()) {
             currentScreen = scoreReturnTo
@@ -130,7 +134,14 @@ private fun MedtrixaRoot() {
             selectedDrug?.let { genericName ->
                 DrugDetailScreen(
                     genericName = genericName,
-                    onBackClick = { currentScreen = "drug_tool_detail" }
+                    onBackClick = {
+                        if (drugDetailReturnTo.isNotEmpty()) {
+                            currentScreen = drugDetailReturnTo
+                            drugDetailReturnTo = ""
+                        } else {
+                            currentScreen = "drug_tool_detail"
+                        }
+                    }
                 )
             }
         }
@@ -309,6 +320,11 @@ private fun MedtrixaRoot() {
                 onCalculateClick = { currentScreen = "calculators" },
                 onAssessClick = { currentScreen = "assess" },
                 onDrugToolsClick = { currentScreen = "drug_tools" },
+                onDrugClick = { drug ->
+                    selectedDrug = drug
+                    drugDetailReturnTo = "more"
+                    currentScreen = "drug_detail"
+                },
                 onReferenceClick = { currentScreen = "reference" },
                 onAiInsightsClick = {
                     aiResume = false
@@ -324,6 +340,11 @@ private fun MedtrixaRoot() {
                 onCalculateClick = { currentScreen = "calculators" },
                 onAssessClick = { currentScreen = "assess" },
                 onDrugToolsClick = { currentScreen = "drug_tools" },
+                onDrugClick = { drug ->
+                    selectedDrug = drug
+                    drugDetailReturnTo = "home"
+                    currentScreen = "drug_detail"
+                },
                 onReferenceClick = { currentScreen = "reference" },
                 onAiInsightsClick = {
                     aiResume = false
