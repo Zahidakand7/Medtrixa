@@ -22,7 +22,9 @@ abstract class AppDatabase : RoomDatabase() {
                     val app = context.applicationContext
                     app.deleteDatabase("drugs.db")
                     app.deleteDatabase("drugs_v7.db")
-                    Room.databaseBuilder(app, AppDatabase::class.java, "drugs_v8.db")
+                    app.deleteDatabase("drugs_v8.db")
+                    app.deleteDatabase("drugs_v9.db")
+                    Room.databaseBuilder(app, AppDatabase::class.java, "drugs_v10.db")
                         .createFromAsset("database/drugs.db")
                         .build()
                 }.also { INSTANCE = it }

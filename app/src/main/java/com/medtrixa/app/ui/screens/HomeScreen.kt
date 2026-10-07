@@ -240,7 +240,7 @@ fun HomeScreen(
                                 )
                             },
                             placeholder = {
-                                Text("Search medical tools")
+                                Text("Search generic and brand name")
                             }
                         )
                     }

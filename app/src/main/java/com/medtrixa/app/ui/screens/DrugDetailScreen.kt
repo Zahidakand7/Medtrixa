@@ -250,25 +250,6 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                             showAllStrengths = showAllStrengths,
                             onToggleStrengths = { showAllStrengths = !showAllStrengths }
                         )
-                        val dbHalfLife = ing.halfLifeText
-                        if (label?.halfLife.isNullOrBlank() && !dbHalfLife.isNullOrBlank()) {
-                            Column(Modifier.padding(top = 12.dp)) {
-                                Text(
-                                    "Half-life (DrugBank)",
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                                Text(
-                                    dbHalfLife,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Text(
-                                    "Verify against the product label.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
                     }
                     item { DrugFactsGrid(facts) }
 

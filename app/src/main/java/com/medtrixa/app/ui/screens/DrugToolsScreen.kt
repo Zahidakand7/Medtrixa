@@ -40,12 +40,6 @@ import com.medtrixa.app.data.model.DrugTool
 
 private val drugTools = listOf(
     DrugTool(
-        id = "drug_search",
-        title = "Drug Search",
-        description = "Quick medicine lookup",
-        icon = Icons.Outlined.Search
-    ),
-    DrugTool(
         id = "interaction_checker",
         title = "Drug Interaction Checker",
         description = "Check interactions between two or more drugs",
