@@ -49,6 +49,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medtrixa.app.data.RecentDrugStore
@@ -360,9 +364,18 @@ private fun DrugHeroCard(
             }
         }
 
+        // Horizontal centre of each header column, used to line up the strength chips beneath them
+        val colCenters = remember { mutableStateMapOf<Int, Float>() }
+        val rxCol = if (brands.isNotEmpty()) 1 else 0
+        val halfLifeCol = rxCol + 1
+        val eliminationCol = halfLifeCol + (if (!halfLife.isNullOrBlank()) 1 else 0)
+        fun track(col: Int): Modifier = Modifier.onGloballyPositioned { c ->
+            colCenters[col] = c.positionInParent().x + c.size.width / 2f
+        }
+
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             if (brands.isNotEmpty()) {
-                Column(Modifier.weight(1f, fill = false), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.weight(1f, fill = false).then(track(0)), horizontalAlignment = Alignment.CenterHorizontally) {
                     DrugHeroLabel(if (brands.size == 1) "BRAND NAME" else "BRAND NAMES")
                     val shownBrands = if (showAllBrands) brands else brands.take(8)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -377,18 +390,18 @@ private fun DrugHeroCard(
                     }
                 }
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(track(rxCol), horizontalAlignment = Alignment.CenterHorizontally) {
                 DrugHeroLabel("RXCUI")
                 DrugHeroChip(rxcui, filled = true)
             }
             if (!halfLife.isNullOrBlank()) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(track(halfLifeCol), horizontalAlignment = Alignment.CenterHorizontally) {
                     DrugHeroLabel("HALF-LIFE")
                     DrugHeroChip(halfLife, filled = true)
                 }
             }
             if (!eliminationRoute.isNullOrBlank()) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(track(eliminationCol), horizontalAlignment = Alignment.CenterHorizontally) {
                     DrugHeroLabel("ELIMINATION")
                     DrugHeroChip(eliminationRoute, filled = true)
                 }
@@ -397,11 +410,21 @@ private fun DrugHeroCard(
 
         if (strengths.isNotEmpty()) {
             DrugHeroLabel("STRENGTHS")
-            Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                strengths.forEach { DrugHeroChip(it, filled = true) }
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+                Layout(content = { strengths.forEach { DrugHeroChip(it, filled = true) } }) { measurables, _ ->
+                    val gap = 6.dp.roundToPx()
+                    val placeables = measurables.map { it.measure(Constraints()) }
+                    val xs = IntArray(placeables.size)
+                    var prevEnd = -gap
+                    placeables.forEachIndexed { i, pl ->
+                        val wanted = colCenters[i]?.let { (it - pl.width / 2f).toInt() } ?: Int.MIN_VALUE
+                        xs[i] = maxOf(wanted, prevEnd + gap, 0)
+                        prevEnd = xs[i] + pl.width
+                    }
+                    layout(maxOf(prevEnd, 0), placeables.maxOfOrNull { it.height } ?: 0) {
+                        placeables.forEachIndexed { i, pl -> pl.placeRelative(xs[i], 0) }
+                    }
+                }
             }
         }
     }
