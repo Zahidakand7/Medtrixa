@@ -65,7 +65,19 @@ fun EgfrScreen(onBackClick: () -> Unit) {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
+                    Column(modifier = Modifier.weight(1f)) {
                     Text("eGFR (CKD-EPI 2021)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        "Chronic Kidney Disease Epidemiology Collaboration",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        "Inker et al., NEJM 2021",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                     Text("Chronic Kidney Disease Epidemiology Collaboration", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("Inker et al., NEJM 2021", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
