@@ -1,5 +1,8 @@
 package com.medtrixa.app.ui.screens.calculators
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
@@ -309,6 +312,34 @@ fun CreatinineClearanceScreen(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
+
+                        val crcl = clearance.toDoubleOrNull()
+                        if (crcl != null) {
+                            val (bandLabel, bandColor) = when {
+                                crcl >= 90 -> "Normal or high (90 or above)" to Color(0xFF1F9D6B)
+                                crcl >= 60 -> "Mildly decreased (60-89)" to Color(0xFF6A9E1F)
+                                crcl >= 30 -> "Moderately decreased (30-59)" to Color(0xFFC27A00)
+                                crcl >= 15 -> "Severely decreased (15-29)" to Color(0xFFD9622B)
+                                else -> "Kidney failure range (below 15)" to Color(0xFFC0392B)
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = bandLabel,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White,
+                                modifier = Modifier
+                                    .background(bandColor, RoundedCornerShape(20.dp))
+                                    .padding(horizontal = 14.dp, vertical = 6.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = if (crcl < 15) "Very low result. Check the entered values, especially serum creatinine and its unit, before relying on it." else "Dose adjustment thresholds differ for each drug. Check the drug's own renal dosing guidance.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
 
