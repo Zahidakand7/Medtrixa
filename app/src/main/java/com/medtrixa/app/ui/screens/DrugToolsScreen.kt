@@ -22,6 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.PregnantWoman
+import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Card
@@ -50,6 +55,36 @@ private val drugTools = listOf(
         title = "Contraindication Checker",
         description = "Important contraindications and warnings",
         icon = Icons.Outlined.Block
+    ),
+    DrugTool(
+        id = "duplicate_therapy",
+        title = "Duplicate Therapy Checker",
+        description = "Flag drugs from the same class in a medication list",
+        icon = Icons.Outlined.ContentCopy
+    ),
+    DrugTool(
+        id = "pregnancy_lactation",
+        title = "Pregnancy & Lactation",
+        description = "Quick safety lookup for pregnancy and breastfeeding",
+        icon = Icons.Outlined.PregnantWoman
+    ),
+    DrugTool(
+        id = "renal_dose",
+        title = "Renal Dose Adjustment",
+        description = "Calculate creatinine clearance and review renal dosing",
+        icon = Icons.Outlined.WaterDrop
+    ),
+    DrugTool(
+        id = "therapeutic_alternatives",
+        title = "Therapeutic Alternatives",
+        description = "Other drugs in the same class",
+        icon = Icons.Outlined.SwapHoriz
+    ),
+    DrugTool(
+        id = "half_life_washout",
+        title = "Half-life & Washout",
+        description = "Time to steady state and time to clearance",
+        icon = Icons.Outlined.Schedule
     ))
 
 @Composable

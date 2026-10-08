@@ -39,4 +39,9 @@ interface DrugDao {
 
     @Query("SELECT * FROM label WHERE ingredientRxcui = :rxcui LIMIT 1")
     suspend fun getLabel(rxcui: Long): DrugLabelEntity?
+
+    @Query("""SELECT i.rxcui AS rxcui, i.name AS name, i.drugClass AS drugClass, NULL AS matchedBrand,
+        (SELECT COUNT(*) FROM brand b WHERE b.ingredientRxcui = i.rxcui) AS brandCount
+        FROM ingredient i WHERE i.drugClass = :cls COLLATE NOCASE AND i.rxcui != :rxcui ORDER BY i.name""")
+    suspend fun getSameClass(cls: String, rxcui: Long): List<SearchHit>
 }

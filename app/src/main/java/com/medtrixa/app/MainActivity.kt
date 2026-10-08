@@ -24,6 +24,7 @@ import com.medtrixa.app.ui.screens.DrugToolsScreen
 import com.medtrixa.app.ui.screens.DrugSearchScreen
 import com.medtrixa.app.ui.screens.DrugDetailScreen
 import com.medtrixa.app.ui.screens.drugtools.InteractionCheckerScreen
+import com.medtrixa.app.ui.screens.drugtools.DuplicateTherapyScreen
 import com.medtrixa.app.ui.screens.drugtools.ContraindicationCheckerScreen
 import com.medtrixa.app.ui.screens.calculators.WeightBasedDoseScreen
 import com.medtrixa.app.ui.screens.calculators.CreatinineClearanceScreen
@@ -202,6 +203,9 @@ private fun MedtrixaRoot() {
                     onBackClick = { currentScreen = "drug_tools" }
                 )
                 "Drug Interaction Checker" -> InteractionCheckerScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
+                "Duplicate Therapy Checker" -> DuplicateTherapyScreen(
                     onBackClick = { currentScreen = "drug_tools" }
                 )
                 "Contraindication Checker" -> ContraindicationCheckerScreen(
