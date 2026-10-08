@@ -1,5 +1,8 @@
 package com.medtrixa.app.ui.screens.assess
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -272,7 +275,7 @@ fun Meld30Screen(
                     )
                 ) {
                     Column(
-                        modifier = Modifier.padding(18.dp),
+                        modifier = Modifier.fillMaxWidth().padding(18.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -288,6 +291,48 @@ fun Meld30Screen(
                             style = MaterialTheme.typography.displaySmall,
                             fontWeight = FontWeight.Bold
                         )
+
+                        val scoreValue = meldResult.score.toString().toDoubleOrNull()
+                        if (scoreValue != null) {
+                            val (bandLabel, bandColor, impact) = when {
+                                scoreValue >= 40 -> Triple("Maximum score", Color(0xFF8E1B1B), "Highest-risk range. MELD 3.0 is capped at 40.")
+                                scoreValue >= 30 -> Triple("Very high risk", Color(0xFFC0392B), "Very high short-term mortality. Needs urgent specialist management and high transplant priority.")
+                                scoreValue >= 20 -> Triple("High risk", Color(0xFFD9622B), "High short-term mortality. Transplant evaluation and listing are generally indicated.")
+                                scoreValue >= 10 -> Triple("Moderate risk", Color(0xFFC27A00), "Intermediate short-term mortality. Transplant referral is usually considered from MELD 15 or after a decompensation event.")
+                                else -> Triple("Low risk", Color(0xFF1F9D6B), "Lowest short-term mortality. Routine hepatology follow-up.")
+                            }
+                            val mortality = (1.0 - Math.pow(0.946, Math.exp(0.17698 * scoreValue - 3.56))) * 100.0
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = bandLabel,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White,
+                                modifier = Modifier
+                                    .background(bandColor, RoundedCornerShape(20.dp))
+                                    .padding(horizontal = 14.dp, vertical = 6.dp)
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = "Estimated 90-day mortality: " + "%.1f".format(mortality) + "%",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = impact,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Population-based estimate (Kim et al., Gastroenterology 2021), not an individual prediction. Use with clinical judgement.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             }
