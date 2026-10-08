@@ -61,7 +61,10 @@ fun BunCreatinineRatioScreen(onBackClick: () -> Unit) {
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("BUN/Creatinine Ratio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                Column(Modifier.weight(1f)) {
+                    Text("BUN/Creatinine Ratio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text("Blood Urea Nitrogen to Creatinine Ratio", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
