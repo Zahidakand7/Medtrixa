@@ -66,7 +66,10 @@ fun EgfrScreen(onBackClick: () -> Unit) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(Modifier.weight(1f)) {
                     Column(modifier = Modifier.weight(1f)) {
-                    Text("eGFR (CKD-EPI 2021)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Column(Modifier.weight(1f)) {
+                    Text("eGFR Calculation", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text("(CKD-EPI 2021 Creatinine Equation)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                     Text(
                         "Chronic Kidney Disease Epidemiology Collaboration",
                         style = MaterialTheme.typography.bodySmall,
