@@ -54,7 +54,10 @@ fun CorrectedCalciumScreen(onBackClick: () -> Unit) {
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Corrected Calcium", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                Column(Modifier.weight(1f)) {
+                    Text("Corrected Calcium", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text("Adjust Total Calcium for Low Albumin", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens.assess
 
+import androidx.compose.ui.text.style.TextAlign
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -177,7 +178,7 @@ fun CentorScoreScreen(
                     )
                 ) {
                     Column(
-                        modifier = Modifier.padding(18.dp),
+                        modifier = Modifier.fillMaxWidth().padding(18.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -199,7 +200,8 @@ fun CentorScoreScreen(
                         Text(
                             text = it.interpretation,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }

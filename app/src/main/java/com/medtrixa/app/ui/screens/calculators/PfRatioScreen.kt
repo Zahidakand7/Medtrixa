@@ -54,7 +54,10 @@ fun PfRatioScreen(onBackClick: () -> Unit) {
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("P/F Ratio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                Column(Modifier.weight(1f)) {
+                    Text("P/F Ratio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text("Assess Oxygenation and ARDS Severity", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

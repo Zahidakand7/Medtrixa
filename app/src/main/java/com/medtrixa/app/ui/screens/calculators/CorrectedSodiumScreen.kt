@@ -61,7 +61,10 @@ fun CorrectedSodiumScreen(onBackClick: () -> Unit) {
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Corrected Sodium", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                Column(Modifier.weight(1f)) {
+                    Text("Corrected Sodium", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text("Adjust Sodium for High Glucose", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

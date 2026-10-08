@@ -54,7 +54,10 @@ fun QtcScreen(onBackClick: () -> Unit) {
                     Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("QTc (Bazett)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                Column(Modifier.weight(1f)) {
+                    Text("QTc (Bazett)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text("Assess Risk of QT-Related Arrhythmia", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
