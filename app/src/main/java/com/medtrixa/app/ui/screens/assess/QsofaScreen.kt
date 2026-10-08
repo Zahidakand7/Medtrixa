@@ -1,5 +1,8 @@
 package com.medtrixa.app.ui.screens.assess
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -130,7 +133,10 @@ fun QsofaScreen(
             if (calculated) {
                 Spacer(modifier = Modifier.height(18.dp))
 
-                val risk = if (score >= 2) "High risk — consider sepsis workup" else "Low risk"
+                val positive = score >= 2
+                val risk = if (positive) "qSOFA positive (≥2)" else "Low risk of poor outcome"
+                val riskColor = if (positive) Color(0xFFC0392B) else Color(0xFF1F9D6B)
+                val impact = if (positive) "In patients with suspected infection, associated with higher in-hospital mortality and prolonged ICU stay. Assess for organ dysfunction (SOFA), obtain lactate and blood cultures, and consider escalation per your sepsis pathway." else "qSOFA <2. Does not exclude sepsis. Continue clinical assessment and monitoring."
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -138,12 +144,34 @@ fun QsofaScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Column(modifier = Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("qSOFA Score", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(6.dp))
                         Text("$score / 3", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(risk, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = risk,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            modifier = Modifier
+                                .background(riskColor, RoundedCornerShape(20.dp))
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = impact,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Bedside prompt, not a diagnostic criterion; limited sensitivity. Criteria: RR ≥22/min, SBP ≤100 mmHg, altered mentation (GCS <15). Seymour et al., JAMA 2016.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
