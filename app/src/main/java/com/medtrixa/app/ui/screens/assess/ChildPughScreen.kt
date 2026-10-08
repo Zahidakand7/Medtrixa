@@ -166,16 +166,16 @@ fun ChildPughScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            Text(
+                text = "Units",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Units",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(end = 12.dp)
-                )
                 CpUnitChoice("Conventional", !si) {
                     si = false; bilirubin = ""; albumin = ""; calculated = false
                 }
