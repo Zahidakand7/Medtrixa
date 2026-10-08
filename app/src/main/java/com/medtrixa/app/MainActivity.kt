@@ -23,6 +23,7 @@ import com.medtrixa.app.ui.screens.ComingSoonScreen
 import com.medtrixa.app.ui.screens.DrugToolsScreen
 import com.medtrixa.app.ui.screens.DrugSearchScreen
 import com.medtrixa.app.ui.screens.DrugDetailScreen
+import com.medtrixa.app.ui.screens.drugtools.TherapeuticAlternativesScreen
 import com.medtrixa.app.ui.screens.drugtools.InteractionCheckerScreen
 import com.medtrixa.app.ui.screens.drugtools.DuplicateTherapyScreen
 import com.medtrixa.app.ui.screens.drugtools.ContraindicationCheckerScreen
@@ -204,6 +205,14 @@ private fun MedtrixaRoot() {
                 )
                 "Drug Interaction Checker" -> InteractionCheckerScreen(
                     onBackClick = { currentScreen = "drug_tools" }
+                )
+                "Therapeutic Alternatives" -> TherapeuticAlternativesScreen(
+                    onBackClick = { currentScreen = "drug_tools" },
+                    onDrugClick = { hit ->
+                        selectedDrug = hit.name
+                        drugDetailReturnTo = "drug_tool_detail"
+                        currentScreen = "drug_detail"
+                    }
                 )
                 "Duplicate Therapy Checker" -> DuplicateTherapyScreen(
                     onBackClick = { currentScreen = "drug_tools" }
