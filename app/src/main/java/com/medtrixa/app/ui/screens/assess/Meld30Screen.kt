@@ -41,6 +41,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.medtrixa.app.domain.scoring.Meld30Calculator
 
+private fun meldFmt(x: Double): String =
+    if (x % 1.0 == 0.0) x.toInt().toString() else x.toString()
+
+private fun meldError(text: String, v: Double?, min: Double, max: Double, unit: String): String? =
+    if (text.isNotEmpty() && (v == null || v < min || v > max))
+        "Plausible range: " + meldFmt(min) + "-" + meldFmt(max) + " " + unit
+    else null
+
 @Composable
 fun Meld30Screen(
     onBackClick: () -> Unit
@@ -63,11 +71,17 @@ fun Meld30Screen(
         result = null
     }
 
-    val bilirubinValue = bilirubin.toDoubleOrNull()
-    val sodiumValue = sodium.toDoubleOrNull()
-    val inrValue = inr.toDoubleOrNull()
-    val creatinineValue = creatinine.toDoubleOrNull()
-    val albuminValue = albumin.toDoubleOrNull()
+    val bilirubinValue = bilirubin.toDoubleOrNull()?.takeIf { it in 0.1..50.0 }
+    val sodiumValue = sodium.toDoubleOrNull()?.takeIf { it in 100.0..180.0 }
+    val inrValue = inr.toDoubleOrNull()?.takeIf { it in 0.5..10.0 }
+    val creatinineValue = creatinine.toDoubleOrNull()?.takeIf { it in 0.1..15.0 }
+    val albuminValue = albumin.toDoubleOrNull()?.takeIf { it in 0.5..6.0 }
+
+    val bilError = meldError(bilirubin, bilirubin.toDoubleOrNull(), 0.1, 50.0, "mg/dL")
+    val sodiumError = meldError(sodium, sodium.toDoubleOrNull(), 100.0, 180.0, "mmol/L")
+    val inrError = meldError(inr, inr.toDoubleOrNull(), 0.5, 10.0, "")
+    val creatinineError = meldError(creatinine, creatinine.toDoubleOrNull(), 0.1, 15.0, "mg/dL")
+    val albuminError = meldError(albumin, albumin.toDoubleOrNull(), 0.5, 6.0, "g/dL")
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -104,7 +118,7 @@ fun Meld30Screen(
                     )
 
                     Text(
-                        text = "Liver Disease Severity Assessment",
+                        text = "End-stage Liver Disease Assessment",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -130,6 +144,8 @@ fun Meld30Screen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 label = { Text("Bilirubin") },
+                isError = bilError != null,
+                supportingText = bilError?.let { { Text(it) } },
                 suffix = { Text("mg/dL") }
             )
 
@@ -148,6 +164,8 @@ fun Meld30Screen(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     label = { Text("Sodium") },
+                isError = sodiumError != null,
+                supportingText = sodiumError?.let { { Text(it) } },
                     suffix = { Text("mmol/L") }
                 )
 
@@ -159,7 +177,9 @@ fun Meld30Screen(
                     },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    label = { Text("INR") }
+                    label = { Text("INR") },
+                isError = inrError != null,
+                supportingText = inrError?.let { { Text(it) } }
                 )
             }
 
@@ -178,6 +198,8 @@ fun Meld30Screen(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     label = { Text("Creatinine") },
+                isError = creatinineError != null,
+                supportingText = creatinineError?.let { { Text(it) } },
                     suffix = { Text("mg/dL") }
                 )
 
@@ -190,6 +212,8 @@ fun Meld30Screen(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     label = { Text("Albumin") },
+                isError = albuminError != null,
+                supportingText = albuminError?.let { { Text(it) } },
                     suffix = { Text("g/dL") }
                 )
             }

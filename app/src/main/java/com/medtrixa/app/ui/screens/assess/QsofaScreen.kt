@@ -159,6 +159,19 @@ fun QsofaScreen(
                                 .background(riskColor, RoundedCornerShape(20.dp))
                                 .padding(horizontal = 14.dp, vertical = 6.dp)
                         )
+                        val met = buildList {
+                            if ((respiratoryRate.toDoubleOrNull() ?: 0.0) >= 22) add("RR ≥22/min")
+                            val sbp = systolicBp.toDoubleOrNull()
+                            if (sbp != null && sbp <= 100) add("SBP ≤100 mmHg")
+                            if (alteredMentation) add("Altered mentation (GCS <15)")
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = if (met.isEmpty()) "No qSOFA criteria met" else "Criteria met: " + met.joinToString(", "),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center
+                        )
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = impact,
