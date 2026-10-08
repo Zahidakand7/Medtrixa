@@ -49,28 +49,7 @@ class CalculatorRepository {
             )
         )
 
-        calculators.add(
-            MedicalCalculator(
-                id = "creatinine_clearance",
-                name = "Creatinine Clearance",
-                category = "Renal",
-                specialty = "General Medicine",
-                description = "Estimated creatinine clearance using the Cockcroft–Gault equation.",
-                inputs = listOf(
-                    CalculatorInput(id = "age_years", label = "Age", unit = "years"),
-                    CalculatorInput(id = "sex", label = "Sex", unit = null),
-                    CalculatorInput(id = "weight_kg", label = "Weight", unit = "kg"),
-                    CalculatorInput(id = "serum_creatinine", label = "Serum Creatinine", unit = "mg/dL")
-                ),
-                version = "1.0",
-                evidenceLevel = "Cockcroft–Gault equation",
-                reference = "Cockcroft DW, Gault MH. Prediction of creatinine clearance from serum creatinine.",
-                sourceUrl = null,
-                lastReviewed = "2026-09-12"
-            )
-        )
-
-        calculators.add(
+calculators.add(
             MedicalCalculator(
                 id = "bsa",
                 name = "Body Surface Area",
