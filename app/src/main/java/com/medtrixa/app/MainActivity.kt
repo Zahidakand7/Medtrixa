@@ -23,6 +23,7 @@ import com.medtrixa.app.ui.screens.ComingSoonScreen
 import com.medtrixa.app.ui.screens.DrugToolsScreen
 import com.medtrixa.app.ui.screens.DrugSearchScreen
 import com.medtrixa.app.ui.screens.DrugDetailScreen
+import com.medtrixa.app.ui.screens.drugtools.RenalDoseAdjustmentScreen
 import com.medtrixa.app.ui.screens.drugtools.TherapeuticAlternativesScreen
 import com.medtrixa.app.ui.screens.drugtools.InteractionCheckerScreen
 import com.medtrixa.app.ui.screens.drugtools.DuplicateTherapyScreen
@@ -194,7 +195,7 @@ private fun MedtrixaRoot() {
                 "Dosage Calculator" -> WeightBasedDoseScreen(
                     onBackClick = { currentScreen = "drug_tools" }
                 )
-                "Renal Dose Adjustment" -> CreatinineClearanceScreen(
+                "Renal Dose Adjustment" -> RenalDoseAdjustmentScreen(
                     onBackClick = { currentScreen = "drug_tools" }
                 )
                 "Pediatric Dosing" -> PediatricDoseScreen(
