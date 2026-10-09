@@ -157,11 +157,24 @@ private fun splitLactation(t: String): Pair<String?, String?> {
     return Pair(t.substring(0, m.range.first).trim(), t.substring(m.range.first).trim())
 }
 
+private val negWindow = Regex(
+    """\b(?:no|without|neither|nor|never|lack of|absence of|(?:did|does|do|has|have|had)\s+not|not\s+(?:been\s+)?(?:shown|associated|observed|reported|found|identified|demonstrated|linked|increase[sd]?))\b""",
+    RegexOption.IGNORE_CASE
+)
+
+// True if the pattern matches somewhere that is not negated just before it in the same sentence
+private fun affirm(t: String, p: String): Boolean =
+    Regex(p, RegexOption.IGNORE_CASE).findAll(t).any { m ->
+        val first = m.range.first
+        val sentStart = if (first == 0) 0 else t.lastIndexOfAny(charArrayOf('.', ';', '\n'), first - 1) + 1
+        val from = minOf(maxOf(sentStart, first - 90), first)
+        !negWindow.containsMatchIn(t.substring(from, first))
+    }
+
 private fun detectPregSignals(t: String): List<Signal> {
     val out = mutableListOf<Signal>()
-    fun has(p: String) = Regex(p, RegexOption.IGNORE_CASE).containsMatchIn(t)
-    Regex("pregnancy category\\s+([ABCDX])\\b", RegexOption.IGNORE_CASE).find(t)?.let {
-        val c = it.groupValues[1].uppercase()
+    fun has(p: String) = affirm(t, p)
+    detectPregCategory(t)?.let { c ->
         out += Signal("Legacy FDA Pregnancy Category $c", when (c) { "X" -> 2; "D", "C" -> 1; else -> 0 })
     }
     if (has("contraindicated (in|during) pregnan|contraindicated in women who (are|may)"))
@@ -183,7 +196,7 @@ private fun detectPregSignals(t: String): List<Signal> {
 
 private fun detectLactSignals(t: String): List<Signal> {
     val out = mutableListOf<Signal>()
-    fun has(p: String) = Regex(p, RegexOption.IGNORE_CASE).containsMatchIn(t)
+    fun has(p: String) = affirm(t, p)
     if (has("breastfeeding is not recommended|not recommended during (breastfeeding|lactation)|not to breastfeed|discontinue (breastfeeding|nursing)|should not breastfeed"))
         out += Signal("Breastfeeding not recommended / avoid wording", 2)
     if (has("serious adverse reactions in (the )?breastfed|adverse (effects?|reactions?) (in|on) (the )?breastfed|infant (sedation|drowsiness)|monitor (the )?(breastfed )?infant"))
@@ -202,6 +215,78 @@ private fun levelOf(hasText: Boolean, strong: Int): Pair<String, Color> = when {
     strong == 2 -> "Higher concern" to PlRed
     strong == 1 -> "Caution" to PlAmber
     else -> "No high-risk wording" to PlBlue
+}
+
+// ---- LactMed classification (rule-based, from the LactMed summary text) ----
+private data class LmClass(val label: String, val color: Color, val level: Int, val key: String, val reason: String? = null, val review: Boolean = false)
+
+private val lmNOINFO = Regex("""^\s*(no|limited|little|insufficient)\s+(published\s+|relevant\s+)?(information|data)\b|^\s*(information|data)\s+(is|are)\s+(limited|lacking)""", RegexOption.IGNORE_CASE)
+private val lmEXC = Regex("""not (an )?(absolute )?contraindicat|not be considered contraindicated|do not consider (it|them|this)[^.]{0,40}contraindicat|no (absolute )?contraindication|not considered contraindicated|not a reason to (stop|discontinue|avoid|withhold)|need not be avoided|not (generally )?(be )?avoided|no need to (avoid|discontinue|withhold)""", RegexOption.IGNORE_CASE)
+private val lmAVOID = Regex("""(?:is|are|be|considered|generally|usually)\s+contraindicated|should (?:generally |usually )?(?:be )?avoided|\bavoid(?:ed)? (?:use|breastfeeding|nursing|this|the drug|its use)|breastfeeding (?:is|should be|be) (?:not recommended|discontinued|avoided|withheld)|recommend(?:s|ed)? (?:against|discontinuing|stopping|withholding|interrupting)|not recommended (?:during|while|for|in)|should not (?:breastfeed|nurse|be used)|(?<!not a reason to )(?:discontinue|stop|withhold|interrupt)(?:ing)? (?:breastfeeding|nursing)|do not breastfeed|(?:is|are) not (?:advisable|suitable)|breastfeeding is best avoided|best avoided|avoiding (?:breastfeeding|nursing)""", RegexOption.IGNORE_CASE)
+private val lmCAUT = Regex("""other (?:agents|drugs|medications|analgesics|antihypertensives|[a-z\- ]{3,30}) (?:are|is) (?:preferred|preferable)|(?:are|is) preferred over|preferable (?:to|over)|may be preferred|may be preferable|(?:preferred|preferable) (?:alternatives?|agents?|drugs?|during)|alternative[s]? (?:is|are|may|might|would|should)|use caution|with caution|caution (?:is|should)|monitor(?:ed|ing)?|observe|watch (?:the|for)|until more data|long-term use|best to|prematur|newborn|sedation|drowsiness|withhold|limit(?:ing)? (?:use|dose|duration)|careful|\bbut\b[^.]{0,60}\b(?:avoid|monitor|caution)""", RegexOption.IGNORE_CASE)
+private val lmOK = Regex("""acceptable|compatible|no special precautions|safe (?:use|to use|in|for|during)|(?:is|are) (?:a )?(?:preferred|preferable) (?:choice|agent|drug|option|analgesic)|preferred (?:choice|agent|option|drug)|no (?:adverse|untoward|apparent|harmful|problems)|little (?:or no )?risk|poses? little|unlikely to (?:adversely|harm|affect|cause)|not (?:expected|likely) to (?:cause|adversely)|not a reason to|(?:very )?low (?:levels|amounts|concentrations|milk)|minimal|negligible|does not (?:appear|seem) to|poorly (?:absorbed|excreted)|not (?:orally )?absorbed|unlikely|likely to be (?:very )?low|no waiting period|would not be expected|not be expected to cause|\\blow\\b""", RegexOption.IGNORE_CASE)
+private val lmSupply = Regex("""decrease[sd]? (?:milk|serum prolactin|prolactin)|suppress(?:es|ed)? lactation|reduce[sd]? (?:milk|lactation)|inhibit(?:s|ed)? lactation|interfere with (?:milk|lactation)""", RegexOption.IGNORE_CASE)
+private val lmNewborn = Regex("""newborn|neonat|preterm|premature""", RegexOption.IGNORE_CASE)
+private val lmMonitor = Regex("""monitor|observe|watch (?:the|for)""", RegexOption.IGNORE_CASE)
+private val lmAlt = Regex("""(?:preferred|preferable)|alternat""", RegexOption.IGNORE_CASE)
+
+private fun lmSentences(text: String): List<String> =
+    text.replace("[-]", "")
+        .replace(Regex("""\[\d+(?:,\s*\d+)*\]"""), "")
+        .split(Regex("""(?<=[.!?])\s+(?=[A-Z0-9])|\n+"""))
+        .map { it.trim() }
+        .filter { it.length > 15 }
+
+private fun classifyLactMed(summary: String): LmClass {
+    val sents = lmSentences(summary)
+    val clean = sents.map { lmEXC.replace(it, " ") }
+    fun firstWith(r: Regex): String? = clean.indices.firstOrNull { r.containsMatchIn(clean[it]) }?.let { sents[it] }
+    val head = sents.take(2).joinToString(" ")
+    val headClean = clean.take(2).joinToString(" ")
+    val noInfo = lmNOINFO.containsMatchIn(head)
+    val avoidS = firstWith(lmAVOID)
+    val cautS = firstWith(lmCAUT)
+    val okS = firstWith(lmOK)
+    val earlyAvoid = lmAVOID.containsMatchIn(headClean)
+    val earlyOk = lmOK.containsMatchIn(headClean)
+    return when {
+        noInfo && avoidS == null -> LmClass("No human data", PlGrey, 0, "nodata", sents.firstOrNull())
+        noInfo -> LmClass("Avoid / not advised", PlRed, 2, "avoid", avoidS)
+        avoidS != null && (okS == null || (earlyAvoid && !earlyOk)) ->
+            LmClass("Avoid / not advised", PlRed, 2, "avoid", avoidS, review = okS != null)
+        avoidS != null -> LmClass("Use with caution", PlAmber, 1, "caution", avoidS, review = true)
+        cautS != null && okS != null ->
+            LmClass("Acceptable, monitor infant", PlBlue, 0, "ok_monitor", firstWith(lmMonitor) ?: cautS)
+        cautS != null -> LmClass("Use with caution", PlAmber, 1, "caution", cautS)
+        okS != null -> LmClass("Compatible", PlGreen, 0, "ok", okS)
+        else -> LmClass("Review LactMed text", PlGrey, 0, "unclear", null, review = true)
+    }
+}
+
+private fun lactMedSignals(summary: String): List<Signal> {
+    val s = summary.replace("\n", " ")
+    val s2 = lmEXC.replace(s, " ")
+    val out = mutableListOf<Signal>()
+    if (lmAVOID.containsMatchIn(s2)) out += Signal("LactMed: avoidance or discontinuation advised", 2)
+    if (lmAlt.containsMatchIn(s2)) out += Signal("LactMed: alternative agent may be preferred", 1)
+    if (lmMonitor.containsMatchIn(s2)) out += Signal("LactMed: monitor the breastfed infant", 1)
+    if (lmNewborn.containsMatchIn(s2)) out += Signal("Extra care for newborn or preterm infants", 1)
+    if (lmSupply.containsMatchIn(s2)) out += Signal("May affect milk supply", 1)
+    if (lmNOINFO.containsMatchIn(s.take(260))) out += Signal("Limited or no human lactation data", 0)
+    if (Regex("""acceptable|no special precautions|compatible""", RegexOption.IGNORE_CASE).containsMatchIn(s2))
+        out += Signal("Judged acceptable by LactMed or expert opinion", 0)
+    if (Regex("""\blow\b|trivial|minute|undetectable|not detectable""", RegexOption.IGNORE_CASE).containsMatchIn(s2))
+        out += Signal("Low or undetectable milk levels reported", 0)
+    return out
+}
+
+private fun detectPregCategory(t: String): String? =
+    Regex("""(?i:pregnancy\s+(?:risk\s+)?category)\s*[:\-–]?\s*([ABCDX])\b""").find(t)?.groupValues?.get(1)
+
+private fun pregCategoryColor(c: String): Color = when (c) {
+    "A", "B" -> PlGreen
+    "C" -> PlAmber
+    else -> PlRed
 }
 
 @Composable
@@ -255,9 +340,9 @@ private fun GlanceCard(modifier: Modifier, title: String, label: String, color: 
 }
 
 @Composable
-private fun SignalList(signals: List<Signal>) {
+private fun SignalList(signals: List<Signal>, title: String = "Signals found in label text") {
     if (signals.isEmpty()) return
-    SectionTitle("Signals found in label text")
+    SectionTitle(title)
     signals.sortedByDescending { it.level }.forEach { s ->
         val col = when (s.level) { 2 -> PlRed; 1 -> PlAmber; else -> PlGrey }
         Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -289,9 +374,33 @@ private fun LabelTextCard(title: String, text: String, accent: Color) {
 }
 
 @Composable
-private fun LactMedCards(lm: LactMedResult) {
+private fun RatingReason(c: LmClass) {
+    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = c.color.copy(alpha = 0.12f))) {
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Text("Why: ${c.label}", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = c.color, textAlign = TextAlign.Start)
+            c.reason?.let {
+                Spacer(Modifier.height(6.dp))
+                Text(it, fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Start)
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                if (c.review) "Wording is ambiguous or mixed. Read the full LactMed text before relying on this rating."
+                else "Rating is read automatically from LactMed wording. Verify against the full text.",
+                fontSize = 12.sp, textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun LactMedCards(lm: LactMedResult, cls: LmClass?) {
+    cls?.let {
+        Spacer(Modifier.height(12.dp))
+        RatingReason(it)
+    }
     if (lm.summary.isNotBlank()) {
         Spacer(Modifier.height(12.dp))
+        SignalList(lactMedSignals(lm.summary), "Signals found in LactMed summary")
         LabelTextCard("LactMed: summary of use during lactation", lm.summary, PlBlue)
     }
     if (lm.infant.isNotBlank()) {
@@ -429,7 +538,10 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
     val pregSignals = remember(pregText) { pregPart?.let { detectPregSignals(it) } ?: emptyList() }
     val lactSignals = remember(pregText) { lactPart?.let { detectLactSignals(it) } ?: emptyList() }
     val pregStrong = pregSignals.filter { it.level > 0 }.maxOfOrNull { it.level } ?: 0
-    val lactStrong = lactSignals.filter { it.level > 0 }.maxOfOrNull { it.level } ?: 0
+    val labelLactStrong = lactSignals.filter { it.level > 0 }.maxOfOrNull { it.level } ?: 0
+    val lmClass = remember(lactMed) { lactMed?.summary?.takeIf { it.isNotBlank() }?.let { classifyLactMed(it) } }
+    val lactStrong = lmClass?.level ?: labelLactStrong
+    val pregCat = remember(pregText) { pregPart?.let { detectPregCategory(it) } }
     val tabs = listOf("Drug", "Exposure", "RID", "Infant Risk")
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -484,9 +596,14 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                         if (drug == null || !loaded) {
                             EmptyState("Search a drug to check its safety in pregnancy and lactation.")
                         } else {
-                            val (pl, pc) = levelOf(pregText != null, pregStrong)
-                            val lactFromLactMed = lactPart == null && lactMed != null
-                            val (ll, lc) = if (lactFromLactMed) "LactMed data" to PlBlue else levelOf(lactPart != null, lactStrong)
+                            val (pl, pc) = if (pregCat != null) "Category $pregCat" to pregCategoryColor(pregCat) else levelOf(pregText != null, pregStrong)
+                            val pregSource = when {
+                                pregCat != null -> "legacy FDA category"
+                                pregText != null -> "label wording · no letter category"
+                                else -> "from label wording"
+                            }
+                            val lactFromLactMed = lmClass != null
+                            val (ll, lc) = if (lmClass != null) lmClass.label to lmClass.color else levelOf(lactPart != null, labelLactStrong)
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(drug?.name ?: "", fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
@@ -501,9 +618,9 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             }
                             Spacer(Modifier.height(12.dp))
                             Row(Modifier.fillMaxWidth()) {
-                                GlanceCard(Modifier.weight(1f), "Pregnancy", pl, pc)
+                                GlanceCard(Modifier.weight(1f), "Pregnancy", pl, pc, pregSource)
                                 Spacer(Modifier.width(12.dp))
-                                GlanceCard(Modifier.weight(1f), "Lactation", ll, lc, if (lactFromLactMed) "from LactMed" else "from label wording")
+                                GlanceCard(Modifier.weight(1f), "Lactation", ll, lc, if (lactFromLactMed) (if (lmClass?.review == true) "LactMed · verify wording" else "from LactMed") else "from label wording")
                             }
                             Spacer(Modifier.height(16.dp))
                             TwoWayToggle("Pregnancy", "Lactation", section) { section = it }
@@ -529,7 +646,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                     SignalList(lactSignals)
                                     LabelTextCard("Lactation: label text", lactPart, PlBlue)
                                 }
-                                lactMed?.let { lm -> LactMedCards(lm) }
+                                lactMed?.let { lm -> LactMedCards(lm, lmClass) }
                             }
                             Spacer(Modifier.height(16.dp))
                             val steps = mutableListOf<String>()
