@@ -242,14 +242,14 @@ private fun InfoCard(title: String, value: String, note: String) {
 }
 
 @Composable
-private fun GlanceCard(modifier: Modifier, title: String, label: String, color: Color) {
+private fun GlanceCard(modifier: Modifier, title: String, label: String, color: Color, source: String = "from label wording") {
     Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f))) {
         Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(title, fontSize = 13.sp, textAlign = TextAlign.Center)
             Spacer(Modifier.height(6.dp))
             Text(label, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = color, textAlign = TextAlign.Center)
             Spacer(Modifier.height(4.dp))
-            Text("from label wording", fontSize = 11.sp, textAlign = TextAlign.Center)
+            Text(source, fontSize = 11.sp, textAlign = TextAlign.Center)
         }
     }
 }
@@ -485,7 +485,8 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             EmptyState("Search a drug to check its safety in pregnancy and lactation.")
                         } else {
                             val (pl, pc) = levelOf(pregText != null, pregStrong)
-                            val (ll, lc) = levelOf(lactPart != null, lactStrong)
+                            val lactFromLactMed = lactPart == null && lactMed != null
+                            val (ll, lc) = if (lactFromLactMed) "LactMed data" to PlBlue else levelOf(lactPart != null, lactStrong)
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(drug?.name ?: "", fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
@@ -502,7 +503,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             Row(Modifier.fillMaxWidth()) {
                                 GlanceCard(Modifier.weight(1f), "Pregnancy", pl, pc)
                                 Spacer(Modifier.width(12.dp))
-                                GlanceCard(Modifier.weight(1f), "Lactation", ll, lc)
+                                GlanceCard(Modifier.weight(1f), "Lactation", ll, lc, if (lactFromLactMed) "from LactMed" else "from label wording")
                             }
                             Spacer(Modifier.height(16.dp))
                             TwoWayToggle("Pregnancy", "Lactation", section) { section = it }
@@ -521,7 +522,9 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                 }
                             } else {
                                 if (lactPart == null) {
-                                    BannerCard("No lactation section on file", "Check LactMed (NLM) or the full product labelling. Use the RID tab if milk data are available.", PlGrey)
+                                    if (lactMed == null) {
+                                        BannerCard("No lactation section on file", "Check LactMed (NLM) or the full product labelling. Use the RID tab if milk data are available.", PlGrey)
+                                    }
                                 } else {
                                     SignalList(lactSignals)
                                     LabelTextCard("Lactation: label text", lactPart, PlBlue)
