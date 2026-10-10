@@ -422,7 +422,7 @@ private fun PublishedValuesCard(pv: PubValues, onOpenRid: () -> Unit, onUseHalfL
                     }
                     pv.ridQuote?.let {
                         Spacer(Modifier.height(6.dp))
-                        Text("“$it”", fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("“$it”", fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     TextButton(onClick = onOpenRid) { Text("Open RID calculator") }
                 }
@@ -441,9 +441,9 @@ private fun PublishedValuesCard(pv: PubValues, onOpenRid: () -> Unit, onUseHalfL
                     }
                     pv.hlQuote?.let {
                         Spacer(Modifier.height(6.dp))
-                        Text("“$it”", fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("“$it”", fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Text("Check the quote: LactMed sometimes gives the infant or milk half-life.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Check the quote: LactMed sometimes gives the infant or milk half-life.", fontSize = 11.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     TextButton(onClick = { onUseHalfLife(plNum(hrs)) }) { Text("Use half-life in Exposure") }
                 }
             }
@@ -566,7 +566,7 @@ private fun LabelTextCard(title: String, text: String, accent: Color) {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     if (expanded || !long) text else text.take(700).trimEnd() + "…",
-                    fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Start
+                    fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify
                 )
                 if (long) {
                     TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Show less" else "Show full text") }
@@ -597,7 +597,7 @@ private fun PllrNote() {
             Spacer(Modifier.height(4.dp))
             Text(
                 "Current US labelling follows the Pregnancy and Lactation Labeling Rule (PLLR). It replaced the retired A, B, C, D and X letter categories with a narrative Risk Summary, Clinical Considerations and Data. Medtrixa does not show letter categories.",
-                fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -610,13 +610,13 @@ private fun RatingReason(c: LmClass) {
             Text("Why: ${c.label}", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = c.color, textAlign = TextAlign.Start)
             c.reason?.let {
                 Spacer(Modifier.height(6.dp))
-                Text(it, fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Start)
+                Text(it, fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify)
             }
             Spacer(Modifier.height(6.dp))
             Text(
                 if (c.review) "Wording is ambiguous or mixed. Read the full LactMed text before relying on this rating."
                 else "Rating is read automatically from LactMed wording. Verify against the full text.",
-                fontSize = 12.sp, textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontSize = 12.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -645,7 +645,7 @@ private fun LactMedCards(lm: LactMedResult, cls: LmClass?, onOpenRid: () -> Unit
     Spacer(Modifier.height(8.dp))
     Text(
         "Source: LactMed (US National Library of Medicine)" + if (lm.revised.isNotBlank()) ", revised ${lm.revised}" else "",
-        fontSize = 12.sp, textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSurfaceVariant
+        fontSize = 12.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant
     )
 }
 
@@ -656,7 +656,7 @@ private fun BulletCard(title: String, items: List<String>, accent: Color) {
             Text(title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = accent, textAlign = TextAlign.Start)
             Spacer(Modifier.height(8.dp))
             items.forEach {
-                Text("•  $it", fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Start, modifier = Modifier.padding(vertical = 2.dp))
+                Text("•  $it", fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify, modifier = Modifier.padding(vertical = 2.dp))
             }
         }
     }
@@ -1010,7 +1010,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                     Text("8", fontSize = 11.sp)
                                     Text("16", fontSize = 11.sp)
                                 }
-                                Text("Red = high-sensitivity window. Black frame = your exposure. Windows are approximate (LMP-based).", fontSize = 11.sp, textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Red = high-sensitivity window. Black frame = your exposure. Windows are approximate (LMP-based).", fontSize = 11.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 val atRisk = exSystems.filter { it.from <= hi && it.to >= lo }.map { it.name }
                                 Spacer(Modifier.height(8.dp))
                                 Text(
@@ -1027,7 +1027,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                         Text("The drug may still be present when organogenesis begins (GA week 5).", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PlRed, textAlign = TextAlign.Start)
                                     } else if (hi <= 10 && endGa > hi + 0.3 && endGa >= 5) {
                                         Spacer(Modifier.height(8.dp))
-                                        Text("Persistence extends the effective exposure window beyond the last dose.", fontSize = 13.sp, color = PlAmber, textAlign = TextAlign.Start)
+                                        Text("Persistence extends the effective exposure window beyond the last dose.", fontSize = 13.sp, color = PlAmber, textAlign = TextAlign.Justify)
                                     }
                                 }
                             }
@@ -1129,7 +1129,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                     }
                     else -> {
                         SectionTitle("Infant risk-factor screen")
-                        Text("Tick every factor that applies. This heuristic screen supports, but does not replace, clinical judgement.", fontSize = 13.sp, textAlign = TextAlign.Start, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Tick every factor that applies. This heuristic screen supports, but does not replace, clinical judgement.", fontSize = 13.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (drug != null && loaded && lactStrong > 0) {
                             Spacer(Modifier.height(8.dp))
                             Text("The label for ${drug?.name} contains lactation caution wording. Consider ticking the last risk item.", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PlAmber, textAlign = TextAlign.Start)
