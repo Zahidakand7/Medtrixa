@@ -105,6 +105,12 @@ private fun exDur(h: Double): String = when {
     else -> "${plNum(h / 24)} days"
 }
 
+private fun fmtHours(h: Double): String = when {
+    h < 1.0 -> plNum(h * 60) + " min"
+    h < 48.0 -> plNum(h) + " h"
+    else -> plNum(h / 24.0) + " d"
+}
+
 private fun exGa(days: Long): String = "${days / 7} w ${days % 7} d"
 
 private fun lmpInfo(d: Int, m: Int, y: Int): LmpInfo? {
@@ -223,7 +229,7 @@ private fun levelOf(hasText: Boolean, strong: Int): Pair<String, Color> = when {
     !hasText -> "No label data" to PlGrey
     strong == 2 -> "Higher concern" to PlRed
     strong == 1 -> "Caution" to PlAmber
-    else -> "No high-risk wording" to PlBlue
+    else -> "Lower concern" to PlBlue
 }
 
 // ---- LactMed classification (rule-based, from the LactMed summary text) ----
@@ -506,11 +512,6 @@ private fun WelcomeCard(onTry: (String) -> Unit) {
         FeatureRow("Lactation", "LactMed summary, effects in breastfed infants, published milk levels and a rating with the reason shown.", PlBlue)
         Spacer(Modifier.height(10.dp))
         FeatureRow("Exposure and RID", "Place an exposure on the developmental timeline and estimate relative infant dose from milk levels.", PlGreen)
-        Spacer(Modifier.height(16.dp))
-        Text(
-            "Signals are detected from stored label wording and are not a risk classification. Verify against current product labelling and a reproductive toxicology reference before clinical decisions.",
-            fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 
@@ -585,15 +586,26 @@ private fun GlanceCard(modifier: Modifier, title: String, label: String, color: 
         border = BorderStroke(1.dp, color.copy(alpha = 0.3f)),
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f))
     ) {
-        Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(title.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(6.dp))
-            Text(label, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = color, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(8.dp))
+        Column(Modifier.fillMaxSize().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Text(title.uppercase(), fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(Modifier.fillMaxWidth().height(44.dp), contentAlignment = Alignment.Center) {
+                Text(label, fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, color = color, textAlign = TextAlign.Center, maxLines = 2)
+            }
             ConcernMeter(step, color)
-            Spacer(Modifier.height(6.dp))
-            Text(source, fontSize = 11.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            Box(Modifier.fillMaxWidth().height(28.dp), contentAlignment = Alignment.TopCenter) {
+                Text(source, fontSize = 10.sp, lineHeight = 14.sp, textAlign = TextAlign.Center, maxLines = 2, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
+    }
+}
+
+@Composable
+private fun StatCell(modifier: Modifier, label: String, value: String, color: Color) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label.uppercase(), fontSize = 10.sp, letterSpacing = 1.sp, fontWeight = FontWeight.SemiBold, color = PlGrey, maxLines = 1)
+        Spacer(Modifier.height(4.dp))
+        Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = color, maxLines = 1)
     }
 }
 
@@ -726,8 +738,10 @@ private fun BulletCard(title: String, items: List<String>, accent: Color) {
 
 @Composable
 private fun Disclaimer(text: String) {
-    Spacer(Modifier.height(20.dp))
-    Text(text, fontSize = 12.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Spacer(Modifier.height(16.dp))
+    Text("Important", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Spacer(Modifier.height(4.dp))
+    Text(text, fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
@@ -843,6 +857,9 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
     val pregLegacy = remember(pregPart) { pregPart?.let { hasLegacyCategory(it) } ?: false }
     val pregClean = remember(pregPart) { pregPart?.let { stripLegacyCategory(it) } }
     val pregPllr = remember(pregClean) { pregClean?.contains("Risk Summary") == true }
+    val pregBlocks = remember(pregClean) { pregClean?.let { parsePllr(it) } ?: emptyList() }
+    val hlHours = remember(halfLifeLabel) { exHours(halfLifeLabel) }
+    val pubVals = remember(lactMed) { lactMed?.let { extractPublished(it) } }
     val tabs = listOf("Drug", "Exposure", "RID", "Infant Risk")
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -891,7 +908,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
             }
 
             Column(
-                modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
+                modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(20.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 when (tab) {
@@ -928,18 +945,36 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                         Text(it, fontSize = 13.sp, color = PlGrey, textAlign = TextAlign.Center)
                                     }
                                     Spacer(Modifier.height(14.dp))
-                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        halfLifeLabel?.takeIf { it.length <= 40 }?.let { Pill("t½ $it", PlTeal) }
-                                        if (pregPllr) Pill("PLLR label", PlPink)
-                                        if (lmClass != null) Pill("LactMed", PlBlue)
+                                    Box(Modifier.fillMaxWidth().height(1.dp).background(PlTeal.copy(alpha = 0.15f)))
+                                    Spacer(Modifier.height(12.dp))
+                                    val ridCell = pubVals?.let { pv -> pv.rid?.let { r -> pv.ridPrefix + plNum(r) + "%" } } ?: "No data"
+                                    val ridCol = pubVals?.rid?.let { r -> if (r < 10) PlGreen else if (r <= 25) PlAmber else PlRed } ?: PlGrey
+                                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
+                                        StatCell(Modifier.weight(1f), "Half-life", hlHours?.let { fmtHours(it) } ?: "No data", if (hlHours != null) PlInk else PlGrey)
+                                        Box(Modifier.width(1.dp).fillMaxHeight().background(PlTeal.copy(alpha = 0.15f)))
+                                        StatCell(Modifier.weight(1f), "Clears in", hlHours?.let { "≈ " + fmtHours(it * 5) } ?: "No data", if (hlHours != null) PlInk else PlGrey)
+                                        Box(Modifier.width(1.dp).fillMaxHeight().background(PlTeal.copy(alpha = 0.15f)))
+                                        StatCell(Modifier.weight(1f), "Infant dose", ridCell, ridCol)
+                                    }
+                                    val hasHuman = pregBlocks.any { it.title == "Human Data" }
+                                    val hasAnimal = pregBlocks.any { it.title == "Animal Data" }
+                                    val hasReg = pregBlocks.any { it.title == "Pregnancy Exposure Registry" } || pregClean?.contains("exposure registry", ignoreCase = true) == true
+                                    if (hasHuman || hasAnimal || hasReg || pregPllr) {
+                                        Spacer(Modifier.height(12.dp))
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            if (hasHuman) Pill("Human data", PlGreen)
+                                            if (hasAnimal) Pill("Animal data", PlAmber)
+                                            if (hasReg) Pill("Registry", PlBlue)
+                                            if (!hasHuman && !hasAnimal && !hasReg) Pill("PLLR label", PlPink)
+                                        }
                                     }
                                 }
                             }
                             Spacer(Modifier.height(12.dp))
-                            Row(Modifier.fillMaxWidth()) {
-                                GlanceCard(Modifier.weight(1f), "Pregnancy", pl, pc, pregSource, levelStep(pregText != null, pregStrong))
+                            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)) {
+                                GlanceCard(Modifier.weight(1f).fillMaxHeight(), "Pregnancy", pl, pc, pregSource, levelStep(pregText != null, pregStrong))
                                 Spacer(Modifier.width(12.dp))
-                                GlanceCard(Modifier.weight(1f), "Lactation", ll, lc, if (lactFromLactMed) (if (lmClass?.review == true) "LactMed · verify wording" else "from LactMed") else "from label wording", lmClass?.let { lmStep(it) } ?: levelStep(lactPart != null, labelLactStrong))
+                                GlanceCard(Modifier.weight(1f).fillMaxHeight(), "Lactation", ll, lc, if (lactFromLactMed) (if (lmClass?.review == true) "LactMed · verify wording" else "from LactMed") else "from label wording", lmClass?.let { lmStep(it) } ?: levelStep(lactPart != null, labelLactStrong))
                             }
                             Spacer(Modifier.height(16.dp))
                             TwoWayToggle("Pregnancy", "Lactation", section) { section = it }
