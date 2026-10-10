@@ -516,6 +516,13 @@ private fun Pill(text: String, color: Color) {
 }
 
 @Composable
+private fun GlassPill(text: String) {
+    Box(Modifier.clip(RoundedCornerShape(50)).background(Color.White.copy(alpha = 0.16f)).padding(horizontal = 12.dp, vertical = 5.dp)) {
+        Text(text, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1)
+    }
+}
+
+@Composable
 private fun GlanceCard(modifier: Modifier, title: String, label: String, color: Color, source: String = "from label wording", step: Int = 0) {
     Card(
         modifier = modifier,
@@ -541,10 +548,10 @@ private fun SignalList(signals: List<Signal>, title: String = "Signals found in 
     SectionTitle(title)
     signals.sortedByDescending { it.level }.forEach { s ->
         val col = when (s.level) { 2 -> PlRed; 1 -> PlAmber; else -> PlGrey }
-        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(10.dp).clip(CircleShape).background(col))
+        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
+            Box(Modifier.padding(top = 6.dp).size(10.dp).clip(CircleShape).background(col))
             Spacer(Modifier.width(10.dp))
-            Text(s.text, fontSize = 14.sp, textAlign = TextAlign.Start)
+            Text(s.text, fontSize = 14.sp, lineHeight = 22.sp, textAlign = TextAlign.Start)
         }
     }
     Spacer(Modifier.height(16.dp))
@@ -842,22 +849,22 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             }
                             val lactFromLactMed = lmClass != null
                             val (ll, lc) = if (lmClass != null) lmClass.label to lmClass.color else levelOf(lactPart != null, labelLactStrong)
-                            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp)) {
+                            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp)) {
                                 Column(
                                     Modifier.fillMaxWidth()
-                                        .background(Brush.linearGradient(listOf(PlPink.copy(alpha = 0.16f), PlBlue.copy(alpha = 0.16f))))
-                                        .padding(18.dp),
+                                        .background(Brush.linearGradient(listOf(Color(0xFF0B3C4D), Color(0xFF14607A))))
+                                        .background(Brush.radialGradient(listOf(Color.White.copy(alpha = 0.14f), Color.Transparent), center = Offset(900f, 0f), radius = 700f))
+                                        .padding(horizontal = 18.dp, vertical = 20.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text(drug?.name ?: "", fontSize = 22.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                                    Text(drug?.name ?: "", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
                                     drug?.drugClass?.let {
-                                        Text(it, fontSize = 13.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        Text(it.uppercase(), fontSize = 11.sp, letterSpacing = 1.4.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = 0.72f), textAlign = TextAlign.Center)
                                     }
-                                    Spacer(Modifier.height(10.dp))
-                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        halfLifeLabel?.takeIf { it.length <= 40 }?.let { Pill("t½ $it", PlGrey) }
-                                        if (pregPllr) Pill("PLLR label", PlPink)
-                                        lactMed?.revised?.takeIf { it.isNotBlank() }?.let { Pill("LactMed $it", PlBlue) }
+                                    Spacer(Modifier.height(14.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        halfLifeLabel?.takeIf { it.length <= 40 }?.let { GlassPill("t½ $it") }
+                                        if (pregPllr) GlassPill("PLLR label")
                                     }
                                 }
                             }
@@ -1125,6 +1132,16 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                 InfoCard("Percent of infant therapeutic dose", "${plNum(infant / pd * 100)}%", "Infant exposure ÷ therapeutic dose (${plNum(pd)} mg/kg/day)")
                             }
                         }
+                        lactMed?.levels?.takeIf { it.isNotBlank() }?.let { lv ->
+                            Spacer(Modifier.height(16.dp))
+                            LabelTextCard("Milk level data (LactMed)", cleanLm(lv), PlBlue)
+                            Text(
+                                "Use average milk concentrations from these studies in the milk level field. Peak values overestimate the daily dose.",
+                                fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp)
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
                         Disclaimer("RID = infant dose ÷ maternal dose × 100, with infant dose = milk concentration × milk intake (default 150 mL/kg/day). The 10% and 25% cut-offs are commonly used guides. Peak and average milk levels differ, prematurity and young age raise vulnerability, and some agents (for example cytotoxics and radiopharmaceuticals) warrant caution regardless of RID.")
                     }
                     else -> {
