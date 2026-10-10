@@ -731,11 +731,13 @@ private fun Disclaimer(text: String) {
 }
 
 @Composable
-private fun NumField(value: String, onChange: (String) -> Unit, label: String, modifier: Modifier = Modifier.fillMaxWidth(), decimal: Boolean = true) {
+private fun NumField(value: String, onChange: (String) -> Unit, label: String, modifier: Modifier = Modifier.fillMaxWidth(), decimal: Boolean = true, center: Boolean = false) {
     OutlinedTextField(
         value = value,
         onValueChange = onChange,
-        label = { Text(label) },
+        label = if (center) null else ({ Text(label, maxLines = 1, softWrap = false, fontSize = 13.sp) }),
+        placeholder = if (center) ({ Text(label, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center) }) else null,
+        textStyle = LocalTextStyle.current.copy(textAlign = if (center) TextAlign.Center else TextAlign.Start),
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = if (decimal) KeyboardType.Decimal else KeyboardType.Number),
         modifier = modifier
@@ -1010,9 +1012,9 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             Text("LMP (optional)", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
                             Spacer(Modifier.height(8.dp))
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                NumField(lmpD, { lmpD = it.filter { c -> c.isDigit() }.take(2) }, "Day", Modifier.weight(1f), false)
-                                NumField(lmpM, { lmpM = it.filter { c -> c.isDigit() }.take(2) }, "Month", Modifier.weight(1f), false)
-                                NumField(lmpY, { lmpY = it.filter { c -> c.isDigit() }.take(4) }, "Year", Modifier.weight(1.3f), false)
+                                NumField(lmpD, { lmpD = it.filter { c -> c.isDigit() }.take(2) }, "Day", Modifier.weight(1f), false, true)
+                                NumField(lmpM, { lmpM = it.filter { c -> c.isDigit() }.take(2) }, "Month", Modifier.weight(1f), false, true)
+                                NumField(lmpY, { lmpY = it.filter { c -> c.isDigit() }.take(4) }, "Year", Modifier.weight(1.3f), false, true)
                             }
                             val lmp = if (lmpD.isNotEmpty() && lmpM.isNotEmpty() && lmpY.length == 4)
                                 lmpInfo(lmpD.toInt(), lmpM.toInt(), lmpY.toInt()) else null
