@@ -50,6 +50,7 @@ private val PlBlue = Color(0xFF2F6F9F)
 private val PlGrey = Color(0xFF5F6B7A)
 private val PlPink = Color(0xFFD6456B)
 private val PlInk = Color(0xFF111827)
+private val PlTeal = Color(0xFF176B87)
 
 private data class Signal(val text: String, val level: Int)
 private data class ExSys(val name: String, val from: Int, val to: Int)
@@ -460,6 +461,60 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
+private fun FeatureRow(title: String, text: String, accent: Color) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.25f)),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(Modifier.width(5.dp).fillMaxHeight().background(accent))
+            Column(Modifier.weight(1f).padding(14.dp)) {
+                Text(title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = accent)
+                Spacer(Modifier.height(4.dp))
+                Text(text, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WelcomeCard(onTry: (String) -> Unit) {
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Spacer(Modifier.height(8.dp))
+        Box(
+            Modifier.size(84.dp).clip(CircleShape).background(Brush.linearGradient(listOf(PlTeal, PlPink))),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Filled.Search, contentDescription = null, tint = Color.White, modifier = Modifier.size(38.dp))
+        }
+        Spacer(Modifier.height(16.dp))
+        Text("Check a drug in pregnancy and lactation", fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = PlInk)
+        Spacer(Modifier.height(6.dp))
+        Text("Type a drug name in the search box above.", fontSize = 14.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(14.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("Try", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            listOf("Sertraline", "Metformin", "Ibuprofen").forEach { n ->
+                Box(Modifier.clip(RoundedCornerShape(50)).clickable { onTry(n) }) { Pill(n, PlTeal) }
+            }
+        }
+        Spacer(Modifier.height(22.dp))
+        FeatureRow("Pregnancy", "FDA label narrative under PLLR: risk summary, clinical considerations, human and animal data, and exposure registries.", PlPink)
+        Spacer(Modifier.height(10.dp))
+        FeatureRow("Lactation", "LactMed summary, effects in breastfed infants, published milk levels and a rating with the reason shown.", PlBlue)
+        Spacer(Modifier.height(10.dp))
+        FeatureRow("Exposure and RID", "Place an exposure on the developmental timeline and estimate relative infant dose from milk levels.", PlGreen)
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "Signals are detected from stored label wording and are not a risk classification. Verify against current product labelling and a reproductive toxicology reference before clinical decisions.",
+            fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
 private fun EmptyState(msg: String) {
     Box(Modifier.fillMaxWidth().padding(top = 48.dp), contentAlignment = Alignment.Center) {
         Text(msg, fontSize = 15.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -799,7 +854,16 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                     Spacer(Modifier.width(8.dp))
                     Text("Pregnancy & Lactation", fontSize = 26.sp, fontWeight = FontWeight.Bold)
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(4.dp))
+            }
+
+            ScrollableTabRow(selectedTabIndex = tab, edgePadding = 12.dp) {
+                tabs.forEachIndexed { i, t ->
+                    Tab(selected = tab == i, onClick = { tab = i }, text = { Text(t, maxLines = 1, fontSize = 14.sp) })
+                }
+            }
+
+            Column(Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 4.dp)) {
                 OutlinedTextField(
                     value = queryTfv,
                     onValueChange = { queryTfv = it; if (drug?.name != it.text) drug = null },
@@ -822,13 +886,6 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                         textAlign = TextAlign.Start
                     )
                 }
-                Spacer(Modifier.height(8.dp))
-            }
-
-            ScrollableTabRow(selectedTabIndex = tab, edgePadding = 12.dp) {
-                tabs.forEachIndexed { i, t ->
-                    Tab(selected = tab == i, onClick = { tab = i }, text = { Text(t, maxLines = 1, fontSize = 14.sp) })
-                }
             }
 
             Column(
@@ -838,7 +895,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                 when (tab) {
                     0 -> {
                         if (drug == null || !loaded) {
-                            EmptyState("Search a drug to check its safety in pregnancy and lactation.")
+                            WelcomeCard { name -> queryTfv = TextFieldValue(name, TextRange(name.length)) }
                         } else {
                             val (pl, pc) = levelOf(pregText != null, pregStrong)
                             val pregSource = when {
@@ -849,22 +906,30 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             }
                             val lactFromLactMed = lmClass != null
                             val (ll, lc) = if (lmClass != null) lmClass.label to lmClass.color else levelOf(lactPart != null, labelLactStrong)
-                            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp)) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(22.dp),
+                                border = BorderStroke(1.dp, PlTeal.copy(alpha = 0.22f)),
+                                colors = CardDefaults.cardColors(containerColor = Color.White)
+                            ) {
+                                Box(Modifier.fillMaxWidth().height(5.dp).background(Brush.horizontalGradient(listOf(PlTeal, PlPink))))
                                 Column(
                                     Modifier.fillMaxWidth()
-                                        .background(Brush.linearGradient(listOf(Color(0xFF0B3C4D), Color(0xFF14607A))))
-                                        .background(Brush.radialGradient(listOf(Color.White.copy(alpha = 0.14f), Color.Transparent), center = Offset(900f, 0f), radius = 700f))
-                                        .padding(horizontal = 18.dp, vertical = 20.dp),
+                                        .background(Brush.verticalGradient(listOf(Color(0xFFE8F4F8), Color.White)))
+                                        .padding(horizontal = 18.dp, vertical = 18.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text(drug?.name ?: "", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
+                                    Text("PREGNANCY & LACTATION PROFILE", fontSize = 10.sp, letterSpacing = 1.6.sp, fontWeight = FontWeight.SemiBold, color = PlTeal)
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(drug?.name ?: "", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PlInk, textAlign = TextAlign.Center)
                                     drug?.drugClass?.let {
-                                        Text(it.uppercase(), fontSize = 11.sp, letterSpacing = 1.4.sp, fontWeight = FontWeight.Medium, color = Color.White.copy(alpha = 0.72f), textAlign = TextAlign.Center)
+                                        Text(it, fontSize = 13.sp, color = PlGrey, textAlign = TextAlign.Center)
                                     }
                                     Spacer(Modifier.height(14.dp))
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        halfLifeLabel?.takeIf { it.length <= 40 }?.let { GlassPill("t½ $it") }
-                                        if (pregPllr) GlassPill("PLLR label")
+                                        halfLifeLabel?.takeIf { it.length <= 40 }?.let { Pill("t½ $it", PlTeal) }
+                                        if (pregPllr) Pill("PLLR label", PlPink)
+                                        if (lmClass != null) Pill("LactMed", PlBlue)
                                     }
                                 }
                             }
