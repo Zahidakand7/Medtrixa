@@ -311,7 +311,7 @@ private val pllrHeadRx = Regex(
 
 private fun parsePllr(text: String): List<PllrBlock> {
     val ms = pllrHeadRx.findAll(text).toList()
-    if (ms.isEmpty()) return listOf(PllrBlock("Label text", text.trim()))
+    if (ms.isEmpty()) return listOf(PllrBlock("Label Text", text.trim()))
     val out = mutableListOf<PllrBlock>()
     val pre = text.substring(0, ms.first().range.first).trim().replace(Regex("\\s*\\b8\\.\\d\\s*$"), "")
     if (pre.length > 40) out += PllrBlock("Overview", pre)
@@ -400,7 +400,7 @@ private fun PublishedValuesCard(pv: PubValues, onOpenRid: () -> Unit, onUseHalfL
         Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
             Box(Modifier.width(5.dp).fillMaxHeight().background(PlBlue))
             Column(Modifier.weight(1f).padding(16.dp)) {
-                Text("Published values", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = PlBlue)
+                Text("Published Values", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = PlBlue)
                 Text("Read automatically from the LactMed text", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 pv.rid?.let { rid ->
                     val col = when { rid < 10 -> PlGreen; rid <= 25 -> PlAmber; else -> PlRed }
@@ -496,7 +496,7 @@ private fun WelcomeCard(onTry: (String) -> Unit) {
             Icon(Icons.Filled.Search, contentDescription = null, tint = Color.White, modifier = Modifier.size(38.dp))
         }
         Spacer(Modifier.height(16.dp))
-        Text("Check a drug in pregnancy and lactation", fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = PlInk)
+        Text("Check a Drug in Pregnancy and Lactation", fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = PlInk)
         Spacer(Modifier.height(6.dp))
         Text("Type a drug name in the search box above.", fontSize = 14.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(14.dp))
@@ -610,7 +610,7 @@ private fun StatCell(modifier: Modifier, label: String, value: String, color: Co
 }
 
 @Composable
-private fun SignalList(signals: List<Signal>, title: String = "Signals found in label text") {
+private fun SignalList(signals: List<Signal>, title: String = "Signals Found in Label Text") {
     if (signals.isEmpty()) return
     SectionTitle(title)
     signals.sortedByDescending { it.level }.forEach { s ->
@@ -653,7 +653,7 @@ private fun LabelTextCard(title: String, text: String, accent: Color) {
 @Composable
 private fun EvidenceStrip(human: Boolean, animal: Boolean, registry: Boolean) {
     Column(Modifier.fillMaxWidth()) {
-        Text("Evidence in label", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Evidence in Label", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Pill(if (human) "Human data" else "No human data", if (human) PlGreen else PlGrey)
@@ -667,7 +667,7 @@ private fun EvidenceStrip(human: Boolean, animal: Boolean, registry: Boolean) {
 private fun PllrNote() {
     Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = PlGrey.copy(alpha = 0.08f))) {
         Column(Modifier.fillMaxWidth().padding(14.dp)) {
-            Text("About US pregnancy labelling", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+            Text("About US Pregnancy Labelling", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
             Spacer(Modifier.height(4.dp))
             Text(
                 "Current US labelling follows the Pregnancy and Lactation Labeling Rule (PLLR). It replaced the retired A, B, C, D and X letter categories with a narrative Risk Summary, Clinical Considerations and Data. Medtrixa does not show letter categories.",
@@ -709,12 +709,12 @@ private fun LactMedCards(lm: LactMedResult, cls: LmClass?, onOpenRid: () -> Unit
     }
     if (lm.summary.isNotBlank()) {
         Spacer(Modifier.height(12.dp))
-        SignalList(lactMedSignals(lm.summary), "Signals found in LactMed summary")
-        LabelTextCard("LactMed: summary of use during lactation", cleanLm(lm.summary), PlBlue)
+        SignalList(lactMedSignals(lm.summary), "Signals Found in LactMed Summary")
+        LabelTextCard("LactMed: Summary of Use During Lactation", cleanLm(lm.summary), PlBlue)
     }
     if (lm.infant.isNotBlank()) {
         Spacer(Modifier.height(12.dp))
-        LabelTextCard("LactMed: effects in breastfed infants", cleanLm(lm.infant), PlBlue)
+        LabelTextCard("LactMed: Effects in Breastfed Infants", cleanLm(lm.infant), PlBlue)
     }
     Spacer(Modifier.height(8.dp))
     Text(
@@ -730,7 +730,11 @@ private fun BulletCard(title: String, items: List<String>, accent: Color) {
             Text(title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = accent, textAlign = TextAlign.Start)
             Spacer(Modifier.height(8.dp))
             items.forEach {
-                Text("•  $it", fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify, modifier = Modifier.padding(vertical = 2.dp))
+                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.Top) {
+                    Box(Modifier.padding(top = 7.dp).size(8.dp).clip(CircleShape).background(accent))
+                    Spacer(Modifier.width(12.dp))
+                    Text(it, fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Start, modifier = Modifier.weight(1f))
+                }
             }
         }
     }
@@ -981,11 +985,11 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             Spacer(Modifier.height(16.dp))
                             if (section == 0) {
                                 if (pregText == null) {
-                                    BannerCard("No pregnancy section on file", "Consult current product labelling and a reproductive toxicology reference.", PlGrey)
+                                    BannerCard("No Pregnancy Section on File", "Consult current product labelling and a reproductive toxicology reference.", PlGrey)
                                 } else {
                                     SignalList(pregSignals)
                                     if (pregLegacy) {
-                                        BannerCard("Older label format", "This label still carried a retired A/B/C/D/X letter. It has been removed here: rely on the narrative text below.", PlGrey)
+                                        BannerCard("Older Label Format", "This label still carried a retired A/B/C/D/X letter. It has been removed here: rely on the narrative text below.", PlGrey)
                                         Spacer(Modifier.height(12.dp))
                                     }
                                     pregClean?.takeIf { it.isNotBlank() }?.let { clean ->
@@ -1008,11 +1012,11 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             } else {
                                 if (lactPart == null) {
                                     if (lactMed == null) {
-                                        BannerCard("No lactation section on file", "Check LactMed (NLM) or the full product labelling. Use the RID tab if milk data are available.", PlGrey)
+                                        BannerCard("No Lactation Section on File", "Check LactMed (NLM) or the full product labelling. Use the RID tab if milk data are available.", PlGrey)
                                     }
                                 } else {
                                     SignalList(lactSignals)
-                                    LabelTextCard("Lactation: label text", lactPart, PlBlue)
+                                    LabelTextCard("Lactation: Label Text", lactPart, PlBlue)
                                 }
                                 lactMed?.let { lm -> LactMedCards(lm, lmClass, { tab = 2 }, { h -> hlInput = h; tab = 1 }) }
                             }
@@ -1034,12 +1038,12 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                 steps += "If breastfeeding, estimate infant exposure with the RID tab and screen with Infant Risk"
                             }
                             steps += "Document counselling and the shared decision"
-                            BulletCard("Suggested next steps", steps, PlGreen)
+                            BulletCard("Suggested Next Steps", steps, PlGreen)
                         }
                         Disclaimer("Signals are detected from stored label wording and are not a risk classification. Verify against current product labelling and a reproductive toxicology reference before clinical decisions.")
                     }
                     1 -> {
-                        SectionTitle("Dating and exposure assessment")
+                        SectionTitle("Dating and Exposure Assessment")
                         TwoWayToggle("Pregnant", "Planning", modePlan) { modePlan = it }
                         Spacer(Modifier.height(16.dp))
                         val t12 = hlInput.toDoubleOrNull()?.takeIf { it > 0 }
@@ -1056,7 +1060,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             if (lmp != null) {
                                 Spacer(Modifier.height(12.dp))
                                 val gw = (lmp.gaDays / 7).toInt()
-                                InfoCard("Gestational age today", exGa(lmp.gaDays), "${triOf(gw)} · EDD ${lmp.edd} (Naegele) · conception ≈ ${lmp.conception}")
+                                InfoCard("Gestational Age Today", exGa(lmp.gaDays), "${triOf(gw)} · EDD ${lmp.edd} (Naegele) · conception ≈ ${lmp.conception}")
                                 TextButton(onClick = { lastGa = gw.toString() }) { Text("Use week $gw as last-dose week") }
                             } else if (lmpD.isNotEmpty() && lmpM.isNotEmpty() && lmpY.length == 4) {
                                 Text("Enter a valid LMP within the last 300 days.", fontSize = 13.sp, color = PlRed)
@@ -1082,17 +1086,17 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                 val overlapOrg = lo <= 10 && hi >= 5
                                 val allOrNone = hi <= 4 && lo >= 3
                                 when {
-                                    overlapOrg -> BannerCard("Overlaps organogenesis", "Exposure includes GA weeks 5–10, the period of greatest susceptibility to structural malformations.", PlRed)
-                                    allOrNone -> BannerCard("All-or-none period", "Exposure was within the first 2 weeks after conception: usually loss of the conceptus or no effect. Long half-life drugs may persist.", PlAmber)
-                                    lo > 10 && lo <= 27 -> BannerCard("After organogenesis", "Structural risk is lower, but growth, CNS and functional effects remain possible.", PlAmber)
-                                    lo > 27 -> BannerCard("Late pregnancy", "Main concerns are neonatal adaptation effects and labour or delivery considerations.", PlBlue)
-                                    else -> BannerCard("Before conception", "Exposure ended before fertilisation. Check whether the drug persists (below).", PlBlue)
+                                    overlapOrg -> BannerCard("Overlaps Organogenesis", "Exposure includes GA weeks 5–10, the period of greatest susceptibility to structural malformations.", PlRed)
+                                    allOrNone -> BannerCard("All-or-None Period", "Exposure was within the first 2 weeks after conception: usually loss of the conceptus or no effect. Long half-life drugs may persist.", PlAmber)
+                                    lo > 10 && lo <= 27 -> BannerCard("After Organogenesis", "Structural risk is lower, but growth, CNS and functional effects remain possible.", PlAmber)
+                                    lo > 27 -> BannerCard("Late Pregnancy", "Main concerns are neonatal adaptation effects and labour or delivery considerations.", PlBlue)
+                                    else -> BannerCard("Before Conception", "Exposure ended before fertilisation. Check whether the drug persists (below).", PlBlue)
                                 }
                                 Spacer(Modifier.height(12.dp))
                                 Text("Week $lo: ${exPhase(lo)}", fontSize = 14.sp, textAlign = TextAlign.Start)
                                 if (hi != lo) Text("Week $hi: ${exPhase(hi)}", fontSize = 14.sp, textAlign = TextAlign.Start)
                                 Spacer(Modifier.height(16.dp))
-                                SectionTitle("Organ systems in the exposure window")
+                                SectionTitle("Organ Systems in the Exposure Window")
                                 val maxW = 16
                                 Row(Modifier.fillMaxWidth()) {
                                     Column(Modifier.width(78.dp)) {
@@ -1130,7 +1134,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                 if (t12 != null) {
                                     Spacer(Modifier.height(16.dp))
                                     val endGa = hi + t12 * 5 / 168.0
-                                    InfoCard("Estimated elimination after last dose", exDur(t12 * 5), "5 half-lives (≈97% eliminated) · drug present until ≈ GA ${plNum(endGa)} weeks")
+                                    InfoCard("Estimated Elimination After Last Dose", exDur(t12 * 5), "5 half-lives (≈97% eliminated) · drug present until ≈ GA ${plNum(endGa)} weeks")
                                     if (hi < 5 && endGa >= 5) {
                                         Spacer(Modifier.height(8.dp))
                                         Text("The drug may still be present when organogenesis begins (GA week 5).", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PlRed, textAlign = TextAlign.Start)
@@ -1147,7 +1151,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             }
                             if (t12 != null) {
                                 Spacer(Modifier.height(16.dp))
-                                InfoCard("Suggested drug-free interval before conception", exDur(t12 * 5), "At least 5 half-lives (≈97% eliminated)")
+                                InfoCard("Suggested Drug-Free Interval Before Conception", exDur(t12 * 5), "At least 5 half-lives (≈97% eliminated)")
                                 Spacer(Modifier.height(12.dp))
                                 BulletCard(
                                     "Planning considerations",
@@ -1227,16 +1231,16 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             Text(verdict, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = vcol, textAlign = TextAlign.Start)
                             infantWt.toDoubleOrNull()?.takeIf { it > 0 }?.let { iw ->
                                 Spacer(Modifier.height(12.dp))
-                                InfoCard("Absolute infant dose", "${plNum(infant * iw)} mg/day", "Infant weight ${plNum(iw)} kg")
+                                InfoCard("Absolute Infant Dose", "${plNum(infant * iw)} mg/day", "Infant weight ${plNum(iw)} kg")
                             }
                             pedDose.toDoubleOrNull()?.takeIf { it > 0 }?.let { pd ->
                                 Spacer(Modifier.height(12.dp))
-                                InfoCard("Percent of infant therapeutic dose", "${plNum(infant / pd * 100)}%", "Infant exposure ÷ therapeutic dose (${plNum(pd)} mg/kg/day)")
+                                InfoCard("Percent of Infant Therapeutic Dose", "${plNum(infant / pd * 100)}%", "Infant exposure ÷ therapeutic dose (${plNum(pd)} mg/kg/day)")
                             }
                         }
                         lactMed?.levels?.takeIf { it.isNotBlank() }?.let { lv ->
                             Spacer(Modifier.height(16.dp))
-                            LabelTextCard("Milk level data (LactMed)", cleanLm(lv), PlBlue)
+                            LabelTextCard("Milk Level Data (LactMed)", cleanLm(lv), PlBlue)
                             Text(
                                 "Use average milk concentrations from these studies in the milk level field. Peak values overestimate the daily dose.",
                                 fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify,
@@ -1247,14 +1251,14 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                         Disclaimer("RID = infant dose ÷ maternal dose × 100, with infant dose = milk concentration × milk intake (default 150 mL/kg/day). The 10% and 25% cut-offs are commonly used guides. Peak and average milk levels differ, prematurity and young age raise vulnerability, and some agents (for example cytotoxics and radiopharmaceuticals) warrant caution regardless of RID.")
                     }
                     else -> {
-                        SectionTitle("Infant risk-factor screen")
+                        SectionTitle("Infant Risk-Factor Screen")
                         Text("Tick every factor that applies. This heuristic screen supports, but does not replace, clinical judgement.", fontSize = 13.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (drug != null && loaded && lactStrong > 0) {
                             Spacer(Modifier.height(8.dp))
                             Text("The label for ${drug?.name} contains lactation caution wording. Consider ticking the last risk item.", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PlAmber, textAlign = TextAlign.Start)
                         }
                         Spacer(Modifier.height(12.dp))
-                        Text("Risk factors", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = PlRed)
+                        Text("Risk Factors", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = PlRed)
                         infantRiskFactors.forEach { f ->
                             CheckRow(f.text, riskChecked[f.text] == true) { riskChecked[f.text] = riskChecked[f.text] != true }
                         }
@@ -1262,7 +1266,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                             riskChecked[infantCritical.text] = riskChecked[infantCritical.text] != true
                         }
                         Spacer(Modifier.height(12.dp))
-                        Text("Protective factors", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = PlGreen)
+                        Text("Protective Factors", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = PlGreen)
                         infantProtective.forEach { t ->
                             CheckRow(t, riskChecked[t] == true) { riskChecked[t] = riskChecked[t] != true }
                         }
@@ -1294,7 +1298,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                 "Re-screen if the infant is very young, preterm or unwell, or if the regimen changes"
                             )
                         }
-                        BulletCard("Suggested monitoring", advice, lcol)
+                        BulletCard("Suggested Monitoring", advice, lcol)
                         Spacer(Modifier.height(12.dp))
                         TextButton(onClick = { riskChecked.clear() }) { Text("Clear all") }
                         Disclaimer("This is a heuristic screening aid based on commonly cited determinants of infant drug exposure (infant age and maturity, drug half-life, protein binding, lipophilicity, oral bioavailability and CNS activity). It is not a validated score. Always verify against LactMed or an equivalent reference.")
