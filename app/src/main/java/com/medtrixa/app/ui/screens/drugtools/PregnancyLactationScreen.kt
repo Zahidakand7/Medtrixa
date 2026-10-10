@@ -509,13 +509,13 @@ private fun WelcomeCard(onTry: (String) -> Unit) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.height(8.dp))
         Box(
-            Modifier.size(84.dp).clip(CircleShape).background(Brush.linearGradient(listOf(PlTeal, PlPink))),
+            Modifier.size(56.dp).clip(CircleShape).background(Brush.linearGradient(listOf(PlTeal, PlPink))),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Filled.Search, contentDescription = null, tint = Color.White, modifier = Modifier.size(38.dp))
+            Icon(Icons.Filled.Search, contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
         }
         Spacer(Modifier.height(16.dp))
-        Text("Check a Drug in Pregnancy and Lactation", fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, color = PlInk)
+        FitLine("Check a Drug in Pregnancy and Lactation", PlInk, 17f, 12f, true)
         Spacer(Modifier.height(6.dp))
         Text("Type a drug name in the search box above.", fontSize = 14.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(14.dp))
