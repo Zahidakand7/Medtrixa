@@ -1,12 +1,14 @@
 package com.medtrixa.app.ui.screens.drugtools
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
@@ -174,9 +177,6 @@ private fun affirm(t: String, p: String): Boolean =
 private fun detectPregSignals(t: String): List<Signal> {
     val out = mutableListOf<Signal>()
     fun has(p: String) = affirm(t, p)
-    detectPregCategory(t)?.let { c ->
-        out += Signal("Legacy FDA Pregnancy Category $c", when (c) { "X" -> 2; "D", "C" -> 1; else -> 0 })
-    }
     if (has("contraindicated (in|during) pregnan|contraindicated in women who (are|may)"))
         out += Signal("Contraindicated in pregnancy", 2)
     if (has("embryo-?fetal toxicity|fetal toxicity|(can|may) cause fetal harm"))
@@ -189,6 +189,14 @@ private fun detectPregSignals(t: String): List<Signal> {
         out += Signal("Oligohydramnios (fetal renal effect) wording", 1)
     if (has("no adequate and well-controlled|insufficient data|limited data|not sufficient to"))
         out += Signal("Human data limited or insufficient", 0)
+    if (has("pregnancy test|effective contraception|verify (the )?pregnancy status|\\bREMS\\b"))
+        out += Signal("Pregnancy testing / contraception / REMS requirement", 1)
+    if (has("neural tube|folic acid|folate"))
+        out += Signal("Neural tube / folate-related wording", 1)
+    if (has("dos(e|ing) (adjustments?|changes?|requirements?) (during|in) pregnancy|during pregnancy and the postpartum"))
+        out += Signal("Dose adjustment during pregnancy discussed", 0)
+    if (has("pregnancy exposure registry"))
+        out += Signal("Pregnancy exposure registry available", 0)
     if (has("animal reproduction studies"))
         out += Signal("Animal reproduction data referenced", 0)
     return out
@@ -280,14 +288,170 @@ private fun lactMedSignals(summary: String): List<Signal> {
     return out
 }
 
-private fun detectPregCategory(t: String): String? =
-    Regex("""(?i:pregnancy\s+(?:risk\s+)?category)\s*[:\-–]?\s*([ABCDX])\b""").find(t)?.groupValues?.get(1)
+// ---- PLLR (Pregnancy and Lactation Labeling Rule): letter categories A/B/C/D/X are retired and never shown ----
+private val legacyCatRx = Regex("""(?i:(?:teratogenic effects:?\s*)?(?:FDA\s+)?pregnancy\s+(?:risk\s+)?category)\s*[:\-–]?\s*[ABCDX]\b\.?""")
 
-private fun pregCategoryColor(c: String): Color = when (c) {
-    "A", "B" -> PlGreen
-    "C" -> PlAmber
-    else -> PlRed
+private fun hasLegacyCategory(t: String): Boolean = legacyCatRx.containsMatchIn(t)
+
+private fun stripLegacyCategory(t: String): String =
+    legacyCatRx.replace(t, "").replace(Regex("[ \\t]{2,}"), " ").replace(Regex("\\n{3,}"), "\n\n").trim()
+
+private data class PllrBlock(val title: String, val body: String)
+
+private val pllrHeadRx = Regex(
+    "(?m)^[ \\t]*(?:8\\.[13]\\s+)?(Pregnancy Exposure Registry|Risk Summary|Clinical Considerations|Human Data|Animal Data|Females and Males of Reproductive Potential)\\b"
+)
+
+private fun parsePllr(text: String): List<PllrBlock> {
+    val ms = pllrHeadRx.findAll(text).toList()
+    if (ms.isEmpty()) return listOf(PllrBlock("Label text", text.trim()))
+    val out = mutableListOf<PllrBlock>()
+    val pre = text.substring(0, ms.first().range.first).trim().replace(Regex("\\s*\\b8\\.\\d\\s*$"), "")
+    if (pre.length > 40) out += PllrBlock("Overview", pre)
+    ms.forEachIndexed { i, m ->
+        val end = if (i + 1 < ms.size) ms[i + 1].range.first else text.length
+        val body = text.substring(m.range.last + 1, end).trim().replace(Regex("\\s*\\b8\\.\\d\\s*$"), "").trim()
+        if (body.isNotEmpty()) out += PllrBlock(m.groupValues[1], body)
+    }
+    return out
 }
+
+private fun pllrAccent(title: String): Color = when (title) {
+    "Risk Summary" -> PlPink
+    "Clinical Considerations" -> PlBlue
+    "Human Data" -> PlGreen
+    "Animal Data" -> PlAmber
+    else -> PlGrey
+}
+
+private fun levelStep(hasText: Boolean, strong: Int): Int = when {
+    !hasText -> 0
+    strong == 2 -> 3
+    strong == 1 -> 2
+    else -> 1
+}
+
+private fun cleanLm(t: String): String =
+    t.replace("[-]", "")
+        .replace(Regex("""\[\d+(?:\s*[,-]\s*\d+)*\]"""), "")
+        .replace(Regex("[ \\t]{2,}"), " ")
+        .replace(Regex(" +([.,;])"), "$1")
+        .trim()
+
+// ---- Published values: RID % and half-life read from the LactMed text ----
+private data class PubValues(
+    val rid: Double?, val ridPrefix: String, val ridLow: Double?, val ridReports: Int, val ridQuote: String?,
+    val hlHours: Double?, val hlText: String?, val hlQuote: String?
+)
+
+private val ridRx = Regex("""(?:relative infant dose|\bRID\b)[^.%]{0,100}?([<>≤≥~]|about |approximately |up to )?\s*(\d{1,3}(?:\.\d+)?)\s*%""", RegexOption.IGNORE_CASE)
+private val hlRx = Regex("""half-?life[^.\d]{0,60}?(\d+(?:\.\d+)?)(?:\s*(?:to|-|–|and)\s*(\d+(?:\.\d+)?))?\s*(minutes?|mins?|hours?|hrs?|h|days?|weeks?)\b""", RegexOption.IGNORE_CASE)
+
+private fun extractPublished(lm: LactMedResult): PubValues? {
+    val text = cleanLm(lm.summary + "\n" + lm.levels)
+    val rids = ridRx.findAll(text).mapNotNull { m ->
+        val v = m.groupValues[2].toDoubleOrNull() ?: return@mapNotNull null
+        if (v <= 0.0 || v > 200.0) return@mapNotNull null
+        val q = m.groupValues[1].trim()
+        Triple(v, if (q == "<" || q == "≤") "<" else "", m.value.replace(Regex("\\s+"), " ").take(150))
+    }.toList()
+    val top = rids.maxByOrNull { it.first }
+    val hl = hlRx.find(text)
+    var hours: Double? = null
+    var hlText: String? = null
+    if (hl != null) {
+        val a = hl.groupValues[1].toDoubleOrNull()
+        val b = hl.groupValues[2].toDoubleOrNull()
+        val u = hl.groupValues[3].lowercase()
+        if (a != null) {
+            val hi = b ?: a
+            val (mult, short) = when {
+                u.startsWith("min") -> 1.0 / 60.0 to "min"
+                u.startsWith("h") -> 1.0 to "h"
+                u.startsWith("d") -> 24.0 to "d"
+                else -> 168.0 to "wk"
+            }
+            hours = hi * mult
+            hlText = plNum(a) + (if (b != null) "–" + plNum(b) else "") + " " + short
+        }
+    }
+    if (top == null && hours == null) return null
+    return PubValues(
+        rid = top?.first, ridPrefix = top?.second ?: "", ridLow = rids.minOfOrNull { it.first },
+        ridReports = rids.map { it.first }.distinct().size, ridQuote = top?.third,
+        hlHours = hours, hlText = hlText, hlQuote = hl?.value?.replace(Regex("\\s+"), " ")?.take(150)
+    )
+}
+
+@Composable
+private fun PublishedValuesCard(pv: PubValues, onOpenRid: () -> Unit, onUseHalfLife: (String) -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, PlBlue.copy(alpha = 0.25f))
+    ) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(Modifier.width(5.dp).fillMaxHeight().background(PlBlue))
+            Column(Modifier.weight(1f).padding(16.dp)) {
+                Text("Published values", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = PlBlue)
+                Text("Read automatically from the LactMed text", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                pv.rid?.let { rid ->
+                    val col = when { rid < 10 -> PlGreen; rid <= 25 -> PlAmber; else -> PlRed }
+                    val band = when { rid < 10 -> "Below 10%"; rid <= 25 -> "10–25%"; else -> "Above 25%" }
+                    Spacer(Modifier.height(14.dp))
+                    Text("RELATIVE INFANT DOSE", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("${pv.ridPrefix}${plNum(rid)}%", fontSize = 34.sp, fontWeight = FontWeight.Bold, color = col)
+                        Pill(band, col)
+                    }
+                    if (pv.ridReports > 1 && pv.ridLow != null) {
+                        Text("Highest of ${pv.ridReports} reported values (${plNum(pv.ridLow)}–${plNum(rid)}%)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Canvas(Modifier.fillMaxWidth().height(12.dp)) {
+                        val w = size.width
+                        val h = size.height
+                        var x = 0f
+                        listOf(10f to PlGreen, 15f to PlAmber, 15f to PlRed).forEach { (len, c) ->
+                            val zw = len / 40f * w
+                            drawRect(c, Offset(x, 0f), Size(zw, h))
+                            x += zw
+                        }
+                        val mx = (minOf(rid, 40.0) / 40.0 * w).toFloat()
+                        drawRect(PlInk, Offset(mx - 3f, 0f), Size(6f, h))
+                    }
+                    pv.ridQuote?.let {
+                        Spacer(Modifier.height(6.dp))
+                        Text("“$it”", fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    TextButton(onClick = onOpenRid) { Text("Open RID calculator") }
+                }
+                if (pv.rid != null && pv.hlHours != null) {
+                    Spacer(Modifier.height(6.dp))
+                    Box(Modifier.fillMaxWidth().height(1.dp).background(PlGrey.copy(alpha = 0.2f)))
+                }
+                pv.hlHours?.let { hrs ->
+                    val t = hrs * 5
+                    val clear = when { t < 1.0 -> "under 1 h"; t < 48.0 -> plNum(t) + " h"; else -> plNum(t / 24.0) + " d" }
+                    Spacer(Modifier.height(12.dp))
+                    Text("HALF-LIFE", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(pv.hlText ?: "", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                        Text("≈ $clear to clear (5 half-lives)", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp))
+                    }
+                    pv.hlQuote?.let {
+                        Spacer(Modifier.height(6.dp))
+                        Text("“$it”", fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text("Check the quote: LactMed sometimes gives the infant or milk half-life.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton(onClick = { onUseHalfLife(plNum(hrs)) }) { Text("Use half-life in Exposure") }
+                }
+            }
+        }
+    }
+}
+
+private fun lmStep(c: LmClass): Int = when (c.key) { "avoid" -> 3; "caution" -> 2; "ok", "ok_monitor" -> 1; else -> 0 }
 
 @Composable
 private fun SectionTitle(text: String) {
@@ -304,7 +468,12 @@ private fun EmptyState(msg: String) {
 
 @Composable
 private fun BannerCard(title: String, note: String, color: Color) {
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f))) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.3f)),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f))
+    ) {
         Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = color, textAlign = TextAlign.Center)
             Spacer(Modifier.height(6.dp))
@@ -327,14 +496,41 @@ private fun InfoCard(title: String, value: String, note: String) {
 }
 
 @Composable
-private fun GlanceCard(modifier: Modifier, title: String, label: String, color: Color, source: String = "from label wording") {
-    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.12f))) {
+private fun ConcernMeter(step: Int, color: Color) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        for (i in 1..3) {
+            val on = step >= i
+            Box(
+                Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp))
+                    .background(if (on) color else Color(0xFF94A3B8).copy(alpha = 0.28f))
+            )
+        }
+    }
+}
+
+@Composable
+private fun Pill(text: String, color: Color) {
+    Box(Modifier.clip(RoundedCornerShape(50)).background(color.copy(alpha = 0.14f)).padding(horizontal = 10.dp, vertical = 4.dp)) {
+        Text(text, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = color, maxLines = 1)
+    }
+}
+
+@Composable
+private fun GlanceCard(modifier: Modifier, title: String, label: String, color: Color, source: String = "from label wording", step: Int = 0) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.3f)),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.10f))
+    ) {
         Column(Modifier.fillMaxWidth().padding(14.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(title, fontSize = 13.sp, textAlign = TextAlign.Center)
+            Text(title.uppercase(), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(6.dp))
             Text(label, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = color, textAlign = TextAlign.Center)
-            Spacer(Modifier.height(4.dp))
-            Text(source, fontSize = 11.sp, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(8.dp))
+            ConcernMeter(step, color)
+            Spacer(Modifier.height(6.dp))
+            Text(source, fontSize = 11.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -358,17 +554,51 @@ private fun SignalList(signals: List<Signal>, title: String = "Signals found in 
 private fun LabelTextCard(title: String, text: String, accent: Color) {
     var expanded by remember(text) { mutableStateOf(false) }
     val long = text.length > 700
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            Text(title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = accent)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                if (expanded || !long) text else text.take(700).trimEnd() + "…",
-                fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Start
-            )
-            if (long) {
-                TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Show less" else "Show full text") }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.25f))
+    ) {
+        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(Modifier.width(5.dp).fillMaxHeight().background(accent))
+            Column(Modifier.weight(1f).padding(16.dp)) {
+                Text(title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = accent)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    if (expanded || !long) text else text.take(700).trimEnd() + "…",
+                    fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Start
+                )
+                if (long) {
+                    TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Show less" else "Show full text") }
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun EvidenceStrip(human: Boolean, animal: Boolean, registry: Boolean) {
+    Column(Modifier.fillMaxWidth()) {
+        Text("Evidence in label", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Pill(if (human) "Human data" else "No human data", if (human) PlGreen else PlGrey)
+            Pill(if (animal) "Animal data" else "No animal data", if (animal) PlAmber else PlGrey)
+            Pill(if (registry) "Registry" else "No registry", if (registry) PlBlue else PlGrey)
+        }
+    }
+}
+
+@Composable
+private fun PllrNote() {
+    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = PlGrey.copy(alpha = 0.08f))) {
+        Column(Modifier.fillMaxWidth().padding(14.dp)) {
+            Text("About US pregnancy labelling", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Current US labelling follows the Pregnancy and Lactation Labeling Rule (PLLR). It replaced the retired A, B, C, D and X letter categories with a narrative Risk Summary, Clinical Considerations and Data. Medtrixa does not show letter categories.",
+                fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -393,19 +623,24 @@ private fun RatingReason(c: LmClass) {
 }
 
 @Composable
-private fun LactMedCards(lm: LactMedResult, cls: LmClass?) {
+private fun LactMedCards(lm: LactMedResult, cls: LmClass?, onOpenRid: () -> Unit = {}, onUseHalfLife: (String) -> Unit = {}) {
     cls?.let {
         Spacer(Modifier.height(12.dp))
         RatingReason(it)
     }
+    val pub = remember(lm) { extractPublished(lm) }
+    pub?.let {
+        Spacer(Modifier.height(12.dp))
+        PublishedValuesCard(it, onOpenRid, onUseHalfLife)
+    }
     if (lm.summary.isNotBlank()) {
         Spacer(Modifier.height(12.dp))
         SignalList(lactMedSignals(lm.summary), "Signals found in LactMed summary")
-        LabelTextCard("LactMed: summary of use during lactation", lm.summary, PlBlue)
+        LabelTextCard("LactMed: summary of use during lactation", cleanLm(lm.summary), PlBlue)
     }
     if (lm.infant.isNotBlank()) {
         Spacer(Modifier.height(12.dp))
-        LabelTextCard("LactMed: effects in breastfed infants", lm.infant, PlBlue)
+        LabelTextCard("LactMed: effects in breastfed infants", cleanLm(lm.infant), PlBlue)
     }
     Spacer(Modifier.height(8.dp))
     Text(
@@ -541,7 +776,9 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
     val labelLactStrong = lactSignals.filter { it.level > 0 }.maxOfOrNull { it.level } ?: 0
     val lmClass = remember(lactMed) { lactMed?.summary?.takeIf { it.isNotBlank() }?.let { classifyLactMed(it) } }
     val lactStrong = lmClass?.level ?: labelLactStrong
-    val pregCat = remember(pregText) { pregPart?.let { detectPregCategory(it) } }
+    val pregLegacy = remember(pregPart) { pregPart?.let { hasLegacyCategory(it) } ?: false }
+    val pregClean = remember(pregPart) { pregPart?.let { stripLegacyCategory(it) } }
+    val pregPllr = remember(pregClean) { pregClean?.contains("Risk Summary") == true }
     val tabs = listOf("Drug", "Exposure", "RID", "Infant Risk")
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -596,31 +833,39 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                         if (drug == null || !loaded) {
                             EmptyState("Search a drug to check its safety in pregnancy and lactation.")
                         } else {
-                            val (pl, pc) = if (pregCat != null) "Category $pregCat" to pregCategoryColor(pregCat) else levelOf(pregText != null, pregStrong)
+                            val (pl, pc) = levelOf(pregText != null, pregStrong)
                             val pregSource = when {
-                                pregCat != null -> "legacy FDA category"
-                                pregText != null -> "label wording · no letter category"
+                                pregText == null -> "no label data"
+                                pregPllr -> "PLLR label narrative"
+                                pregLegacy -> "older label wording · letter retired"
                                 else -> "from label wording"
                             }
                             val lactFromLactMed = lmClass != null
                             val (ll, lc) = if (lmClass != null) lmClass.label to lmClass.color else levelOf(lactPart != null, labelLactStrong)
-                            Card(modifier = Modifier.fillMaxWidth()) {
-                                Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(drug?.name ?: "", fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                            Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(22.dp)) {
+                                Column(
+                                    Modifier.fillMaxWidth()
+                                        .background(Brush.linearGradient(listOf(PlPink.copy(alpha = 0.16f), PlBlue.copy(alpha = 0.16f))))
+                                        .padding(18.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(drug?.name ?: "", fontSize = 22.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                                     drug?.drugClass?.let {
                                         Text(it, fontSize = 13.sp, textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
-                                    halfLifeLabel?.takeIf { it.length <= 60 }?.let {
-                                        Spacer(Modifier.height(4.dp))
-                                        Text("Half-life: $it", fontSize = 13.sp, textAlign = TextAlign.Center)
+                                    Spacer(Modifier.height(10.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        halfLifeLabel?.takeIf { it.length <= 40 }?.let { Pill("t½ $it", PlGrey) }
+                                        if (pregPllr) Pill("PLLR label", PlPink)
+                                        lactMed?.revised?.takeIf { it.isNotBlank() }?.let { Pill("LactMed $it", PlBlue) }
                                     }
                                 }
                             }
                             Spacer(Modifier.height(12.dp))
                             Row(Modifier.fillMaxWidth()) {
-                                GlanceCard(Modifier.weight(1f), "Pregnancy", pl, pc, pregSource)
+                                GlanceCard(Modifier.weight(1f), "Pregnancy", pl, pc, pregSource, levelStep(pregText != null, pregStrong))
                                 Spacer(Modifier.width(12.dp))
-                                GlanceCard(Modifier.weight(1f), "Lactation", ll, lc, if (lactFromLactMed) (if (lmClass?.review == true) "LactMed · verify wording" else "from LactMed") else "from label wording")
+                                GlanceCard(Modifier.weight(1f), "Lactation", ll, lc, if (lactFromLactMed) (if (lmClass?.review == true) "LactMed · verify wording" else "from LactMed") else "from label wording", lmClass?.let { lmStep(it) } ?: levelStep(lactPart != null, labelLactStrong))
                             }
                             Spacer(Modifier.height(16.dp))
                             TwoWayToggle("Pregnancy", "Lactation", section) { section = it }
@@ -630,12 +875,26 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                     BannerCard("No pregnancy section on file", "Consult current product labelling and a reproductive toxicology reference.", PlGrey)
                                 } else {
                                     SignalList(pregSignals)
-                                    pregPart?.takeIf { it.isNotBlank() }?.let { LabelTextCard("Pregnancy: label text", it, PlPink) }
-                                    Spacer(Modifier.height(12.dp))
-                                    Text(
-                                        "Current US labelling follows the Pregnancy and Lactation Labeling Rule (PLLR), which replaced the A, B, C, D and X letter categories with a narrative Risk Summary, Clinical Considerations and Data. Older labels may still show a letter category.",
-                                        fontSize = 12.sp, textAlign = TextAlign.Justify, color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    if (pregLegacy) {
+                                        BannerCard("Older label format", "This label still carried a retired A/B/C/D/X letter. It has been removed here: rely on the narrative text below.", PlGrey)
+                                        Spacer(Modifier.height(12.dp))
+                                    }
+                                    pregClean?.takeIf { it.isNotBlank() }?.let { clean ->
+                                        val blocks = parsePllr(clean)
+                                        if (pregPllr) {
+                                            EvidenceStrip(
+                                                human = blocks.any { it.title == "Human Data" },
+                                                animal = blocks.any { it.title == "Animal Data" },
+                                                registry = blocks.any { it.title == "Pregnancy Exposure Registry" } || clean.contains("exposure registry", ignoreCase = true)
+                                            )
+                                            Spacer(Modifier.height(12.dp))
+                                        }
+                                        blocks.forEach { b ->
+                                            LabelTextCard(b.title, b.body, pllrAccent(b.title))
+                                            Spacer(Modifier.height(12.dp))
+                                        }
+                                    }
+                                    PllrNote()
                                 }
                             } else {
                                 if (lactPart == null) {
@@ -646,7 +905,7 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                                     SignalList(lactSignals)
                                     LabelTextCard("Lactation: label text", lactPart, PlBlue)
                                 }
-                                lactMed?.let { lm -> LactMedCards(lm, lmClass) }
+                                lactMed?.let { lm -> LactMedCards(lm, lmClass, { tab = 2 }, { h -> hlInput = h; tab = 1 }) }
                             }
                             Spacer(Modifier.height(16.dp))
                             val steps = mutableListOf<String>()
