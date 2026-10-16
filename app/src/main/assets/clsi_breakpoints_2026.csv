@@ -1,0 +1,33 @@
+antibiotic,enterobacterales,pseudomonas,crab,stenotrophomonas,footnote
+Amikacin,≤4,≤16,--,--,Pseudomonas breakpoint applies to urinary tract infections only.
+Ampicillin-sulbactam,--,--,≤8/4,--,
+Aztreonam,≤4,≤8,--,--,
+Aztreonam-avibactam,≤4/4,--,--,--,No CLSI or FDA breakpoint exists for S. maltophilia.
+Cefepime,≤2,≤8,--,--,"Enterobacterales MICs of 4-8 µg/mL are susceptible-dose-dependent (use high-dose, extended infusion)."
+Cefepime-enmetazobactam,≤8/8,--,--,--,No CLSI breakpoint; FDA breakpoint listed.
+Cefiderocol,≤4,≤4,≤4,≤1,
+Ceftazidime,≤4,≤8,--,--,
+Ceftazidime-avibactam,≤8/4,≤8/4,--,--,
+Ceftolozane-tazobactam,≤2/4,≤4/4,--,--,
+Ciprofloxacin,≤0.25,≤0.5,--,--,
+Colistin or polymyxin B,--,--,--,--,No susceptible category exists; MICs of 2 µg/mL or lower are categorized as intermediate.
+Ertapenem,≤0.5,--,--,--,
+Fosfomycin (intravenous),≤8,--,--,--,FDA breakpoint (no CLSI). E. coli ≤8 µg/mL; K. pneumoniae ≤32 µg/mL.
+Fosfomycin tromethamine (oral),≤64,--,--,--,Applies to E. coli urinary tract isolates only.
+Gentamicin,≤2,--,--,--,
+Gepotidacin,≤16,--,--,--,Urinary tract infection only; FDA breakpoint (no CLSI).
+Imipenem,≤1,≤2,--,--,
+Imipenem-relebactam,≤1/4,≤2/4,--,--,
+Levofloxacin,≤0.5,≤1,--,≤2,
+Meropenem,≤1,≤2,--,--,
+Meropenem-vaborbactam,≤4/8,--,--,--,
+Minocycline,≤4,--,≤1,≤1,
+Nitrofurantoin,≤32,--,--,--,Urinary tract infection only.
+Piperacillin-tazobactam,≤8/4,≤16/4,--,--,Enterobacterales MIC of 16/4 µg/mL is susceptible-dose-dependent.
+Pivmecillinam (mecillinam),≤8,--,--,--,Urinary tract infection only.
+Plazomicin,≤2,--,--,--,
+Sulbactam-durlobactam,--,--,≤4/4,--,
+Sulopenem,≤0.25,--,--,--,FDA breakpoint (no CLSI).
+Tigecycline,≤2,--,--,--,FDA breakpoint (no CLSI).
+Tobramycin,≤2,≤1,--,--,
+Trimethoprim-sulfamethoxazole,≤2/38,--,--,≤2/38,

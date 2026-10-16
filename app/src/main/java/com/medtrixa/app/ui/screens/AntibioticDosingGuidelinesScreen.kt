@@ -1,20 +1,29 @@
 package com.medtrixa.app.ui.screens
 
 import android.content.Context
-import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -22,11 +31,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medtrixa.app.data.model.AntibioticDosingGuideline
 import com.medtrixa.app.data.repository.AntibioticDosingRepository
+import com.medtrixa.app.ui.components.PremiumBackButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+private val tierFilters = listOf("All", "Preferred", "Alternative", "Step-down", "Reserve", "Avoid")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,13 +47,27 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
     BackHandler { onBackClick() }
     val context = LocalContext.current
 
+    var loaded by remember { mutableStateOf(AntibioticDosingRepository.isLoaded()) }
     LaunchedEffect(Unit) {
-        AntibioticDosingRepository.load(context)
+        if (!loaded) {
+            withContext(Dispatchers.IO) { AntibioticDosingRepository.load(context) }
+            loaded = true
+        }
     }
 
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
     var query by rememberSaveable { mutableStateOf("") }
-    val results = remember(query) {
+    var selectedGroup by rememberSaveable { mutableStateOf("All") }
+    var selectedTier by rememberSaveable { mutableStateOf("All") }
+
+    val groups = remember(loaded) {
+        listOf("All") + AntibioticDosingRepository.getAll().map { it.group }.filter { it.isNotBlank() }.distinct()
+    }
+
+    val results = remember(query, selectedGroup, selectedTier, loaded) {
         AntibioticDosingRepository.search(query)
+            .filter { selectedGroup == "All" || it.group == selectedGroup }
+            .filter { selectedTier == "All" || it.tier == selectedTier }
             .sortedBy { it.sourceStatus.contains("ARCHIVED", ignoreCase = true) }
     }
 
@@ -59,14 +86,24 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
         ) {
+            TabRow(selectedTabIndex = selectedTab) {
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 },
+                    text = { Text("Dosing", fontWeight = FontWeight.SemiBold) })
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 },
+                    text = { Text("Breakpoints", fontWeight = FontWeight.SemiBold) })
+            }
+            if (selectedTab == 1) {
+                ClsiBreakpointsPanel()
+                return@Column
+            }
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(18.dp),
                 placeholder = {
                     AutoSizeText(
                         text = "Search Indication, Organism or Antibiotic",
@@ -74,23 +111,124 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
                     )
                 },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (query.isNotEmpty()) {
+                        IconButton(onClick = { query = "" }) {
+                            Icon(Icons.Default.Close, contentDescription = "Clear search")
+                        }
+                    }
+                },
                 singleLine = true,
                 maxLines = 1
             )
 
+            FilterRow(
+                options = groups,
+                selected = selectedGroup,
+                colorFor = { if (it == "All") MaterialTheme.colorScheme.primary else groupColor(it) },
+                onSelect = { selectedGroup = it }
+            )
+            FilterRow(
+                options = tierFilters,
+                selected = selectedTier,
+                colorFor = { if (it == "All") MaterialTheme.colorScheme.primary else tierColor(it) },
+                onSelect = { selectedTier = it }
+            )
+
             if (results.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No matching guidelines found.")
+                    Text(if (loaded) "No matching guidelines found." else "Loading guidelines\u2026")
                 }
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 28.dp)
                 ) {
-                    itemsIndexed(results) { index, guideline ->
-                        GuidelineCard(guideline, index)
+                    item { HeroBanner(count = results.size) }
+                    items(results) { guideline ->
+                        GuidelineCard(guideline)
                     }
+                    item { DisclaimerFooter() }
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FilterRow(
+    options: List<String>,
+    selected: String,
+    colorFor: @Composable (String) -> Color,
+    onSelect: (String) -> Unit
+) {
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(bottom = 4.dp)
+    ) {
+        items(options) { option ->
+            val accent = colorFor(option)
+            FilterChip(
+                selected = option == selected,
+                onClick = { onSelect(option) },
+                label = { Text(option, fontSize = 13.sp, fontWeight = FontWeight.Medium) },
+                shape = RoundedCornerShape(50),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = accent.copy(alpha = 0.18f),
+                    selectedLabelColor = accent
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun HeroBanner(count: Int) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                Brush.linearGradient(listOf(Color(0xFF0D47A1), Color(0xFF1565C0), Color(0xFF00897B)))
+            )
+            .padding(20.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                "IDSA 2026 AMR GUIDANCE",
+                color = Color.White.copy(alpha = 0.85f),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.4.sp
+            )
+            Text(
+                "Resistant Gram-negative dosing",
+                color = Color.White,
+                fontSize = 22.sp,
+                lineHeight = 28.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "Adult doses for normal renal and hepatic function. Current as of 1 March 2026.",
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 13.sp,
+                lineHeight = 18.sp
+            )
+            Spacer(Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(Color.White.copy(alpha = 0.20f))
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    "$count regimens",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
@@ -124,69 +262,211 @@ private fun AutoSizeText(
     )
 }
 
-private val cardPalette = listOf(
-    Color(0xFFE3F2FD),
-    Color(0xFFE8F5E9),
-    Color(0xFFFFF3E0),
-    Color(0xFFF3E5F5),
-    Color(0xFFFCE4EC)
-)
+private fun groupColor(group: String): Color = when (group) {
+    "ESBL-E" -> Color(0xFF1565C0)
+    "AmpC-E" -> Color(0xFF00796B)
+    "CRE" -> Color(0xFFC62828)
+    "DTR P. aeruginosa" -> Color(0xFF6A1B9A)
+    "CRAB" -> Color(0xFFE65100)
+    "S. maltophilia" -> Color(0xFF2E7D32)
+    else -> Color(0xFF455A64)
+}
+
+private fun tierColor(tier: String): Color = when (tier) {
+    "Preferred" -> Color(0xFF2E7D32)
+    "Alternative" -> Color(0xFF1565C0)
+    "Step-down" -> Color(0xFF00838F)
+    "Reserve" -> Color(0xFFEF6C00)
+    "Avoid" -> Color(0xFFC62828)
+    else -> Color(0xFF546E7A)
+}
 
 @Composable
-private fun GuidelineCard(guideline: AntibioticDosingGuideline, index: Int) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = cardPalette[index % cardPalette.size]),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+private fun TierBadge(tier: String) {
+    if (tier.isBlank()) return
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(Color.White)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp)
-        ) {
-            AutoSizeText(
-                text = capitalizeWords(guideline.indication),
-                style = MaterialTheme.typography.titleLarge.copy(
-                    color = MaterialTheme.colorScheme.primary
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
+        Text(
+            tier.uppercase(),
+            color = tierColor(tier),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 0.8.sp
+        )
+    }
+}
 
+@Composable
+private fun GuidelineCard(guideline: AntibioticDosingGuideline) {
+    var expanded by rememberSaveable(guideline.group, guideline.indication, guideline.antibiotic, guideline.tier) {
+        mutableStateOf(false)
+    }
+    val accent = groupColor(guideline.group)
+    val isAvoid = guideline.tier == "Avoid"
+    val hasDose = guideline.dose.isNotBlank() && guideline.dose != "Avoid" && guideline.dose != "Preserve"
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
+            .clickable { expanded = !expanded },
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.30f))
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Brush.horizontalGradient(listOf(accent, accent.copy(alpha = 0.72f))))
+                    .padding(horizontal = 18.dp, vertical = 11.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        guideline.group.ifBlank { "Guideline" },
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TierBadge(guideline.tier)
+                }
+            }
+
+            Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    guideline.antibiotic,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 22.sp
+                )
+                Text(
+                    guideline.indication,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = accent,
+                    lineHeight = 18.sp
+                )
+
+                if (hasDose) {
+                    DoseBlock(guideline, accent)
+                } else if (guideline.notes.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background((if (isAvoid) tierColor("Avoid") else accent).copy(alpha = 0.09f))
+                            .padding(14.dp)
+                    ) {
+                        Text(
+                            guideline.notes,
+                            fontSize = 13.sp,
+                            lineHeight = 19.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                if (expanded) {
+                    Spacer(Modifier.height(2.dp))
+                    DetailRow("Organisms", guideline.organisms)
+                    DetailRow("Setting", guideline.setting)
+                    DetailRow("When to use", guideline.patientGroup, justify = true)
+                    DetailRow("Duration", guideline.duration, justify = true)
+                    DetailRow("Renal Adjustment", guideline.renalAdjustment, justify = true)
+                    DetailRow("Hepatic Adjustment", guideline.hepaticAdjustment, justify = true)
+                    DetailRow("Alternatives", guideline.alternatives, justify = true)
+                    if (hasDose) DetailRow("Notes", guideline.notes, justify = true)
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        "Source: ${guideline.source}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        "Status: ${guideline.sourceStatus} \u00b7 Reviewed: ${guideline.reviewDate}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        if (expanded) "Hide details" else "Tap for details",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = accent
+                    )
+                    Icon(
+                        if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DoseBlock(guideline: AntibioticDosingGuideline, accent: Color) {
+    val doseLines = guideline.dose.split(" | ").map { it.trim() }.filter { it.isNotEmpty() }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(accent.copy(alpha = 0.09f))
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = capitalizeRegimenName(guideline.antibiotic),
-                style = MaterialTheme.typography.titleMedium.copy(fontSize = 12.sp),
+                "DOSE",
+                fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth()
+                letterSpacing = 1.2.sp,
+                color = accent,
+                modifier = Modifier.weight(1f)
             )
-
-            Spacer(modifier = Modifier.height(4.dp))
-            DetailRow("Setting", guideline.setting)
-            DetailRow("Organisms", capitalizeDrugName(guideline.organisms))
-            DetailRow("Dose", guideline.dose)
-            DetailRow("Route", guideline.route)
-            DetailRow("Frequency", guideline.frequency)
-            DetailRow("Duration", guideline.duration)
-            DetailRow("Patient Group", guideline.patientGroup)
-            DetailRow("Renal Adjustment", guideline.renalAdjustment, justify = true)
-            DetailRow("Hepatic Adjustment", guideline.hepaticAdjustment, justify = true)
-            DetailRow("Alternatives", capitalizeDrugName(guideline.alternatives), justify = true)
-            DetailRow("Notes", guideline.notes, justify = true)
-
-            Spacer(modifier = Modifier.height(4.dp))
-
+            if (guideline.route.isNotBlank() && guideline.route != "-") {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(accent.copy(alpha = 0.18f))
+                        .padding(horizontal = 10.dp, vertical = 3.dp)
+                ) {
+                    Text(guideline.route, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = accent)
+                }
+            }
+        }
+        doseLines.forEach { line ->
             Text(
-                text = "Source: ${guideline.source}",
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                line,
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
+        }
+        if (guideline.frequency.isNotBlank() && guideline.frequency != "-") {
             Text(
-                text = "Status: ${guideline.sourceStatus} \u00b7 Reviewed: ${guideline.reviewDate}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                guideline.frequency,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -194,23 +474,22 @@ private fun GuidelineCard(guideline: AntibioticDosingGuideline, index: Int) {
 
 @Composable
 private fun DetailRow(label: String, value: String, justify: Boolean = false) {
-    if (value.isBlank()) return
-    // Track whether this value actually wraps to more than one line once laid
-    // out at the card's width. Justification is only ever applied when it does;
-    // a single-line value is always rendered left-aligned.
+    if (value.isBlank() || value == "-") return
+    // Justification is only applied when the value actually wraps to more than one line;
+    // single-line values stay left-aligned.
     var isMultiLine by remember(value) { mutableStateOf(false) }
 
-    Column(modifier = Modifier.padding(vertical = 4.dp)) {
-        Text("$label:", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelMedium)
+    Column(modifier = Modifier.padding(vertical = 3.dp)) {
+        Text(
+            label.uppercase(),
+            fontWeight = FontWeight.Bold,
+            fontSize = 10.sp,
+            letterSpacing = 1.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Text(
             value,
             style = if (justify && isMultiLine) {
-                // Multi-line descriptive paragraphs: justify interior lines with
-                // natural word wrapping + hyphenation; Compose/Android's justifier
-                // (JUSTIFICATION_MODE_INTER_WORD, applied via LineBreak.Paragraph)
-                // already leaves the final line of the paragraph left-aligned and
-                // falls back to normal spacing when a line can't stretch cleanly,
-                // so word spacing never becomes sporadic or oversized.
                 MaterialTheme.typography.bodySmall.copy(
                     textAlign = TextAlign.Justify,
                     hyphens = Hyphens.Auto,
@@ -230,71 +509,17 @@ private fun DetailRow(label: String, value: String, justify: Boolean = false) {
     }
 }
 
-/**
- * Capitalizes the first letter after each word boundary (space, slash, hyphen)
- * so drug names read correctly regardless of how the source CSV cased them.
- */
-private fun capitalizeDrugName(text: String): String {
-    if (text.isBlank()) return text
-    val boundary = charArrayOf(' ', '/', '-', ';', ',', '(')
-    val sb = StringBuilder(text.length)
-    var capitalizeNext = true
-    for (c in text) {
-        if (capitalizeNext && c.isLetter()) {
-            sb.append(c.uppercaseChar())
-            capitalizeNext = false
-        } else {
-            sb.append(c)
-        }
-        if (c in boundary) capitalizeNext = true
-    }
-    return sb.toString()
-}
-
-private val regimenNameMinorWords = setOf(
-    "a", "an", "and", "as", "at", "but", "by", "e.g", "for", "from",
-    "i.e", "in", "nor", "of", "on", "or", "the", "to", "vs", "with"
-)
-
-/**
- * Headline-style capitalization for regimen/antibiotic names, e.g. turning
- * "mechanism-directed therapy (e.g., ceftazidime-avibactam for KPC-producing
- * CRE)" into "Mechanism-directed Therapy (e.g., Ceftazidime-Avibactam for
- * KPC-producing CRE)". Only the first letter of each space-separated word is
- * ever touched; everything after it (hyphenated suffixes, acronym casing
- * such as "KPC", internal punctuation) is left exactly as the source data
- * has it. Small connector words (for, e.g., of, ...) stay lowercase unless
- * they are the first word of the string.
- */
-private fun capitalizeRegimenName(text: String): String {
-    if (text.isBlank()) return text
-    val withoutAbbrevComma = text.replace(Regex("(?i)\\b(e\\.g|i\\.e)\\.,"), "$1.")
-    val words = withoutAbbrevComma.split(" ")
-    val formatted = words.mapIndexed { index, word ->
-        val letterIdx = word.indexOfFirst { it.isLetter() }
-        if (letterIdx == -1) return@mapIndexed word
-        val prefix = word.substring(0, letterIdx)
-        val core = word.substring(letterIdx)
-        val strippedForCheck = core.trimEnd(',', '.', ')', ';').lowercase()
-        val isMinor = index != 0 && strippedForCheck in regimenNameMinorWords
-        val firstChar = if (isMinor) core[0].lowercaseChar() else core[0].uppercaseChar()
-        prefix + firstChar + core.substring(1)
-    }.joinToString(" ")
-    // Force the parenthetical clause onto its own line rather than leaving the
-    // break to natural word-wrap, which shifts with screen width/font size.
-    return formatted.replaceFirst(" (", "\n(")
-}
-
-/**
- * Capitalizes the first letter of every word so indication titles read as
- * Title Case regardless of how the source CSV cased them.
- */
-private fun capitalizeWords(text: String): String {
-    if (text.isBlank()) return text
-    return text.split(" ").joinToString(" ") { word ->
-        if (word.isEmpty()) word
-        else word.replaceFirstChar { it.uppercaseChar() }
-    }
+@Composable
+private fun DisclaimerFooter() {
+    Text(
+        "Doses follow IDSA Table 1 and may differ from FDA labeling. Susceptibility must be confirmed. " +
+            "This is clinical decision support, not a substitute for clinical judgment, local antibiograms or " +
+            "infectious diseases consultation.",
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+    )
 }
 
 fun preloadAntibioticGuidelines(context: Context) {

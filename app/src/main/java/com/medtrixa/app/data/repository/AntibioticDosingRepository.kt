@@ -29,7 +29,7 @@ object AntibioticDosingRepository {
                         val fields = parseCsvLine(line)
 
                         if (header == null) {
-                            header = fields.mapIndexed { index, name -> name.trim() to index }.toMap()
+                            header = fields.mapIndexed { index, name -> name.trim().removePrefix("\uFEFF") to index }.toMap()
                             return@forEachLine
                         }
 
@@ -54,7 +54,9 @@ object AntibioticDosingRepository {
                                 notes = col("notes"),
                                 source = col("source"),
                                 sourceStatus = col("sourceStatus"),
-                                reviewDate = col("reviewDate")
+                                reviewDate = col("reviewDate"),
+                                tier = col("tier"),
+                                group = col("group")
                             )
                         )
                     }
@@ -73,7 +75,8 @@ object AntibioticDosingRepository {
         return guidelines.filter {
             it.indication.lowercase().contains(q) ||
                 it.antibiotic.lowercase().contains(q) ||
-                it.organisms.lowercase().contains(q)
+                it.organisms.lowercase().contains(q) ||
+                it.group.lowercase().contains(q)
         }
     }
 

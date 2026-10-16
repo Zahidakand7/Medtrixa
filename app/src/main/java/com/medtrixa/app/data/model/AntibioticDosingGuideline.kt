@@ -16,5 +16,7 @@ data class AntibioticDosingGuideline(
     val notes: String,
     val source: String,
     val sourceStatus: String,
-    val reviewDate: String
+    val reviewDate: String,
+    val tier: String = "",
+    val group: String = ""
 )
