@@ -1,5 +1,7 @@
 package com.medtrixa.app.ui.screens
 import com.medtrixa.app.ui.components.AutoSizeText
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -63,19 +65,13 @@ fun AntimicrobialReferenceHubScreen(
                     .padding(horizontal = 20.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
+                PremiumBackButton(onClick = onBackClick)
 
-                Column(modifier = Modifier.padding(start = 4.dp)) {
+                Column() {
                     AutoSizeText(
                         text = "Antimicrobial Reference Hub",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
+                        style = (MaterialTheme.typography.headlineSmall).copy(fontSize = 20.sp, lineHeight = 26.sp),
+                        fontWeight = FontWeight.Bold)
 
                     Spacer(modifier = Modifier.height(4.dp))
 

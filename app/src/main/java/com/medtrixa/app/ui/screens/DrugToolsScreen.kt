@@ -1,5 +1,8 @@
 package com.medtrixa.app.ui.screens
 
+import com.medtrixa.app.ui.screens.PregnantWomanIcon
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.PregnantWoman
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.Schedule
@@ -57,16 +59,10 @@ private val drugTools = listOf(
         icon = Icons.Outlined.Block
     ),
     DrugTool(
-        id = "duplicate_therapy",
-        title = "Duplicate Therapy Checker",
-        description = "Flag drugs from the same class in a medication list",
-        icon = Icons.Outlined.ContentCopy
-    ),
-    DrugTool(
         id = "pregnancy_lactation",
         title = "Pregnancy & Lactation",
         description = "Quick safety lookup for pregnancy and breastfeeding",
-        icon = Icons.Outlined.PregnantWoman
+        icon = PregnantWomanIcon
     ),
     DrugTool(
         id = "renal_dose",
@@ -114,18 +110,12 @@ fun DrugToolsScreen(
             ) {
                 item {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
+                        PremiumBackButton(onClick = onBackClick)
                         Column {
                             Text(
                                 text = "Drug Tools",
                                 style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp
                             )
                             Text(
                                 text = "Work with a specific medicine",

@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.assess
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +39,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 
 private data class GcsOption(val points: Int, val label: String)
 
@@ -91,11 +95,9 @@ fun GcsScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Column(modifier = Modifier.padding(start = 4.dp)) {
-                    Text("Glasgow Coma Scale", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                PremiumBackButton(onClick = onBackClick)
+                Column() {
+                    Text("Glasgow Coma Scale", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp)
                     Text("Level of Consciousness Assessment", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -120,12 +122,11 @@ fun GcsScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            val severity = when {
-                total <= 8 -> "Severe Brain Injury"
-                total <= 12 -> "Moderate Brain Injury"
-                else -> "Mild Brain Injury"
+            val (bandLabel, bandColor, guidance) = when {
+                total <= 8 -> Triple("Severe (3–8)", Color(0xFFC0392B), "Secure the airway (intubation is generally indicated at GCS 8 or below). Urgent CT head and neurosurgical referral. Avoid hypoxia and hypotension, and manage raised intracranial pressure.")
+                total <= 12 -> Triple("Moderate (9–12)", Color(0xFFC27A00), "Urgent CT head and neurosurgical consultation. Admit for close monitoring with frequent repeat GCS and pupil checks. Be ready to intubate if the score falls.")
+                else -> Triple("Mild (13–15)", Color(0xFF1F9D6B), "Observe with serial neurological checks. Obtain CT head if decision-rule criteria are met, for example GCS below 15 at 2 hours, vomiting, age 65 or older, anticoagulant use or suspected skull fracture.")
             }
-            val isSevere = total <= 8
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -143,19 +144,42 @@ fun GcsScreen(
                         Text("$total / 15", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = buildAnnotatedString {
-                                append("E$eyeScore V$verbalScore M$motorScore  •  ")
-                                if (isSevere) {
-                                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.error)) {
-                                        append(severity)
-                                    }
-                                } else {
-                                    append(severity)
-                                }
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
+                            "E$eyeScore V$verbalScore M$motorScore",
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = bandLabel,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            modifier = Modifier
+                                .background(bandColor, RoundedCornerShape(20.dp))
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(guidance, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
+                        GcsNote(
+                            "Report the components",
+                            "Record E, V and M separately, not just the sum. The motor score is the strongest single predictor of outcome."
+                        )
+                        GcsNote(
+                            "Scoring",
+                            "Use the best response observed. If there is no response to a peripheral stimulus, apply a central one. Repeat serially: the trend matters more than a single score."
+                        )
+                        GcsNote(
+                            "Interpret with caution",
+                            "Sedation, paralysis, intoxication, aphasia, deafness, post-ictal state, hypoxia and hypotension can lower the score without structural injury. Intubated patients cannot give a verbal score. In children under 5 use the paediatric GCS."
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Teasdale G, Jennett B. Lancet 1974;2:81-84. Teasdale G et al. Lancet Neurol 2014;13:844-854. Use with clinical judgement.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start
                         )
                     } else {
                         Text("— / 15", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
@@ -222,5 +246,14 @@ private fun GcsSection(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun GcsNote(title: String, body: String) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(body, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Start)
     }
 }

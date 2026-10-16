@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.calculators
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -60,12 +62,9 @@ fun EgfrScreen(onBackClick: () -> Unit) {
                 .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
+                PremiumBackButton(onClick = onBackClick)
                 Column(Modifier.weight(1f)) {
-                    Text("eGFR Calculation", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text("eGFR Calculation", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge, fontSize = 20.sp, lineHeight = 26.sp)
                     Text("(CKD-EPI 2021 Creatinine Equation)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.calculators
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -58,11 +60,8 @@ fun IvDripRateScreen(onBackClick: () -> Unit) {
                 .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("IV Drip Rate", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                PremiumBackButton(onClick = onBackClick)
+                Text("IV Drip Rate", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge, fontSize = 20.sp, lineHeight = 26.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))

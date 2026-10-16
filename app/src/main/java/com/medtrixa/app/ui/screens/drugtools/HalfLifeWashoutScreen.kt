@@ -1,6 +1,7 @@
 package com.medtrixa.app.ui.screens.drugtools
 
 import androidx.activity.compose.BackHandler
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -154,19 +155,9 @@ fun HalfLifeWashoutScreen(onBackClick: () -> Unit) {
             horizontalAlignment = Alignment.Start
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 3.dp,
-                    modifier = Modifier.size(44.dp)
-                ) {
-                    IconButton(onClick = { if (stage == 1) backToSearch() else onBackClick() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-                Spacer(Modifier.width(14.dp))
+                PremiumBackButton(onClick = { if (stage == 1) backToSearch() else onBackClick() })
                 Column {
-                    Text("Half-life & Washout", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text("Half-life & Washout", fontSize = 20.sp, fontWeight = FontWeight.Bold, lineHeight = 26.sp)
                     Text(
                         "Time to steady state and time to clearance",
                         fontSize = 13.sp,

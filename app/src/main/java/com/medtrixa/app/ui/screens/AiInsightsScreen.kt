@@ -1,6 +1,7 @@
 package com.medtrixa.app.ui.screens
 
 import android.app.Activity
+import com.medtrixa.app.ui.components.PremiumBackButton
 import android.content.Intent
 import androidx.compose.material.icons.filled.Description
 import java.util.zip.ZipEntry
@@ -3303,14 +3304,12 @@ fun AiInsightsScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                }
+                PremiumBackButton(onClick = onBackClick, edgeInset = 8.dp)
                 Text(
                     "AI Insights",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f), fontSize = 20.sp, lineHeight = 26.sp
                 )
                 IconButton(onClick = {
                     keyDraft = getStoredApiKey(context, provider)
@@ -3584,14 +3583,12 @@ fun AiInsightsScreen(
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(onClick = { closeViewer() }) {
-                                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                            }
+                            PremiumBackButton(onClick = { closeViewer() }, edgeInset = 8.dp)
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     "Saved Answer",
                                     style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp
                                 )
                                 Text(
                                     "${shown.provider} · ${formatSessionTimestamp(shown.timestamp)}",

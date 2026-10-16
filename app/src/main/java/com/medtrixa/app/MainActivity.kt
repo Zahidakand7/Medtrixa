@@ -1,5 +1,8 @@
 package com.medtrixa.app
 
+import com.medtrixa.app.ui.screens.more.MoreTopicsScreen
+import com.medtrixa.app.ui.screens.more.MoreTopicDetailScreen
+import com.medtrixa.app.ui.screens.ClinicalSourcesScreen
 import com.medtrixa.app.ui.screens.preloadAntibioticGuidelines
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -24,14 +27,16 @@ import com.medtrixa.app.ui.screens.DrugToolsScreen
 import com.medtrixa.app.ui.screens.DrugSearchScreen
 import com.medtrixa.app.ui.screens.DrugDetailScreen
 import com.medtrixa.app.ui.screens.drugtools.RenalDoseAdjustmentScreen
+import com.medtrixa.app.ui.screens.drugtools.HalfLifeWashoutScreen
+import com.medtrixa.app.ui.screens.drugtools.PregnancyLactationScreen
 import com.medtrixa.app.ui.screens.drugtools.TherapeuticAlternativesScreen
 import com.medtrixa.app.ui.screens.drugtools.InteractionCheckerScreen
-import com.medtrixa.app.ui.screens.drugtools.DuplicateTherapyScreen
 import com.medtrixa.app.ui.screens.drugtools.ContraindicationCheckerScreen
 import com.medtrixa.app.ui.screens.calculators.WeightBasedDoseScreen
 import com.medtrixa.app.ui.screens.calculators.CreatinineClearanceScreen
 import com.medtrixa.app.ui.screens.calculators.PediatricDoseScreen
 import com.medtrixa.app.ui.screens.calculators.InfusionRateScreen
+import com.medtrixa.app.ui.screens.assess.PercScreen
 import com.medtrixa.app.ui.screens.assess.Curb65Screen
 import com.medtrixa.app.ui.screens.assess.Cha2ds2VascScreen
 import com.medtrixa.app.ui.screens.assess.QsofaScreen
@@ -76,6 +81,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MedtrixaRoot() {
 
+    var moreTopicId by rememberSaveable { androidx.compose.runtime.mutableStateOf("") }
     var currentScreen by rememberSaveable {
         mutableStateOf("home")
     }
@@ -140,7 +146,7 @@ private fun MedtrixaRoot() {
             "clinical_scores", "risk_assessment" -> currentScreen = "assess"
             "curb65", "heart_score", "child_pugh", "centor", "meld30", "apgar", "gcs", "qsofa" ->
                 backFromScore("clinical_scores")
-            "cha2ds2vasc", "hasbled", "wells_dvt", "wells_pe" ->
+            "cha2ds2vasc", "hasbled", "wells_dvt", "wells_pe", "perc" ->
                 backFromScore("risk_assessment")
             "calculator" -> currentScreen = "calculators"
             "ai_insights" -> {
@@ -198,6 +204,12 @@ private fun MedtrixaRoot() {
                 "Renal Dose Adjustment" -> RenalDoseAdjustmentScreen(
                     onBackClick = { currentScreen = "drug_tools" }
                 )
+                "Pregnancy & Lactation" -> PregnancyLactationScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
+                "Half-life & Washout" -> HalfLifeWashoutScreen(
+                    onBackClick = { currentScreen = "drug_tools" }
+                )
                 "Pediatric Dosing" -> PediatricDoseScreen(
                     onBackClick = { currentScreen = "drug_tools" }
                 )
@@ -214,9 +226,6 @@ private fun MedtrixaRoot() {
                         drugDetailReturnTo = "drug_tool_detail"
                         currentScreen = "drug_detail"
                     }
-                )
-                "Duplicate Therapy Checker" -> DuplicateTherapyScreen(
-                    onBackClick = { currentScreen = "drug_tools" }
                 )
                 "Contraindication Checker" -> ContraindicationCheckerScreen(
                     onBackClick = { currentScreen = "drug_tools" }
@@ -324,6 +333,7 @@ private fun MedtrixaRoot() {
         "hasbled" -> { HasBledScreen(onBackClick = { backFromScore("risk_assessment") }) }
         "wells_dvt" -> { WellsDvtScreen(onBackClick = { backFromScore("risk_assessment") }) }
         "wells_pe" -> { WellsPeScreen(onBackClick = { backFromScore("risk_assessment") }) }
+        "perc" -> { PercScreen(onBackClick = { backFromScore("risk_assessment") }) }
 
         "calculators" -> {
             CalculatorLibraryScreen(
@@ -359,29 +369,32 @@ private fun MedtrixaRoot() {
         }
 
         "more" -> {
-            HomeScreen(
+            MoreTopicsScreen(
+                onHomeClick = { currentScreen = "home" },
                 onToolsClick = { currentScreen = "tools" },
-                onMoreClick = { currentScreen = "more" },
-                onCalculateClick = { currentScreen = "calculators" },
-                onAssessClick = { currentScreen = "assess" },
-                onDrugToolsClick = { currentScreen = "drug_tools" },
-                onDrugClick = { drug ->
-                    selectedDrug = drug
-                    drugDetailReturnTo = "more"
-                    currentScreen = "drug_detail"
-                },
-                onReferenceClick = { currentScreen = "reference" },
-                onAiInsightsClick = {
-                    aiResume = false
-                    currentScreen = "ai_insights"
+                onTopicClick = { id ->
+                    moreTopicId = id
+                    currentScreen = "more_topic"
                 }
             )
+        }
+
+        "more_topic" -> {
+            MoreTopicDetailScreen(
+                topicId = moreTopicId,
+                onBackClick = { currentScreen = "more" }
+            )
+        }
+
+        "clinical_sources" -> {
+            ClinicalSourcesScreen(onBackClick = { currentScreen = "home" })
         }
 
         else -> {
             HomeScreen(
                 onToolsClick = { currentScreen = "tools" },
                 onMoreClick = { currentScreen = "more" },
+                onClinicalSourcesClick = { currentScreen = "clinical_sources" },
                 onCalculateClick = { currentScreen = "calculators" },
                 onAssessClick = { currentScreen = "assess" },
                 onDrugToolsClick = { currentScreen = "drug_tools" },

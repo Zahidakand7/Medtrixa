@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -88,22 +90,13 @@ fun CalculatorLibraryScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(
-                            onClick = onBackClick
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
+                        PremiumBackButton(onClick = onBackClick)
 
-                        Column(
-                            modifier = Modifier.padding(start = 4.dp)
-                        ) {
+                        Column() {
                             Text(
                                 text = "Calculators",
                                 style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp
                             )
 
                             Text(

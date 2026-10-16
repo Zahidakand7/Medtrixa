@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.calculators
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,12 +59,9 @@ fun BunCreatinineRatioScreen(onBackClick: () -> Unit) {
                 .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
+                PremiumBackButton(onClick = onBackClick)
                 Column(Modifier.weight(1f)) {
-                    Text("BUN/Creatinine Ratio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                    Text("BUN/Creatinine Ratio", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge, fontSize = 20.sp, lineHeight = 26.sp)
                     Text("Blood Urea Nitrogen to Creatinine Ratio", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

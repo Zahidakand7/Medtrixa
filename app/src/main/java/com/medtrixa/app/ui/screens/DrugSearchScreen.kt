@@ -1,6 +1,7 @@
 package com.medtrixa.app.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -73,10 +74,8 @@ fun DrugSearchScreen(onBackClick: () -> Unit, onDrugClick: (String) -> Unit) {
                 .padding(horizontal = 20.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Column(modifier = Modifier.padding(start = 4.dp)) {
+                PremiumBackButton(onClick = onBackClick)
+                Column() {
                     Text(
                         text = "MEDTRIXA PREMIUM",
                         style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
@@ -86,7 +85,9 @@ fun DrugSearchScreen(onBackClick: () -> Unit, onDrugClick: (String) -> Unit) {
                     Text(
                         text = "Drug Search",
                         style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        lineHeight = 26.sp
                     )
                 }
             }

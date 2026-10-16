@@ -1,6 +1,7 @@
 package com.medtrixa.app.ui.screens
 
 import android.content.Context
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,11 +48,9 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
         modifier = Modifier.statusBarsPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("Antibiotic Dosing Guidelines") },
+                title = { Text("Antibiotic Dosing Guidelines", fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
+                    PremiumBackButton(onClick = onBackClick, edgeInset = 12.dp)
                 }
             )
         }

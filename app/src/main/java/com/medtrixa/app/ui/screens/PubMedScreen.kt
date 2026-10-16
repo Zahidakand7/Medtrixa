@@ -1,6 +1,7 @@
 package com.medtrixa.app.ui.screens
 
 import androidx.compose.foundation.background
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -21,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Search
@@ -29,6 +33,8 @@ import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,11 +54,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -154,12 +164,14 @@ private fun searchPubMed(query: String, sortMode: String): List<PubMedArticle> {
 }
 
 private val pubMedSuggestions = listOf(
-    "SGLT2 inhibitors in heart failure",
-    "Sepsis fluid resuscitation",
-    "Anticoagulation in atrial fibrillation",
-    "GLP-1 agonists cardiovascular outcomes",
-    "Early mobilization in ICU",
-    "Statin therapy in primary prevention"
+    "Sepsis in older adults: early recognition and outcomes",
+    "Tuberculosis treatment in immunocompromised patients",
+    "Preeclampsia prevention in high-risk pregnancy",
+    "Neonatal sepsis diagnosis and management",
+    "Heart failure outcomes in elderly patients",
+    "Pneumonia mortality in children under five",
+    "Diabetic kidney disease progression and prevention",
+    "Vaccine effectiveness in immunocompromised adults"
 )
 
 // ───────────────────────── Screen ─────────────────────────
@@ -200,56 +212,89 @@ fun PubMedScreen(onBackClick: () -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(PubMedBlue.copy(alpha = 0.18f), PubMedBlue.copy(alpha = 0.05f))
+                        )
+                    )
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    PremiumBackButton(onClick = onBackClick)
                     Column {
-                        Text("PubMed", fontWeight = FontWeight.Bold)
+                        Text(
+                            "PubMed",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontSize = 20.sp,
+                            lineHeight = 26.sp,
+                            fontWeight = FontWeight.Bold)
                         Text(
                             "NCBI biomedical literature",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PubMedBlueLight
-                )
-            )
+                }
+            }
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(PubMedBlue.copy(alpha = 0.05f), MaterialTheme.colorScheme.background)
+                    )
+                )
                 .padding(padding)
                 .padding(16.dp)
         ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 5.dp
+            ) {
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PubMedBlue,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = PubMedBlue) },
                 placeholder = { Text("Search Medical Literature") },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { runSearch(query) })
             )
+            }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val chipColors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = PubMedBlue,
+                selectedLabelColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 FilterChip(
                     selected = sortMode == "Relevance",
                     onClick = {
                         sortMode = "Relevance"
                         if (hasSearched) runSearch(lastQuery)
                     },
-                    label = { Text("Relevance") }
+                    label = { Text("Relevance", fontWeight = FontWeight.SemiBold) },
+                    shape = RoundedCornerShape(50),
+                    colors = chipColors
                 )
                 FilterChip(
                     selected = sortMode == "Newest",
@@ -257,7 +302,9 @@ fun PubMedScreen(onBackClick: () -> Unit) {
                         sortMode = "Newest"
                         if (hasSearched) runSearch(lastQuery)
                     },
-                    label = { Text("Newest") }
+                    label = { Text("Newest", fontWeight = FontWeight.SemiBold) },
+                    shape = RoundedCornerShape(50),
+                    colors = chipColors
                 )
             }
 
@@ -291,26 +338,33 @@ fun PubMedScreen(onBackClick: () -> Unit) {
 
                 !hasSearched -> {
                     Column {
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(18.dp),
-                            color = PubMedBlueLight
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .shadow(8.dp, RoundedCornerShape(24.dp))
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(PubMedBlue, lerp(PubMedBlue, Color(0xFF0B2F5B), 0.6f))
+                                    )
+                                )
                         ) {
-                            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(
                                     "What do you need to know?",
                                     style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PubMedBlue
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White
                                 )
                                 Text(
-                                    "Search millions of peer-reviewed articles from PubMed/MEDLINE, straight from NCBI. No API key needed.",
+                                    "Search millions of peer-reviewed articles from PubMed, straight from NCBI.",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    lineHeight = 22.sp,
+                                    color = Color.White.copy(alpha = 0.9f)
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(14.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                         Text(
                             "Try asking",
                             style = MaterialTheme.typography.labelLarge,
@@ -318,28 +372,47 @@ fun PubMedScreen(onBackClick: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             suggestions.forEach { suggestion ->
                                 Surface(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clip(RoundedCornerShape(14.dp))
+                                        .shadow(3.dp, RoundedCornerShape(18.dp))
+                                        .clip(RoundedCornerShape(18.dp))
                                         .clickable { runSearch(suggestion) },
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                    shape = RoundedCornerShape(18.dp),
+                                    color = MaterialTheme.colorScheme.surface
                                 ) {
                                     Row(
-                                        modifier = Modifier.padding(14.dp),
+                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .background(PubMedBlue.copy(alpha = 0.12f), CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Search,
+                                                contentDescription = null,
+                                                tint = PubMedBlue,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+                                        Text(
+                                            suggestion,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.weight(1f)
+                                        )
                                         Icon(
-                                            Icons.Filled.Search,
+                                            Icons.AutoMirrored.Outlined.ArrowForward,
                                             contentDescription = null,
-                                            tint = PubMedBlue,
+                                            tint = PubMedBlue.copy(alpha = 0.7f),
                                             modifier = Modifier.size(18.dp)
                                         )
-                                        Text(suggestion, style = MaterialTheme.typography.bodyMedium)
                                     }
                                 }
                             }
@@ -385,10 +458,11 @@ private fun PubMedResultCard(index: Int, r: PubMedArticle, onOpen: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(22.dp))
             .clip(RoundedCornerShape(22.dp))
             .clickable(onClick = onOpen),
         shape = RoundedCornerShape(22.dp),
-        color = PubMedBlueLight
+        color = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

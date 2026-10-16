@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.calculators
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,11 +59,8 @@ fun PediatricDoseScreen(onBackClick: () -> Unit) {
                 .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Pediatric Dose (Clark's Rule)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                PremiumBackButton(onClick = onBackClick)
+                Text("Pediatric Dose (Clark's Rule)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge, fontSize = 20.sp, lineHeight = 26.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -119,6 +118,12 @@ fun PediatricDoseScreen(onBackClick: () -> Unit) {
                         Text(
                             text = "Formula: Clark's Rule — Child Dose = (Weight in kg / 70) × Adult Dose",
                             style = MaterialTheme.typography.bodySmall
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Estimate only. Verify against a drug-specific pediatric reference before dosing.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }

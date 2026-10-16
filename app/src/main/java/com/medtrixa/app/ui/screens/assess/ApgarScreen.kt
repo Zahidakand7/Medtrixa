@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.assess
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +35,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 
 private data class ApgarOption(val points: Int, val label: String)
 
@@ -96,11 +101,9 @@ fun ApgarScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Column(modifier = Modifier.padding(start = 4.dp)) {
-                    Text("APGAR Score", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                PremiumBackButton(onClick = onBackClick)
+                Column() {
+                    Text("APGAR Score", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp)
                     Text("Newborn Condition Assessment", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -119,10 +122,10 @@ fun ApgarScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            val interpretation = when {
-                total >= 7 -> "Normal"
-                total >= 4 -> "Moderately abnormal"
-                else -> "Low score — needs resuscitation"
+            val (bandLabel, bandColor, guidance) = when {
+                total >= 7 -> Triple("Reassuring", Color(0xFF1F9D6B), "Routine newborn care and skin-to-skin contact. The score alone does not indicate resuscitation.")
+                total >= 4 -> Triple("Moderately abnormal", Color(0xFFC27A00), "Dry, warm, stimulate and support breathing (oxygen or ventilation as needed). Monitor closely and repeat the score at 5 minutes.")
+                else -> Triple("Low score", Color(0xFFC0392B), "Immediate resuscitation per NRP. HR below 100: positive-pressure ventilation. HR below 60 after 30 s of effective ventilation: start chest compressions.")
             }
 
             Card(
@@ -136,8 +139,38 @@ fun ApgarScreen(
                     Spacer(modifier = Modifier.height(6.dp))
                     if (allSelected) {
                         Text("$total / 10", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(interpretation, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = bandLabel,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            modifier = Modifier
+                                .background(bandColor, RoundedCornerShape(20.dp))
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(guidance, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
+                        ApgarNote(
+                            "Components",
+                            "Appearance ${appearanceScore ?: 0} · Pulse ${pulseScore ?: 0} · Grimace ${grimaceScore ?: 0} · Activity ${activityScore ?: 0} · Respiration ${respirationScore ?: 0}"
+                        )
+                        ApgarNote(
+                            "Timing",
+                            "Score at 1 and 5 minutes. If the 5-minute score is below 7, repeat every 5 minutes up to 20 minutes. Never delay resuscitation to assign the 1-minute score."
+                        )
+                        ApgarNote(
+                            "Interpret with caution",
+                            "The score alone does not diagnose asphyxia or predict neurological outcome. Asphyxia needs supporting evidence, such as cord pH below 7.0 or base deficit of 12 mmol/L or more, neonatal encephalopathy and multiorgan dysfunction. Scores can be lower without hypoxia in preterm infants, with maternal sedation, congenital anomalies and neuromuscular disease."
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Apgar V. Anesth Analg 1953;32:260-267. AAP/ACOG, The Apgar Score. Pediatrics 2015;136(4):819-822. Use with clinical judgement.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start
+                        )
                     } else {
                         Text("— / 10", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.height(4.dp))
@@ -175,5 +208,14 @@ private fun ApgarSection(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ApgarNote(title: String, body: String) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        Text(title, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(body, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Start)
     }
 }

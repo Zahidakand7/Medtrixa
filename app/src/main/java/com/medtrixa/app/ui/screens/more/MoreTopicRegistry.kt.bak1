@@ -1,0 +1,12 @@
+package com.medtrixa.app.ui.screens.more
+
+import com.medtrixa.app.ui.screens.more.topics.DosageAbbreviationsTopic
+
+object MoreTopicRegistry {
+    // Add one line per new topic
+    val all: List<MoreTopic> = listOf(
+        DosageAbbreviationsTopic
+    )
+
+    fun byId(id: String): MoreTopic? = all.firstOrNull { it.id == id }
+}

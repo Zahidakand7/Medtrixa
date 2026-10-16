@@ -1,0 +1,556 @@
+package com.medtrixa.app.ui.screens.more
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+
+private val SafeGreen = Color(0xFF2E9E5B)
+private val ParagraphStyle = TextStyle(textAlign = TextAlign.Justify, lineBreak = LineBreak.Paragraph)
+
+@Composable
+fun MoreTopicDetailScreen(topicId: String, onBackClick: () -> Unit) {
+    BackHandler { onBackClick() }
+    val topic = MoreTopicRegistry.byId(topicId)
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val chipScroll = rememberScrollState()
+
+    val navTitles = remember(topicId) {
+        (topic?.sections?.map { it.title } ?: emptyList()) + "References"
+    }
+    val navAccents = remember(topicId) {
+        (topic?.sections?.map { it.accent } ?: emptyList()) + TopicAccent.BLUE
+    }
+    val navStarts = remember(topicId) {
+        val out = mutableListOf<Int>()
+        var n = 0
+        topic?.sections?.forEach { out.add(n); n += 1 + it.blocks.size }
+        out.add(n)
+        out.toList()
+    }
+    val active by remember(topicId) {
+        derivedStateOf {
+            val f = listState.firstVisibleItemIndex
+            var a = 0
+            navStarts.forEachIndexed { i, s -> if (s <= f) a = i }
+            a
+        }
+    }
+
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PremiumBackButton(onClick = onBackClick)
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(topic?.title ?: "Topic Not Found", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    if (topic != null) {
+                        Text(
+                            topic.subtitle,
+                            fontSize = 12.sp,
+                            lineHeight = 15.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            if (topic != null) {
+                Row(
+                    Modifier.fillMaxWidth().horizontalScroll(chipScroll).padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    navTitles.forEachIndexed { i, title ->
+                        NavChip(title, topicAccentColor(navAccents[i]), i == active) {
+                            scope.launch { listState.animateScrollToItem(navStarts[i]) }
+                        }
+                    }
+                }
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    topic.sections.forEach { section ->
+                        val accent = topicAccentColor(section.accent)
+                        val entryCount = section.blocks.sumOf { b ->
+                            when (b) {
+                                is TopicBlock.Abbreviations -> b.rows.size
+                                is TopicBlock.Entries -> b.items.size
+                                else -> 0
+                            }
+                        }
+                        item { SectionBanner(sectionIcon(section.title) + section.title, accent, entryCount) }
+                        section.blocks.forEach { block ->
+                            when (block) {
+                                is TopicBlock.Text -> item { Text(block.body, fontSize = 13.sp, lineHeight = 18.sp, style = ParagraphStyle) }
+                                is TopicBlock.Bullets -> item { BulletsCard(block.items, accent) }
+                                is TopicBlock.Entries -> item { DefinitionTable(block.items, accent) }
+                                is TopicBlock.Abbreviations -> item { AbbreviationBullets(block.rows, accent) }
+                                is TopicBlock.Callout -> item { if (block.title == "Some Abbreviations Are Unsafe") Text(block.body, fontSize = 13.sp, lineHeight = 18.sp, style = ParagraphStyle) else CalloutCard(block) }
+                                is TopicBlock.Example -> item { ExampleCard(block, accent) }
+                            }
+                        }
+                    }
+                    item { SectionBanner("References", topicAccentColor(TopicAccent.BLUE), 0) }
+                    item {
+                        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                topic.references.forEachIndexed { i, r ->
+                                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { Text((i + 1).toString() + ".", modifier = Modifier.width(18.dp), fontSize = 11.sp, lineHeight = 15.sp); Text(r, modifier = Modifier.fillMaxWidth(), fontSize = 11.sp, lineHeight = 15.sp) }
+                                }
+                            }
+                        }
+                    }
+                    item { Spacer(Modifier.height(16.dp)) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NavChip(title: String, color: Color, active: Boolean, onClick: () -> Unit) {
+    Box(
+        Modifier.clip(RoundedCornerShape(20.dp))
+            .background(if (active) color else color.copy(alpha = 0.12f))
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    ) {
+        Text(
+            title,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (active) Color.White else color
+        )
+    }
+}
+
+@Composable
+private fun SectionBanner(title: String, accent: Color, count: Int) {
+    Row(
+        Modifier.fillMaxWidth().padding(top = 8.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Brush.horizontalGradient(listOf(accent, accent.copy(alpha = 0.6f))))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            title,
+            modifier = Modifier.weight(1f),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        if (count > 0) {
+            Box(
+                Modifier.clip(RoundedCornerShape(10.dp))
+                    .background(Color.White.copy(alpha = 0.22f))
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                Text(count.toString() + " Entries", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+private fun TermChip(text: String, color: Color) {
+    Box(
+        Modifier.clip(RoundedCornerShape(8.dp))
+            .background(color.copy(alpha = 0.16f))
+            .padding(horizontal = 7.dp, vertical = 3.dp)
+    ) {
+        Text(text, fontSize = 12.sp, lineHeight = 15.sp, fontWeight = FontWeight.Bold, color = color)
+    }
+}
+
+@Composable
+private fun RowScope.HeaderCell(label: String, w: Float, color: Color) {
+    Text(
+        label.uppercase(),
+        modifier = Modifier.weight(w).padding(end = 6.dp),
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Bold,
+        color = color
+    )
+}
+
+@Composable
+private fun AbbreviationTable(rows: List<AbbrevRow>, accent: Color) {
+    val red = MaterialTheme.colorScheme.error
+    Card(
+        Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column {
+            Row(Modifier.fillMaxWidth().background(accent.copy(alpha = 0.18f)).padding(start = 13.dp, end = 10.dp, top = 8.dp, bottom = 8.dp)) {
+                HeaderCell("Term", 0.24f, accent)
+                HeaderCell("Elaboration", 0.31f, accent)
+                HeaderCell("Meaning", 0.45f, accent)
+            }
+            rows.forEachIndexed { i, r ->
+                val tint = if (r.avoid) red.copy(alpha = 0.06f)
+                else if (i % 2 == 1) accent.copy(alpha = 0.05f) else Color.Transparent
+                Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).background(tint)) {
+                    Box(Modifier.width(3.dp).fillMaxHeight().background(if (r.avoid) red else Color.Transparent))
+                    Column(Modifier.weight(1f).padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 10.dp)) {
+                        Row(verticalAlignment = Alignment.Top) {
+                            Column(
+                                Modifier.weight(0.24f).padding(end = 6.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                r.term.split(", ").forEach { TermChip(it, if (r.avoid) red else accent) }
+                            }
+                            Text(
+                                r.elaboration,
+                                modifier = Modifier.weight(0.31f).padding(end = 6.dp),
+                                fontSize = 11.sp,
+                                lineHeight = 15.sp,
+                                fontStyle = FontStyle.Italic,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                r.meaning,
+                                modifier = Modifier.weight(0.45f),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                        r.instead?.let {
+                            Box(
+                                Modifier.padding(top = 8.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(SafeGreen.copy(alpha = 0.14f))
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    "Write instead:  " + it,
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = SafeGreen
+                                )
+                            }
+                        }
+                        r.note?.let {
+                            Text(
+                                it,
+                                modifier = Modifier.padding(top = 6.dp),
+                                style = ParagraphStyle,
+                                fontSize = 11.sp,
+                                lineHeight = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DefinitionTable(items: List<TopicEntry>, accent: Color) {
+    Card(
+        Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column {
+            Row(Modifier.fillMaxWidth().background(accent.copy(alpha = 0.18f)).padding(horizontal = 13.dp, vertical = 8.dp)) {
+                HeaderCell("Term", 0.38f, accent)
+                HeaderCell("Meaning", 0.62f, accent)
+            }
+            items.forEachIndexed { i, e ->
+                val tint = if (i % 2 == 1) accent.copy(alpha = 0.05f) else Color.Transparent
+                Row(
+                    Modifier.fillMaxWidth().background(tint).padding(horizontal = 13.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Box(Modifier.weight(0.38f).padding(end = 6.dp)) { TermChip(e.term, accent) }
+                    Column(Modifier.weight(0.62f)) {
+                        Text(e.meaning, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold)
+                        e.note?.let {
+                            Text(
+                                it,
+                                modifier = Modifier.padding(top = 4.dp),
+                                fontSize = 11.sp,
+                                lineHeight = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CalloutCard(c: TopicBlock.Callout) {
+    val warn = c.kind == CalloutKind.WARNING
+    val colors = CardDefaults.cardColors(
+        containerColor = if (warn) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = if (warn) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
+    )
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = colors) {
+        Row(Modifier.padding(14.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(
+                if (warn) Icons.Filled.Warning else Icons.Filled.Info,
+                contentDescription = null,
+                modifier = Modifier.padding(top = 2.dp).size(14.dp)
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(c.title, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(c.body, modifier = Modifier.fillMaxWidth(), fontSize = 12.sp, lineHeight = 17.sp, style = ParagraphStyle)
+            }
+        }
+    }
+}
+
+private fun toPoints(s: String): List<String> =
+    s.split(Regex("(?<=[.!?])\\s+(?=[A-Z0-9])")).map { it.trim() }.filter { it.isNotEmpty() }
+
+@Composable
+private fun PointList(text: String, dot: Color, alwaysDots: Boolean) {
+    val pts = toPoints(text)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        pts.forEach { p ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+                if (alwaysDots || pts.size > 1) {
+                    Box(
+                        Modifier.padding(top = 6.dp).size(6.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .background(dot)
+                    )
+                }
+                Text(p, modifier = Modifier.fillMaxWidth(), fontSize = 12.sp, lineHeight = 17.sp, style = ParagraphStyle)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExampleCard(x: TopicBlock.Example, accent: Color) {
+    Card(
+        Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Row(Modifier.height(IntrinsicSize.Min)) {
+            Box(Modifier.width(5.dp).fillMaxHeight().background(accent))
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(x.label, fontSize = 11.sp, color = accent, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Top) {
+                    Text(
+                        if (x.original.contains(" IV ")) "\uD83D\uDC89" else if (x.original.startsWith("Ibuprofen")) "\uD83D\uDFE1" else if (x.original.startsWith("Metformin")) "\uD83D\uDD34" else "\uD83D\uDC8A",
+                        modifier = Modifier.width(20.dp),
+                        fontSize = 14.sp,
+                        lineHeight = 16.sp
+                    )
+                    Text(
+                        x.original,
+                        modifier = Modifier.fillMaxWidth(),
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Top) {
+                    Text("\u270D\uFE0F", modifier = Modifier.width(20.dp), fontSize = 14.sp, lineHeight = 17.sp)
+                    Text(x.decoded, modifier = Modifier.fillMaxWidth(), fontSize = 12.sp, lineHeight = 17.sp, style = ParagraphStyle)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BulletsCard(items: List<String>, accent: Color) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+        Column(
+            Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items.forEach { raw ->
+                val marker = " Write instead: "
+                val cut = raw.indexOf(marker)
+                val item = if (cut > 0) raw.substring(0, cut) else raw
+                val fix: String? = if (cut > 0) raw.substring(cut + 1) else null
+                val idx = item.indexOf(": ")
+                val label: AnnotatedString = if (idx in 1..40) buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(item.substring(0, idx + 1)) }
+                    append(item.substring(idx + 1))
+                } else AnnotatedString(item)
+                Row(verticalAlignment = Alignment.Top) {
+                    Box(Modifier.padding(top = 6.dp).size(6.dp).clip(CircleShape).background(accent))
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (fix != null) {
+                            Text(
+                                label,
+                                modifier = Modifier.fillMaxWidth(),
+                                fontSize = 12.sp,
+                                lineHeight = 17.sp,
+                                style = ParagraphStyle
+                            )
+                            Text(
+                                fix,
+                                fontSize = 12.sp,
+                                lineHeight = 17.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = SafeGreen
+                            )
+                        } else {
+                            Text(
+                                label,
+                                modifier = Modifier.fillMaxWidth(),
+                                fontSize = 12.sp,
+                                lineHeight = 17.sp,
+                                textAlign = TextAlign.Start
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+private fun sectionIcon(title: String): String = when (title) {
+    "Prescription Instructions" -> "\uD83D\uDCDD "
+    "Frequency and Timing" -> "\u23F1\uFE0F "
+    "Meal Instructions" -> "\uD83C\uDF7D\uFE0F "
+    "Routes of Administration" -> "\uD83D\uDCA7 "
+    "Units of Measure" -> "\u2696\uFE0F "
+    "Abbreviations to Avoid" -> "\u26A0\uFE0F "
+    "Dosage Fundamentals" -> "\uD83E\uDDEE "
+    "Reading a Prescription" -> "\uD83D\uDD0D "
+    "Common Instructions" -> "\uD83D\uDCCB "
+    "Safety Checks" -> "\uD83D\uDEE1\uFE0F "
+    "Clinical Quick Reference" -> "\uD83E\uDE7A "
+    "High-Alert Medication Classes" -> "\uD83D\uDED1 "
+    "Tall-Man Lettering" -> "\uD83D\uDD20 "
+    "Look-Alike Packaging and Storage" -> "\uD83E\uDDF4 "
+    "Error-Prevention Strategies" -> "\u2705 "
+    "Verification Checklist" -> "\u2611\uFE0F "
+    "Pediatric Reference Ranges" -> "\uD83D\uDC76 "
+    "Complete Blood Count" -> "\uD83E\uDE78 "
+    "Electrolytes and Renal Function" -> "\uD83E\uDDEA "
+    "Liver Function" -> "\uD83D\uDD2C "
+    "Coagulation" -> "\uD83E\uDE79 "
+    "Cardiac Markers and Lipids" -> "\u2764\uFE0F "
+    "Glycemic and Endocrine" -> "\uD83E\uDDEC "
+    "Arterial Blood Gas" -> "\uD83C\uDF2C\uFE0F "
+    "Urine Studies" -> "\uD83D\uDFE1 "
+    "Critical Values" -> "\uD83D\uDEA8 "
+    "Clinical Pearls" -> "\uD83D\uDCA1 "
+    else -> ""
+}
+
+
+@Composable
+private fun AbbreviationBullets(rows: List<AbbrevRow>, accent: Color) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            rows.forEach { r ->
+                val lines = r.meaning.split("\n")
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                    Box(
+                        Modifier.padding(top = 6.dp).size(7.dp)
+                            .clip(androidx.compose.foundation.shape.CircleShape)
+                            .background(accent)
+                    )
+                    if (lines.size == 1) {
+                        Text(
+                            androidx.compose.ui.text.buildAnnotatedString {
+                                pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold))
+                                append(r.term)
+                                pop()
+                                if (r.elaboration.isNotBlank()) append(" (" + r.elaboration + ")")
+                                append(": " + r.meaning)
+                                r.note?.let { append(" " + it) }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        )
+                    } else {
+                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(
+                                androidx.compose.ui.text.buildAnnotatedString {
+                                    pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold))
+                                    append(r.term)
+                                    pop()
+                                    if (r.elaboration.isNotBlank()) append(" (" + r.elaboration + ")")
+                                },
+                                fontSize = 13.sp,
+                                lineHeight = 18.sp
+                            )
+                            lines.forEach { ln ->
+                                val ind = ln.startsWith("> ")
+                                val t = if (ind) ln.substring(2) else ln
+                                val k = t.indexOf(": ")
+                                Text(
+                                    androidx.compose.ui.text.buildAnnotatedString {
+                                        if (k > 0) {
+                                            pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.SemiBold, color = accent))
+                                            append(t.substring(0, k + 1))
+                                            pop()
+                                            append(t.substring(k + 1))
+                                        } else if (t.endsWith(":")) {
+                                            pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold, color = accent))
+                                            append(t)
+                                            pop()
+                                        } else append(t)
+                                    },
+                                    modifier = Modifier.padding(start = if (ind) 14.dp else 0.dp),
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp
+                                )
+                            }
+                            r.note?.let { Text(it, fontSize = 11.sp, lineHeight = 15.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

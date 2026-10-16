@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens.drugtools
 
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -26,7 +27,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.vector.ImageVector
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -164,21 +165,13 @@ fun InteractionCheckerScreen(onBackClick: () -> Unit) {
                 .padding(20.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 3.dp,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                }
-                Spacer(modifier = Modifier.width(14.dp))
+                PremiumBackButton(onClick = onBackClick)
                 Text(
                     "Drug Interaction Checker",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold
+                    fontSize = 20.sp,
+                    lineHeight = 26.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
@@ -566,7 +559,7 @@ private fun CompactNoInteractionCard(ingredientA: String, ingredientB: String) {
                     Icon(Icons.Outlined.Info, contentDescription = null, tint = accent, modifier = Modifier.size(24.dp))
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                Column {
+                Column(modifier = Modifier.padding(top = 11.dp)) {
                     Text(
                         "No recorded interaction between \"$ingredientA\" and \"$ingredientB\" in this dataset.",
                         style = MaterialTheme.typography.bodyMedium,

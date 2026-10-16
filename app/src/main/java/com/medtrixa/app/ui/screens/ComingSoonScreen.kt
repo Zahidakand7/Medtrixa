@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -42,17 +44,11 @@ fun ComingSoonScreen(
                 .padding(horizontal = 20.dp, vertical = 22.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-                Spacer(modifier = Modifier.width(4.dp))
+                PremiumBackButton(onClick = onBackClick)
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp
                 )
             }
 

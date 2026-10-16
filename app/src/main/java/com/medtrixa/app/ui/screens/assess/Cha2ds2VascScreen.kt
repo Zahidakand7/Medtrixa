@@ -1,42 +1,32 @@
 package com.medtrixa.app.ui.screens.assess
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun Cha2ds2VascScreen(
@@ -44,294 +34,173 @@ fun Cha2ds2VascScreen(
 ) {
     BackHandler { onBackClick() }
 
-    var heartFailure by remember { mutableStateOf(false) }
-    var hypertension by remember { mutableStateOf(false) }
-    var diabetes by remember { mutableStateOf(false) }
-    var previousStroke by remember { mutableStateOf(false) }
-    var vascularDisease by remember { mutableStateOf(false) }
-    var femaleSex by remember { mutableStateOf(false) }
-    var age by remember { mutableStateOf(0) }
-    var calculatedScore by remember { mutableIntStateOf(-1) }
+    var heartFailure by remember { mutableStateOf<Boolean?>(null) }
+    var hypertension by remember { mutableStateOf<Boolean?>(null) }
+    var diabetes by remember { mutableStateOf<Boolean?>(null) }
+    var previousStroke by remember { mutableStateOf<Boolean?>(null) }
+    var vascularDisease by remember { mutableStateOf<Boolean?>(null) }
+    var female by remember { mutableStateOf<Boolean?>(null) }
+    var ageText by remember { mutableStateOf("") }
+    var calculated by remember { mutableStateOf(false) }
+
+    val age = ageText.toIntOrNull()
+    val ageValid = age != null && age in 18..120
+    val ready = ageValid && heartFailure != null && hypertension != null && diabetes != null &&
+        previousStroke != null && vascularDisease != null && female != null
 
     val agePoints = when {
+        age == null -> 0
         age >= 75 -> 2
         age >= 65 -> 1
         else -> 0
     }
+    val hfP = if (heartFailure == true) 1 else 0
+    val htnP = if (hypertension == true) 1 else 0
+    val dmP = if (diabetes == true) 1 else 0
+    val strokeP = if (previousStroke == true) 2 else 0
+    val vascP = if (vascularDisease == true) 1 else 0
+    val sexP = if (female == true) 1 else 0
+    val vaScore = hfP + htnP + agePoints + dmP + strokeP + vascP
+    val score = vaScore + sexP
 
-    val score = (if (heartFailure) 1 else 0) +
-            (if (hypertension) 1 else 0) +
-            agePoints +
-            (if (diabetes) 1 else 0) +
-            (if (previousStroke) 2 else 0) +
-            (if (vascularDisease) 1 else 0) +
-            (if (femaleSex) 1 else 0)
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back"
-                )
-            }
-
-            Column {
-                Text(
-                    text = "CHA₂DS₂-VASc",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = "Stroke Risk in Atrial Fibrillation",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        RiskSwitch(
-            title = "Congestive heart failure / LV dysfunction",
-            points = 1,
-            checked = heartFailure,
-            onCheckedChange = { heartFailure = it }
-        )
-
-        RiskSwitch(
-            title = "Hypertension",
-            points = 1,
-            checked = hypertension,
-            onCheckedChange = { hypertension = it }
-        )
-
-        AgeCard(
-            age = age,
-            onAgeChange = {
-                age = it.coerceAtLeast(0)
-                calculatedScore = -1
-            }
-        )
-
-        RiskSwitch(
-            title = "Diabetes mellitus",
-            points = 1,
-            checked = diabetes,
-            onCheckedChange = { diabetes = it }
-        )
-
-        RiskSwitch(
-            title = "Previous stroke / TIA / thromboembolism",
-            points = 2,
-            checked = previousStroke,
-            onCheckedChange = { previousStroke = it }
-        )
-
-        RiskSwitch(
-            title = "Vascular disease",
-            points = 1,
-            checked = vascularDisease,
-            onCheckedChange = { vascularDisease = it }
-        )
-
-        RiskSwitch(
-            title = "Female sex",
-            points = 1,
-            checked = femaleSex,
-            onCheckedChange = { femaleSex = it }
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        if (calculatedScore < 0) {
-            Button(
-                onClick = {
-                    calculatedScore = score
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Calculate")
-            }
-        } else {
-            Button(
-                onClick = {
-                    calculatedScore = -1
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Edit Inputs")
-            }
-        }
-
-        if (calculatedScore >= 0) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            val anticoagulationMessage = when {
-                femaleSex && calculatedScore >= 3 ->
-                    "High enough risk that anticoagulation is generally recommended."
-                !femaleSex && calculatedScore >= 2 ->
-                    "High enough risk that anticoagulation is generally recommended."
-                femaleSex && calculatedScore == 2 ->
-                    "Intermediate risk — anticoagulation may be reasonable."
-                !femaleSex && calculatedScore == 1 ->
-                    "Intermediate risk — anticoagulation may be reasonable."
-                else ->
-                    "Low risk — anticoagulation is generally not indicated based on this score alone."
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "CHA₂DS₂-VASc Score",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    Text(
-                        text = calculatedScore.toString(),
-                        style = MaterialTheme.typography.headlineLarge
-                    )
-
-                    Text(
-                        text = anticoagulationMessage,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        }
-    }
-    }
-}
-
-@Composable
-private fun RiskSwitch(
-    title: String,
-    points: Int,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    enabled: Boolean = true
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = "$points point${if (points > 1) "s" else ""}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange
-            )
-        }
-    }
-}
-
-@Composable
-private fun AgeCard(
-    age: Int,
-    enabled: Boolean = true,
-    onAgeChange: (Int) -> Unit
-) {
-    var ageText by rememberSaveable {
-        mutableStateOf(if (age == 0) "" else age.toString())
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    ) {
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
         ) {
-            Text(
-                text = "Age",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
+            RiskHeader("CHA₂DS₂-VASc", "Stroke Risk in Atrial Fibrillation", onBackClick)
+            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
                 value = ageText,
-                onValueChange = { value ->
-                    val filtered = value.filter { it.isDigit() }.take(3)
-                    ageText = filtered
-
-                    val enteredAge = filtered.toIntOrNull()
-
-                    when {
-                        enteredAge != null && enteredAge <= 120 ->
-                            onAgeChange(enteredAge)
-
-                        filtered.isEmpty() ->
-                            onAgeChange(0)
+                onValueChange = { v ->
+                    if (v.length <= 3 && v.all { it.isDigit() }) {
+                        ageText = v
+                        calculated = false
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = {
-                    Text("Enter patient's age")
+                label = { Text("Age (years)") },
+                supportingText = {
+                    Text(
+                        when {
+                            ageText.isEmpty() -> "Under 65: 0 · 65–74: 1 · 75 or older: 2 points"
+                            !ageValid -> "Enter an age between 18 and 120"
+                            else -> "Age points: $agePoints"
+                        }
+                    )
                 },
+                isError = ageText.isNotEmpty() && !ageValid,
                 singleLine = true,
-                enabled = enabled,
-                readOnly = !enabled,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                )
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            YesNoRow(
+                title = "Congestive heart failure / LV dysfunction",
+                subtitle = "1 point · signs or symptoms of HF, or reduced LVEF",
+                value = heartFailure,
+                onChange = { heartFailure = it; calculated = false }
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            YesNoRow(
+                title = "Hypertension",
+                subtitle = "1 point · history of hypertension or on treatment",
+                value = hypertension,
+                onChange = { hypertension = it; calculated = false }
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            YesNoRow(
+                title = "Diabetes mellitus",
+                subtitle = "1 point · diagnosed diabetes or on treatment",
+                value = diabetes,
+                onChange = { diabetes = it; calculated = false }
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            YesNoRow(
+                title = "Previous stroke / TIA / thromboembolism",
+                subtitle = "2 points",
+                value = previousStroke,
+                onChange = { previousStroke = it; calculated = false }
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            YesNoRow(
+                title = "Vascular disease",
+                subtitle = "1 point · prior MI, peripheral artery disease or aortic plaque",
+                value = vascularDisease,
+                onChange = { vascularDisease = it; calculated = false }
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            YesNoRow(
+                title = "Sex",
+                subtitle = "Female: 1 point",
+                value = female,
+                onChange = { female = it; calculated = false },
+                yesLabel = "Female",
+                noLabel = "Male"
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+            RiskCalculateButton(enabled = ready) { calculated = true }
 
-            Text(
-                text = when {
-                    age >= 75 -> "Age ≥75: 2 points"
-                    age >= 65 -> "Age 65–74: 1 point"
-                    else -> "Age <65: 0 points"
-                },
-                style = MaterialTheme.typography.bodySmall
-            )
+            if (calculated && ready) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val isFemale = female == true
+                val tier = if (isFemale) {
+                    when {
+                        score >= 3 -> 2
+                        score == 2 -> 1
+                        else -> 0
+                    }
+                } else {
+                    when {
+                        score >= 2 -> 2
+                        score == 1 -> 1
+                        else -> 0
+                    }
+                }
+                val bandLabel = listOf("Low risk", "Intermediate risk", "High risk")[tier]
+                val bandColor = listOf(Color(0xFF1F9D6B), Color(0xFFC27A00), Color(0xFFC0392B))[tier]
+                val guidance = when (tier) {
+                    2 -> "Oral anticoagulation is recommended. A DOAC is preferred over warfarin, except with a mechanical heart valve or moderate-to-severe mitral stenosis."
+                    1 -> "Oral anticoagulation is reasonable to consider, after weighing bleeding risk and patient preference."
+                    else -> "Anticoagulation is generally not indicated on this score alone. Antiplatelet therapy is not recommended for stroke prevention in AF."
+                }
+                val annualRisk = listOf("0.2", "0.6", "2.2", "3.2", "4.8", "7.2", "9.7", "11.2", "10.8", "12.2")[score.coerceIn(0, 9)]
+
+                RiskResultCard(
+                    heading = "CHA₂DS₂-VASc Score",
+                    scoreText = "$score / 9",
+                    bandLabel = bandLabel,
+                    bandColor = bandColor
+                ) {
+                    Text(guidance, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
+                    RiskNote(
+                        "Annual ischaemic stroke risk without anticoagulation",
+                        "About $annualRisk% per year at a score of $score (Swedish AF cohort). Absolute estimates vary between cohorts."
+                    )
+                    RiskNote(
+                        "Components",
+                        "Heart failure $hfP · Hypertension $htnP · Age $agePoints · Diabetes $dmP · Stroke/TIA $strokeP · Vascular $vascP · Sex $sexP"
+                    )
+                    RiskNote(
+                        "CHA₂DS₂-VA (2024 ESC)",
+                        "Score without the sex category: $vaScore. The 2024 ESC guideline uses this version: anticoagulation is recommended at 2 or more and should be considered at 1."
+                    )
+                    RiskNote(
+                        "Interpret with caution",
+                        "Validated for non-valvular AF. Anticoagulation is indicated regardless of score with a mechanical heart valve, moderate-to-severe mitral stenosis, or hypertrophic cardiomyopathy. Assess bleeding risk (for example HAS-BLED) and correct modifiable factors such as uncontrolled hypertension, alcohol and interacting drugs. Bleeding risk alone is not a reason to withhold anticoagulation. Reassess at least annually, as risk rises with age and new comorbidities."
+                    )
+                    RiskReference("Lip GYH et al. Chest 2010;137:263-272. Friberg L et al. Eur Heart J 2012;33:1500-1510. Joglar JA et al. Circulation 2024;149:e1-e156. Van Gelder IC et al. Eur Heart J 2024;45:3314-3414. Use with clinical judgement.")
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,14 +69,9 @@ fun ReferenceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Reference") },
+                title = { Text("Reference", fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Outlined.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
+                    PremiumBackButton(onClick = onBackClick, edgeInset = 12.dp)
                 }
             )
         }

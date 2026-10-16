@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.assess
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -105,18 +107,13 @@ fun Curb65Screen(
                     .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
+                PremiumBackButton(onClick = onBackClick)
 
-                Column(modifier = Modifier.padding(start = 4.dp)) {
+                Column() {
                     Text(
                         text = "CURB-65",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp
                     )
                     Text(
                         text = "Pneumonia Severity Assessment",

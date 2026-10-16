@@ -1,0 +1,24 @@
+package com.medtrixa.app.ui.screens.more.topics
+
+import com.medtrixa.app.ui.screens.more.*
+
+internal val electrolyteA: List<TopicSection> = listOf(
+    TopicSection("Sodium Disorders", listOf(
+        TopicBlock.Text("Sodium disorders are disorders of water balance. The treatment rate matters as much as the treatment itself, because correcting too quickly can cause osmotic demyelination."),
+        TopicBlock.Abbreviations(listOf(
+            AbbrevRow("Hyponatremia", "Na⁺ below 135 mmol/L", "Mild: 130 - 134 mmol/L\nModerate: 125 - 129 mmol/L\nSevere: Below 125 mmol/L\nFirst step: Check serum osmolality to exclude pseudohyponatremia and hyperglycemia, then assess volume status and urine studies\nHypovolemic causes: Diuretics, vomiting, diarrhea, adrenal insufficiency\nEuvolemic causes: SIADH, hypothyroidism, primary polydipsia, low solute intake\nHypervolemic causes: Heart failure, cirrhosis, nephrotic syndrome, advanced kidney disease\nSevere symptoms: For seizure, coma or vomiting with confusion, give 3% saline 100 - 150 mL IV over 10 - 20 minutes, repeated up to twice, aiming to raise Na⁺ by 4 - 6 mmol/L\nChronic and mild: Treat the cause, restrict fluid in euvolemic and hypervolemic states, and give isotonic saline for hypovolemia\nCorrection limit: Raise Na⁺ by no more than 8 mmol/L in any 24 hours in high-risk patients (alcohol use disorder, malnutrition, liver disease, hypokalemia, Na⁺ at or below 105 mmol/L), and by no more than 10 - 12 mmol/L otherwise\nMonitoring: Check Na⁺ every 2 - 4 hours during active treatment"),
+            AbbrevRow("Hypernatremia", "Na⁺ above 145 mmol/L", "Mild: 146 - 149 mmol/L\nModerate: 150 - 159 mmol/L\nSevere: 160 mmol/L or higher\nCauses: Water loss from diabetes insipidus, osmotic diuresis, fever or burns, inadequate intake, and less often sodium gain\nFree water deficit: Total body water × (Na⁺ ÷ 140 − 1), with total body water as weight in kg × 0.6 for men, × 0.5 for women and older men, and × 0.45 for older women\nExample: A 70 kg man with Na⁺ 160 mmol/L has a deficit of 42 × (160 ÷ 140 − 1) = 6 L\nCorrection limit: Lower Na⁺ by no more than 10 mmol/L per 24 hours, about 0.5 mmol/L per hour, in chronic hypernatremia\nFluid: Use oral or enteral water when possible, or IV 5% dextrose or hypotonic saline, and start with isotonic saline when the patient is hypotensive\nDiabetes insipidus: Give desmopressin for central causes")
+        )),
+        TopicBlock.Bullets(listOf(
+            "Corrected sodium: Add 1.6 mmol/L for every 100 mg/dL of glucose above 100 mg/dL.",
+            "Pseudohyponatremia: A normal osmolality with a low Na⁺ can result from marked hyperlipidemia or hyperproteinemia, depending on the assay."
+        ))
+    ), TopicAccent.BLUE),
+    TopicSection("Potassium Disorders", listOf(
+        TopicBlock.Text("Potassium governs cardiac and muscle excitability. Both low and high values can cause fatal arrhythmias."),
+        TopicBlock.Abbreviations(listOf(
+            AbbrevRow("Hypokalemia", "K⁺ below 3.5 mmol/L", "Mild: 3.0 - 3.4 mmol/L\nModerate: 2.5 - 2.9 mmol/L\nSevere: Below 2.5 mmol/L\nCauses: Diuretics, vomiting, diarrhea, insulin, beta-agonists, hypomagnesemia, hyperaldosteronism\nFeatures: Weakness, cramps, ileus, arrhythmias and rhabdomyolysis\nOral replacement: Potassium chloride 20 - 40 mmol, repeated as needed\nIV replacement: Up to 10 mmol per hour by a peripheral line, and up to 20 mmol per hour by a central line with continuous ECG monitoring\nExpected rise: About 0.1 mmol/L for each 10 mmol given, which is only approximate\nAlways: Check and replace Mg²⁺, because hypokalemia is refractory when Mg²⁺ is low\nSafety: Never give concentrated potassium chloride undiluted or as an IV push"),
+            AbbrevRow("Hyperkalemia", "K⁺ above 5.0 mmol/L", "Mild: 5.5 - 5.9 mmol/L\nModerate: 6.0 - 6.4 mmol/L\nSevere: 6.5 mmol/L or higher, or any level with ECG changes\nCauses: Kidney injury or disease, RAAS inhibitors, potassium-sparing diuretics, trimethoprim, NSAIDs, acidosis, tissue breakdown, and hemolyzed samples\nECG: Peaked T waves, flattened P waves, prolonged PR interval, wide QRS and a sine-wave pattern\nStep 1, protect the heart: Calcium gluconate 10%, 10 - 30 mL (1 - 3 g) IV over 5 - 10 minutes, repeated if ECG changes persist. The effect lasts 30 - 60 minutes\nStep 2, shift potassium: Regular insulin 10 units IV with 25 g glucose, using 5 units in renal failure or low body weight, plus nebulized albuterol (salbutamol) 10 - 20 mg\nStep 3, remove potassium: Loop diuretic if the patient makes urine, a potassium binder such as sodium zirconium cyclosilicate 10 g, and dialysis if refractory\nBicarbonate: Consider it only with metabolic acidosis\nMonitoring: Check glucose hourly for 4 - 6 hours after insulin, and recheck K⁺ at 1 - 2 hours")
+        ))
+    ), TopicAccent.AMBER)
+)

@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.calculators
 
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -80,20 +82,13 @@ fun CreatinineClearanceScreen(
                     .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
+                PremiumBackButton(onClick = onBackClick)
 
-                Column(
-                    modifier = Modifier.padding(start = 4.dp)
-                ) {
+                Column() {
                     Text(
                         text = "Creatinine Clearance",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp
                     )
 
                     Text(

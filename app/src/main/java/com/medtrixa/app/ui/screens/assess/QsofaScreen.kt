@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.assess
 
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.activity.compose.BackHandler
@@ -75,11 +77,9 @@ fun QsofaScreen(
                 modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Column(modifier = Modifier.padding(start = 4.dp)) {
-                    Text("qSOFA", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                PremiumBackButton(onClick = onBackClick)
+                Column() {
+                    Text("qSOFA", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp)
                     Text("Quick Sequential Organ Failure Assessment", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -176,14 +176,16 @@ fun QsofaScreen(
                         Text(
                             text = impact,
                             style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Bedside prompt, not a diagnostic criterion; limited sensitivity. Criteria: RR ≥22/min, SBP ≤100 mmHg, altered mentation (GCS <15). Seymour et al., JAMA 2016.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Start
                         )
                     }
                 }

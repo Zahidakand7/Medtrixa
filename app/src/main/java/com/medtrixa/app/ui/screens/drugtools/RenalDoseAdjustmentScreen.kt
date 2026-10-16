@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.drugtools
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.medtrixa.app.data.db.AppDatabase
+import com.medtrixa.app.data.repository.RenalHepaticRepository
 import com.medtrixa.app.data.db.SearchHit
 
 private fun crclBand(v: Double): Pair<String, Color> = when {
@@ -46,13 +49,20 @@ fun RenalDoseAdjustmentScreen(onBackClick: () -> Unit) {
     var suggestions by remember { mutableStateOf<List<SearchHit>>(emptyList()) }
     var drug by remember { mutableStateOf<SearchHit?>(null) }
     var renalText by remember { mutableStateOf<String?>(null) }
+    var hepaticText by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(query) {
         val q = query.trim()
         suggestions = if (q.length < 2) emptyList() else dao.search(q)
     }
     LaunchedEffect(drug) {
-        renalText = drug?.let { dao.getLabel(it.rxcui)?.renalHepaticDose }
+        val sid = drug?.let { dao.getLabel(it.rxcui)?.setId }
+        val e = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            RenalHepaticRepository.load(context)
+            RenalHepaticRepository.get(sid)
+        }
+        renalText = e?.renal
+        hepaticText = e?.hepatic
     }
 
     val a = age.toDoubleOrNull()
@@ -73,12 +83,9 @@ fun RenalDoseAdjustmentScreen(onBackClick: () -> Unit) {
         ) {
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                    Spacer(Modifier.width(4.dp))
+                    PremiumBackButton(onClick = onBackClick)
                     Column {
-                        Text("Renal Dose Adjustment", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text("Renal Dose Adjustment", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp)
                         Text("Cockcroft-Gault CrCl and drug label dosing", style = MaterialTheme.typography.bodyMedium, color = muted)
                     }
                 }
@@ -171,7 +178,7 @@ fun RenalDoseAdjustmentScreen(onBackClick: () -> Unit) {
                     ) {
                         Column(Modifier.padding(16.dp)) {
                             Text(sel.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                            Text("Renal and hepatic dosing (drug label)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text("Renal and hepatic dosing (FDA drug label)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                     }
                 }
@@ -188,10 +195,22 @@ fun RenalDoseAdjustmentScreen(onBackClick: () -> Unit) {
                                 Text(label, style = MaterialTheme.typography.bodySmall, color = muted)
                                 Spacer(Modifier.height(10.dp))
                             }
-                            val t = renalText
+                            val rt = renalText
+                            val ht = hepaticText
+                            Text("Renal Dose", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(4.dp))
                             Text(
-                                if (t.isNullOrBlank()) "No renal or hepatic dosing text is stored for this drug." else t,
-                                style = MaterialTheme.typography.bodyMedium
+                                if (rt.isNullOrBlank()) "No renal dosing text is stored for this drug." else rt,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (rt.isNullOrBlank()) muted else MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            Text("Hepatic Dose", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                if (ht.isNullOrBlank()) "No hepatic dosing text is stored for this drug." else ht,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (ht.isNullOrBlank()) muted else MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }

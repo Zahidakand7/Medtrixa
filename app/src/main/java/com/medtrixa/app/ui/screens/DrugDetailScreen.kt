@@ -1,6 +1,9 @@
 package com.medtrixa.app.ui.screens
 
+import com.medtrixa.app.data.repository.RenalHepaticRepository
+import com.medtrixa.app.data.repository.ClinicalPharmacologyRepository
 import androidx.compose.foundation.layout.Box
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -95,17 +98,21 @@ private fun cleanLabelText(raw: String?): String {
         .joinToString("\n\n")
 }
 
-private fun buildSections(l: DrugLabelEntity): List<LabelSection> = listOf(
+private fun buildSections(l: DrugLabelEntity, rh: RenalHepaticRepository.Entry? = null, cp: ClinicalPharmacologyRepository.Entry? = null): List<LabelSection> = listOf(
     LabelSection("Indications", Icons.Outlined.MedicalServices, Color(0xFF5B5FD6), tidyLabel(cleanLabelText(l.indications)), "Overview"),
     LabelSection("Adult Dose", Icons.Outlined.Opacity, Color(0xFF1F9D6B), tidyLabel(cleanLabelText(l.adultDose), true), "Dosing"),
     LabelSection("Administration", Icons.Outlined.Vaccines, Color(0xFF1F9D6B), tidyLabel(cleanLabelText(l.adultAdministration), true), "Dosing"),
     LabelSection("Child Dose", Icons.Outlined.ChildCare, Color(0xFF0984E3), headColon(tidyLabel(cleanLabelText(l.childDose), true), "Pediatric Use"), "Dosing"),
-    LabelSection("Renal / hepatic dose", Icons.Outlined.Healing, Color(0xFF00A8A8), tidyLabel(cleanLabelText(l.renalHepaticDose), true), "Dosing"),
+    LabelSection("Renal Dose", Icons.Outlined.Healing, Color(0xFF00A8A8), tidyLabel(cleanLabelText(rh?.renal), true).ifBlank { "No renal dosing text is available in the FDA label for this drug." }, "Dosing"),
+    LabelSection("Hepatic Dose", Icons.Outlined.Healing, Color(0xFFB8860B), tidyLabel(cleanLabelText(rh?.hepatic), true).ifBlank { "No hepatic dosing text is available in the FDA label for this drug." }, "Dosing"),
     LabelSection("Contraindications", Icons.Outlined.Block, Color(0xFFE5484D), tidyLabel(cleanLabelText(l.contraindications)), "Safety"),
     LabelSection("Warnings", Icons.Outlined.WarningAmber, Color(0xFFC27A00), tidyLabel(cleanLabelText(l.warnings)), "Safety"),
     LabelSection("Adverse Reactions", Icons.Outlined.ReportProblem, Color(0xFFE17055), tidyLabel(cleanLabelText(l.adverseReactions)), "Safety"),
     LabelSection("Pregnancy", Icons.Outlined.FavoriteBorder, Color(0xFFD6456B), headColon(tidyLabel(cleanLabelText(l.pregnancy)), "Pregnancy Risk Summary"), "Pregnancy"),
-    LabelSection("Mechanism of Action", Icons.Outlined.Science, Color(0xFF7B4FE0), headColon(tidyLabel(cleanLabelText(l.mechanism)), "Mechanism of Action"), "Mechanism")
+    LabelSection("Mechanism of Action", Icons.Outlined.Science, Color(0xFF7B4FE0), headColon(tidyLabel(cleanLabelText(l.mechanism)), "Mechanism of Action"), "Mechanism"),
+    LabelSection("Pharmacodynamics", Icons.Outlined.Science, Color(0xFF8E5CF0), tidyLabel(cleanLabelText(cp?.pd)), "Mechanism"),
+    LabelSection("Pharmacokinetics", Icons.Outlined.Science, Color(0xFF3D8BFD), tidyLabel(cleanLabelText(cp?.pk)), "Mechanism"),
+    LabelSection("Clinical Pharmacology", Icons.Outlined.Science, Color(0xFF3D8BFD), tidyLabel(cleanLabelText(cp?.general)), "Mechanism")
 ).filter { it.text.isNotBlank() }
 
 private fun justifiedParagraphs(text: String): AnnotatedString = buildAnnotatedString {
@@ -147,6 +154,8 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
     var products by remember { mutableStateOf<List<ProductEntity>>(emptyList()) }
     var brands by remember { mutableStateOf<List<String>>(emptyList()) }
     var label by remember { mutableStateOf<DrugLabelEntity?>(null) }
+    var rh by remember { mutableStateOf<RenalHepaticRepository.Entry?>(null) }
+    var cp by remember { mutableStateOf<ClinicalPharmacologyRepository.Entry?>(null) }
     var loaded by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(emptySet<String>()) }
     var showAllBrands by remember { mutableStateOf(false) }
@@ -161,11 +170,19 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
             products = dao.getProducts(ing.rxcui)
             brands = dao.getBrands(ing.rxcui)
             label = dao.getLabel(ing.rxcui)
+            rh = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                RenalHepaticRepository.load(context)
+                RenalHepaticRepository.get(label?.setId)
+            }
+            cp = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                ClinicalPharmacologyRepository.load(context)
+                ClinicalPharmacologyRepository.get(label?.setId)
+            }
         }
         loaded = true
     }
 
-    val sections = remember(label) { label?.let { buildSections(it) } ?: emptyList() }
+    val sections = remember(label, rh, cp) { label?.let { buildSections(it, rh, cp) } ?: emptyList() }
     val groups = remember(sections) { sections.map { it.group }.distinct() }
     val thresholdPx = with(density) { 80.dp.roundToPx() }
     var tappedGroup by remember { mutableStateOf<String?>(null) }
@@ -223,9 +240,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(vertical = 8.dp)
                     ) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                        }
+                        PremiumBackButton(onClick = onBackClick)
                         Text(
                             "Search results",
                             style = MaterialTheme.typography.titleMedium,

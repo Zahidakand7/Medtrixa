@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.assess
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -76,6 +78,7 @@ fun ChildPughScreen(
     BackHandler { onBackClick() }
 
     var si by remember { mutableStateOf(false) }
+    var unitChosen by remember { mutableStateOf(false) }
     var bilirubin by remember { mutableStateOf("") }
     var albumin by remember { mutableStateOf("") }
     var inr by remember { mutableStateOf("") }
@@ -135,18 +138,13 @@ fun ChildPughScreen(
                     .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
+                PremiumBackButton(onClick = onBackClick)
 
-                Column(modifier = Modifier.padding(start = 4.dp)) {
+                Column() {
                     Text(
                         text = "Child-Pugh Score",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp
                     )
                     Text(
                         text = "Liver Disease Severity Assessment",
@@ -176,13 +174,6 @@ fun ChildPughScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                CpUnitChoice("Conventional", !si) {
-                    si = false; bilirubin = ""; albumin = ""; calculated = false
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                CpUnitChoice("SI", si) {
-                    si = true; bilirubin = ""; albumin = ""; calculated = false
-                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

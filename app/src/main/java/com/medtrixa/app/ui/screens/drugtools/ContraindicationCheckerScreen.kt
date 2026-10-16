@@ -1,11 +1,13 @@
 package com.medtrixa.app.ui.screens.drugtools
 
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.WarningAmber
@@ -21,10 +24,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -110,22 +115,14 @@ fun ContraindicationCheckerScreen(onBackClick: () -> Unit) {
                 .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 3.dp,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                }
-                Spacer(modifier = Modifier.width(14.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                PremiumBackButton(onClick = onBackClick)
                 Text(
                     "Contraindication Checker",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold
+                    fontSize = 20.sp,
+                    lineHeight = 26.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
@@ -307,121 +304,123 @@ private fun ContraindicationDrugField(
     }
 }
 
+// ---- Premium white card: coloured header band (red = contraindications, green = none on label, blue-grey = not in dataset) ----
 @Composable
-private fun ContraindicationResultCard(result: ContraindicationResult) {
-    val text = result.contraindications.trim()
-    val isNoneOnFile = text.isEmpty() || text.equals("none", ignoreCase = true) || text.equals("none.", ignoreCase = true)
-
-    val cardContainerColor = if (isNoneOnFile) MaterialTheme.colorScheme.surfaceVariant else Color(0xFFFCEBEB)
-    val contentColor = if (isNoneOnFile) MaterialTheme.colorScheme.onSurfaceVariant else Color(0xFF791F1F)
-    val accent = if (isNoneOnFile) MaterialTheme.colorScheme.primary else contentColor
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = cardContainerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+private fun ResultPanel(
+    headerColor: Color,
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    content: (@Composable ColumnScope.() -> Unit)? = null
+) {
+    val shape = RoundedCornerShape(20.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, Color(0xFFDDE3E8), shape)
     ) {
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            Box(
-                modifier = Modifier
-                    .width(7.dp)
-                    .fillMaxHeight()
-                    .background(accent.copy(alpha = 0.85f))
-            )
-            Column(modifier = Modifier.padding(18.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth()) {
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .background(accent.copy(alpha = 0.12f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isNoneOnFile) Icons.Outlined.Info else Icons.Outlined.WarningAmber,
-                            contentDescription = null,
-                            tint = accent,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        result.genericName,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 20.sp,
-                        color = contentColor
-                    )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(headerColor)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .background(Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
                 }
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    if (isNoneOnFile) "None found." else text,
-                    style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 24.sp,
-                    color = contentColor,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Justify
+                    title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    modifier = Modifier.weight(1f)
                 )
-                if (result.status.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Surface(
-                        shape = RoundedCornerShape(50),
-                        color = contentColor.copy(alpha = 0.10f)
-                    ) {
-                        Text(
-                            "Status: ${result.status}",
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = contentColor
-                        )
-                    }
-                }
             }
+            if (subtitle != null) {
+                // 38dp icon chip + 12dp gap, so this line starts exactly under the drug name
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White,
+                    modifier = Modifier.padding(start = 50.dp, top = 2.dp)
+                )
+            }
+        }
+        if (content != null) {
+            Column(modifier = Modifier.fillMaxWidth().padding(16.dp), content = content)
         }
     }
 }
 
 @Composable
-private fun CompactNoContraindicationCard(drugName: String) {
-    val accent = MaterialTheme.colorScheme.primary
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
-    ) {
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            Box(
-                modifier = Modifier
-                    .width(7.dp)
-                    .fillMaxHeight()
-                    .background(accent.copy(alpha = 0.55f))
+private fun ContraindicationResultCard(result: ContraindicationResult) {
+    val text = cleanLabelRefs(result.contraindications.trim())
+    val isNoneOnFile = text.isEmpty() || text.equals("none", ignoreCase = true) || text.equals("none.", ignoreCase = true)
+    val headerColor = if (isNoneOnFile) Color(0xFF2E7D4F) else Color(0xFFC53D3D)
+
+    ResultPanel(
+        headerColor = headerColor,
+        icon = if (isNoneOnFile) Icons.Outlined.CheckCircle else Icons.Outlined.WarningAmber,
+        title = result.genericName,
+        subtitle = if (isNoneOnFile) "No contraindications found." else null,
+        content = if (isNoneOnFile && result.status.isBlank()) null else ({
+        if (!isNoneOnFile) {
+            Text(
+                text,
+                style = MaterialTheme.typography.bodyMedium,
+                lineHeight = 24.sp,
+                color = Color(0xFF1F2933),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Justify
             )
-            Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.Top) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(accent.copy(alpha = 0.10f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Outlined.Info, contentDescription = null, tint = accent, modifier = Modifier.size(24.dp))
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        "No contraindication record found for \"$drugName\" in this dataset.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        "That means it isn't in the dataset, not that no contraindications exist.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+        }
+        if (result.status.isNotBlank()) {
+            if (!isNoneOnFile) Spacer(modifier = Modifier.height(14.dp))
+            Surface(
+                shape = RoundedCornerShape(50),
+                color = headerColor.copy(alpha = 0.10f)
+            ) {
+                Text(
+                    "Status: ${result.status}",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = headerColor
+                )
             }
         }
+        })
+    )
+}
+
+@Composable
+private fun CompactNoContraindicationCard(drugName: String) {
+    ResultPanel(
+        headerColor = Color(0xFF5B7683),
+        icon = Icons.Outlined.Info,
+        title = drugName
+    ) {
+        Text(
+            "No contraindication record found for \"$drugName\" in this dataset.",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF1F2933)
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            "That means it isn't in the dataset, not that no contraindications exist.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -442,4 +441,15 @@ private fun ContraindicationSuggestionsCard(drugName: String, closeMatches: List
             )
         }
     }
+}
+
+private fun cleanLabelRefs(raw: String): String {
+    var t = raw
+    t = Regex("""\[\s*see\b[^\]]*\]""", RegexOption.IGNORE_CASE).replace(t, "")
+    t = Regex("""\(\s*\d{1,2}\.\d{1,2}(?:\s*,\s*\d{1,2}(?:\.\d{1,2})?)*\s*\)""").replace(t, "")
+    t = Regex("""\(\s*\d{1,2}(?:\s*,\s*\d{1,2}(?:\.\d{1,2})?)+\s*\)""").replace(t, "")
+    t = Regex("""\(\s+\d{1,2}\s+\)""").replace(t, "")
+    t = Regex(""" {2,}""").replace(t, " ")
+    t = Regex(""" +([.,;:])""").replace(t, "$1")
+    return t.trim()
 }

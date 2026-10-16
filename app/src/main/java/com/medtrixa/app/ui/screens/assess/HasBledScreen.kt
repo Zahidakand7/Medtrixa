@@ -2,36 +2,27 @@ package com.medtrixa.app.ui.screens.assess
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Assessment
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -40,97 +31,104 @@ fun HasBledScreen(
 ) {
     BackHandler { onBackClick() }
 
-    var hypertension by remember { mutableStateOf(false) }
-    var abnormalRenal by remember { mutableStateOf(false) }
-    var abnormalLiver by remember { mutableStateOf(false) }
-    var strokeHistory by remember { mutableStateOf(false) }
-    var bleedingHistory by remember { mutableStateOf(false) }
-    var labileInr by remember { mutableStateOf(false) }
-    var elderly by remember { mutableStateOf(false) }
-    var drugUse by remember { mutableStateOf(false) }
-    var alcoholUse by remember { mutableStateOf(false) }
+    val titles = listOf(
+        "Hypertension",
+        "Abnormal renal function",
+        "Abnormal liver function",
+        "Stroke history",
+        "Bleeding history or predisposition",
+        "Labile INR",
+        "Elderly",
+        "Drugs",
+        "Alcohol"
+    )
+    val subtitles = listOf(
+        "Uncontrolled, systolic BP above 160 mmHg",
+        "Dialysis, transplant, or creatinine above 2.26 mg/dL (200 µmol/L)",
+        "Cirrhosis, or bilirubin above 2× normal with AST/ALT/ALP above 3× normal",
+        "Prior stroke",
+        "Prior major bleed, anaemia or bleeding diathesis",
+        "Unstable or high INRs, or time in therapeutic range below 60%. Applies only on warfarin: answer No otherwise",
+        "Age above 65 years",
+        "Antiplatelets or NSAIDs",
+        "8 or more drinks per week"
+    )
+    val answers = remember { mutableStateListOf<Boolean?>(null, null, null, null, null, null, null, null, null) }
     var calculated by remember { mutableStateOf(false) }
 
-    val score = listOf(
-        hypertension, abnormalRenal, abnormalLiver, strokeHistory,
-        bleedingHistory, labileInr, elderly, drugUse, alcoholUse
-    ).count { it }
+    val ready = answers.all { it != null }
+    val score = answers.count { it == true }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .verticalScroll(rememberScrollState())
                 .navigationBarsPadding()
-                .padding(horizontal = 20.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(Icons.Outlined.ArrowBack, contentDescription = "Back")
-                }
-                Column(modifier = Modifier.padding(start = 4.dp)) {
-                    Text("HAS-BLED", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text("Bleeding Risk in Anticoagulation", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text("Risk Factors", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(10.dp))
-
-            AssessSwitchRow("Hypertension", "Uncontrolled, SBP > 160 mmHg", hypertension, { hypertension = it; calculated = false })
-            AssessSwitchRow("Abnormal Renal Function", "Dialysis, transplant, Cr > 2.26 mg/dL", abnormalRenal, { abnormalRenal = it; calculated = false })
-            AssessSwitchRow("Abnormal Liver Function", "Cirrhosis, bilirubin > 2× normal, AST/ALT > 3× normal", abnormalLiver, { abnormalLiver = it; calculated = false })
-            AssessSwitchRow("Stroke History", "Prior ischemic or hemorrhagic stroke", strokeHistory, { strokeHistory = it; calculated = false })
-            AssessSwitchRow("Bleeding History/Predisposition", "Prior major bleed or bleeding diathesis", bleedingHistory, { bleedingHistory = it; calculated = false })
-            AssessSwitchRow("Labile INR", "Unstable/high INRs, time in therapeutic range < 60%", labileInr, { labileInr = it; calculated = false })
-            AssessSwitchRow("Elderly", "Age > 65 years", elderly, { elderly = it; calculated = false })
-            AssessSwitchRow("Drug Use", "Antiplatelets, NSAIDs", drugUse, { drugUse = it; calculated = false })
-            AssessSwitchRow("Alcohol Use", "≥ 8 drinks/week", alcoholUse, { alcoholUse = it; calculated = false })
-
+            RiskHeader("HAS-BLED", "Bleeding Risk in Anticoagulation", onBackClick)
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { calculated = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Outlined.Assessment, contentDescription = null)
-                Spacer(modifier = Modifier.padding(start = 4.dp))
-                Text("Calculate")
+            titles.forEachIndexed { i, title ->
+                YesNoRow(
+                    title = title,
+                    subtitle = "1 point · " + subtitles[i],
+                    value = answers[i],
+                    onChange = { answers[i] = it; calculated = false }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
             }
 
-            if (calculated) {
-                Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+            RiskCalculateButton(enabled = ready) { calculated = true }
 
-                val risk = when {
-                    score <= 2 -> "Low bleeding risk"
-                    else -> "High bleeding risk — caution with anticoagulation, consider closer monitoring"
+            if (calculated && ready) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val tier = when {
+                    score >= 3 -> 2
+                    score == 2 -> 1
+                    else -> 0
                 }
+                val bandLabel = listOf("Low bleeding risk", "Moderate bleeding risk", "High bleeding risk")[tier]
+                val bandColor = listOf(Color(0xFF1F9D6B), Color(0xFFC27A00), Color(0xFFC0392B))[tier]
+                val guidance = when (tier) {
+                    2 -> "High bleeding risk. Correct modifiable factors, arrange closer follow-up and review more often. A high score is not by itself a reason to withhold anticoagulation."
+                    1 -> "Moderate bleeding risk. Address modifiable factors and review regularly."
+                    else -> "Low bleeding risk. Anticoagulation, where indicated, can proceed with routine follow-up."
+                }
+                val rates = listOf("1.13", "1.02", "1.88", "3.74", "8.70", "12.50")
+                val rateText = if (score <= 5) {
+                    "About ${rates[score]} major bleeds per 100 patient-years at a score of $score (Euro Heart Survey derivation cohort). Rates differ between cohorts."
+                } else {
+                    "Scores of 6 or more were too uncommon in the derivation cohort for a reliable rate. Risk is very high."
+                }
+                val modifiable = listOf(0 to "Uncontrolled hypertension", 5 to "Labile INR", 7 to "Antiplatelet or NSAID use", 8 to "Alcohol excess")
+                    .filter { answers[it.first] == true }
+                    .map { it.second }
 
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                RiskResultCard(
+                    heading = "HAS-BLED Score",
+                    scoreText = "$score / 9",
+                    bandLabel = bandLabel,
+                    bandColor = bandColor
                 ) {
-                    Column(modifier = Modifier.padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("HAS-BLED Score", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text("$score / 9", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(risk, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    }
+                    Text(guidance, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
+                    RiskNote("Bleeding risk", rateText)
+                    RiskNote(
+                        "Modifiable risk factors present",
+                        if (modifiable.isEmpty()) "None identified from the answers given."
+                        else modifiable.joinToString(", ") + ". Addressing these lowers bleeding risk."
+                    )
+                    RiskNote(
+                        "Interpret with caution",
+                        "HAS-BLED identifies factors to correct and patients to review more often. Current guidelines advise against using it alone to withhold oral anticoagulation, because the stroke benefit usually outweighs the bleeding risk. Weigh it together with the stroke risk (CHA₂DS₂-VASc). Predictive accuracy for major bleeding is modest."
+                    )
+                    RiskReference("Pisters R et al. Chest 2010;138:1093-1100. Lip GYH et al. J Am Coll Cardiol 2011;57:173-180. Joglar JA et al. Circulation 2024;149:e1-e156. Van Gelder IC et al. Eur Heart J 2024;45:3314-3414. Use with clinical judgement.")
                 }
             }
-
             Spacer(modifier = Modifier.height(24.dp))
         }
     }

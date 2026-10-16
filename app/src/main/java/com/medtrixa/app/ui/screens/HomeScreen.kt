@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.material.icons.outlined.VerifiedUser
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -221,29 +222,29 @@ fun HomeScreen(
                                     onClick = { overflowExpanded = false; onSettingsClick() }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Check for updates") },
+                                    text = { Text("Check for Updates") },
                                     leadingIcon = { Icon(Icons.Outlined.Refresh, contentDescription = null) },
                                     onClick = { overflowExpanded = false; onCheckUpdatesClick() }
                                 )
                                 HorizontalDivider()
                                 Text(
-                                    "Support and information",
+                                    "Support and Information",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Help and guide") },
+                                    text = { Text("Help and Guide") },
                                     leadingIcon = { Icon(Icons.Outlined.HelpOutline, contentDescription = null) },
                                     onClick = { overflowExpanded = false; onHelpGuideClick() }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Clinical sources") },
+                                    text = { Text("Clinical Sources") },
                                     leadingIcon = { Icon(Icons.Outlined.MenuBook, contentDescription = null) },
                                     onClick = { overflowExpanded = false; onClinicalSourcesClick() }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Feedback and report an issue") },
+                                    text = { Text("Feedback and Report an Issue") },
                                     leadingIcon = { Icon(Icons.Outlined.Feedback, contentDescription = null) },
                                     onClick = { overflowExpanded = false; onFeedbackClick() }
                                 )
@@ -253,7 +254,7 @@ fun HomeScreen(
                                     onClick = { overflowExpanded = false; onAboutClick() }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Privacy and disclaimer") },
+                                    text = { Text("Privacy and Disclaimer") },
                                     leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
                                     onClick = { overflowExpanded = false; onPrivacyClick() }
                                 )

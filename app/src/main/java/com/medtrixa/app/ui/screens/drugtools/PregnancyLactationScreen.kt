@@ -1,6 +1,7 @@
 package com.medtrixa.app.ui.screens.drugtools
 
 import androidx.activity.compose.BackHandler
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -905,9 +906,8 @@ fun PregnancyLactationScreen(onBackClick: () -> Unit) {
                 horizontalAlignment = Alignment.Start
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onBackClick) { Icon(Icons.Filled.ArrowBack, contentDescription = "Back") }
-                    Spacer(Modifier.width(8.dp))
-                    Text("Pregnancy & Lactation", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                    PremiumBackButton(onClick = onBackClick)
+                    Text("Pregnancy & Lactation", fontSize = 20.sp, fontWeight = FontWeight.Bold, lineHeight = 26.sp)
                 }
                 Spacer(Modifier.height(4.dp))
             }

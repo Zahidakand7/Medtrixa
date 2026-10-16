@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.assess
 
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.activity.compose.BackHandler
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.height
@@ -92,8 +95,10 @@ fun Meld30Screen(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
+                .imePadding()
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -101,20 +106,13 @@ fun Meld30Screen(
                     .padding(top = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
+                PremiumBackButton(onClick = onBackClick)
 
-                Column(
-                    modifier = Modifier.padding(start = 4.dp)
-                ) {
+                Column() {
                     Text(
                         text = "MELD 3.0",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp
                     )
 
                     Text(
@@ -350,14 +348,16 @@ fun Meld30Screen(
                             Text(
                                 text = impact,
                                 style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Start
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Population-based estimate (Kim et al., Gastroenterology 2021), not an individual prediction. Use with clinical judgement.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Start
                             )
                         }
                     }

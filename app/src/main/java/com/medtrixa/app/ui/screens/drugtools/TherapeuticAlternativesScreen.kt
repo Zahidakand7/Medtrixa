@@ -1,6 +1,8 @@
 package com.medtrixa.app.ui.screens.drugtools
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -55,12 +57,9 @@ fun TherapeuticAlternativesScreen(
         ) {
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
-                    }
-                    Spacer(Modifier.width(4.dp))
+                    PremiumBackButton(onClick = onBackClick)
                     Column {
-                        Text("Therapeutic Alternatives", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                        Text("Therapeutic Alternatives", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp)
                         Text(
                             "Other drugs in the same class",
                             style = MaterialTheme.typography.bodyMedium,
