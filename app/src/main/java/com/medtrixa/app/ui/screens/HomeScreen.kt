@@ -589,7 +589,7 @@ private fun HomeBottomNavigation(
             )
 
             Text(
-                text = "Tools",
+                text = "Protocols",
                 modifier = Modifier.clickable { onToolsClick() },
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Normal,

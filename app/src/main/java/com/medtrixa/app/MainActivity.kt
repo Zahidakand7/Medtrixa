@@ -52,6 +52,8 @@ import com.medtrixa.app.ui.screens.assess.CentorScoreScreen
 import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.AiInsightsScreen
 import com.medtrixa.app.ui.screens.ToolsScreen
+import com.medtrixa.app.ui.screens.ProtocolsScreen
+import com.medtrixa.app.ui.screens.CardiacArrestScreen
 import com.medtrixa.app.ui.screens.ReferenceScreen
 import com.medtrixa.app.ui.screens.PubMedScreen
 import com.medtrixa.app.ui.screens.AntimicrobialReferenceHubScreen
@@ -148,6 +150,7 @@ private fun MedtrixaRoot() {
                 backFromScore("clinical_scores")
             "cha2ds2vasc", "hasbled", "wells_dvt", "wells_pe", "perc" ->
                 backFromScore("risk_assessment")
+            "cardiac_arrest" -> currentScreen = "tools"
             "calculator" -> currentScreen = "calculators"
             "ai_insights" -> {
                 aiResume = false
@@ -164,10 +167,14 @@ private fun MedtrixaRoot() {
     when (currentScreen) {
 
         "tools" -> {
-            ComingSoonScreen(
-                title = "Tools",
-                onBackClick = { currentScreen = "home" }
+            ProtocolsScreen(
+                onBackClick = { currentScreen = "home" },
+                onCardiacArrestClick = { currentScreen = "cardiac_arrest" }
             )
+        }
+
+        "cardiac_arrest" -> {
+            CardiacArrestScreen(onBackClick = { currentScreen = "tools" })
         }
 
         "drug_detail" -> {
