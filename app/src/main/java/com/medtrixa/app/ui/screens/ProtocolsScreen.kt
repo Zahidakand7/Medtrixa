@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Science
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import com.medtrixa.app.ui.components.PremiumBackButton
 
 private val comingNext = listOf(
-    "ABG Interpreter", "Lab Interpreter", "SBAR Handover",
+    "Lab Interpreter", "SBAR Handover",
     "Sepsis", "Anaphylaxis", "Stroke", "DKA", "Status epilepticus"
 )
 
@@ -31,7 +33,8 @@ private val comingNext = listOf(
 @Composable
 fun ProtocolsScreen(
     onBackClick: () -> Unit,
-    onCardiacArrestClick: () -> Unit
+    onCardiacArrestClick: () -> Unit,
+    onAbgClick: () -> Unit
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val background = MaterialTheme.colorScheme.background
@@ -128,6 +131,16 @@ fun ProtocolsScreen(
                 }
 
                 item {
+                    ProtocolRow(
+                        title = "ABG Interpreter",
+                        subtitle = "Primary disorder, compensation, anion gap",
+                        source = "Physiological approach",
+                        icon = Icons.Outlined.Science,
+                        onClick = onAbgClick
+                    )
+                }
+
+                item {
                     Text("Coming next", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
 
@@ -153,6 +166,47 @@ fun ProtocolsScreen(
                         if (pair.size == 1) Spacer(Modifier.weight(1f))
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProtocolRow(
+    title: String,
+    subtitle: String,
+    source: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    val primary = MaterialTheme.colorScheme.primary
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(46.dp)
+                    .background(primary.copy(alpha = 0.10f), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, contentDescription = null, tint = primary)
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(source, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = primary)
             }
         }
     }
