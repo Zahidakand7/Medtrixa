@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import com.medtrixa.app.ui.theme.auraAccent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
@@ -54,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medtrixa.app.ui.components.AutoSizeText
 import com.medtrixa.app.ui.components.PremiumBackButton
+import com.medtrixa.app.ui.theme.atlasHeroBrush
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -106,13 +108,14 @@ private fun loadOrganisms(context: Context): List<Organism> = try {
     emptyList()
 }
 
+@Composable
 private fun groupColor(g: String): Color = when (g) {
-    "Gram-positive" -> Color(0xFF6A1B9A)
-    "Gram-negative" -> Color(0xFFC2185B)
-    "Atypical" -> Color(0xFF00796B)
-    "Anaerobe" -> Color(0xFF283593)
-    "Acid-fast" -> Color(0xFFE65100)
-    else -> Color(0xFF455A64)
+    "Gram-positive" -> auraAccent(0, true)
+    "Gram-negative" -> auraAccent(1, true)
+    "Atypical" -> auraAccent(2, true)
+    "Anaerobe" -> auraAccent(3, true)
+    "Acid-fast" -> auraAccent(4, true)
+    else -> auraAccent(5, true)
 }
 
 // "Pseudomonas aeruginosa" -> "P. aeruginosa"
@@ -229,13 +232,13 @@ private fun AtlasHero(total: Int, shown: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(28.dp))
-            .background(Brush.linearGradient(listOf(Color(0xFF0F0C20), Color(0xFF1F1747), Color(0xFF3B2A6B))))
+            .background(atlasHeroBrush())
             .padding(20.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 "CLINICAL MICROBIOLOGY",
-                color = Color(0xFFE8C468),
+                color = Color.White.copy(alpha = 0.85f),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.4.sp
@@ -255,11 +258,11 @@ private fun AtlasHero(total: Int, shown: Int) {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(Color(0xFFE8C468).copy(alpha = 0.20f))
+                    .background(Color.White.copy(alpha = 0.20f))
                     .padding(horizontal = 12.dp, vertical = 5.dp)
             ) {
                 val label = if (shown == total) "$total organisms" else "$shown of $total organisms"
-                Text(label, color = Color(0xFFE8C468), fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                Text(label, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
             }
         }
     }

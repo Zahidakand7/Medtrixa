@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Science
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -26,7 +27,7 @@ import com.medtrixa.app.ui.components.PremiumBackButton
 
 private val comingNext = listOf(
     "Lab Interpreter", "SBAR Handover",
-    "Sepsis", "Anaphylaxis", "Stroke", "DKA", "Status epilepticus"
+    "Anaphylaxis", "Stroke", "DKA", "Status epilepticus"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +35,8 @@ private val comingNext = listOf(
 fun ProtocolsScreen(
     onBackClick: () -> Unit,
     onCardiacArrestClick: () -> Unit,
-    onAbgClick: () -> Unit
+    onAbgClick: () -> Unit,
+    onSepsisClick: () -> Unit
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val background = MaterialTheme.colorScheme.background
@@ -137,6 +139,16 @@ fun ProtocolsScreen(
                         source = "Physiological approach",
                         icon = Icons.Outlined.Science,
                         onClick = onAbgClick
+                    )
+                }
+
+                item {
+                    ProtocolRow(
+                        title = "Sepsis",
+                        subtitle = "Time-zero clock, checklist, shock support",
+                        source = "SSC 2026",
+                        icon = Icons.Outlined.Warning,
+                        onClick = onSepsisClick
                     )
                 }
 

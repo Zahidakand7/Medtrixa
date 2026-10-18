@@ -56,6 +56,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import com.medtrixa.app.ui.theme.auraAccent
+import com.medtrixa.app.ui.theme.pubmedHeroBrush
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalUriHandler
@@ -73,22 +76,22 @@ import java.net.URLEncoder
 
 // ───────────────────────── Brand colors ─────────────────────────
 
-private val PubMedBlue = Color(0xFF2A6EBB)
-private val PubMedBlueLight = Color(0xFFEAF2FB)
+private val PubMedBlue: Color
+    @Composable get() = MaterialTheme.colorScheme.primary
+private val PubMedBlueLight: Color
+    @Composable get() = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f).compositeOver(MaterialTheme.colorScheme.surface)
 
 // A small, recognizable palette for the most common PubMed publication types;
 // anything not in this map just falls back to the brand blue.
-private val pubTypeColors = mapOf(
-    "Randomized Controlled Trial" to Color(0xFF2E7D32),
-    "Meta-Analysis" to Color(0xFF6A1B9A),
-    "Systematic Review" to Color(0xFF00838F),
-    "Review" to Color(0xFF00838F),
-    "Clinical Trial" to Color(0xFF2E7D32),
-    "Guideline" to Color(0xFFAD6800),
-    "Case Reports" to Color(0xFF8D6E63)
-)
-
-private fun colorForPubType(type: String): Color = pubTypeColors[type] ?: PubMedBlue
+@Composable
+private fun colorForPubType(type: String): Color = when (type) {
+    "Randomized Controlled Trial", "Clinical Trial" -> auraAccent(0, true)
+    "Meta-Analysis" -> auraAccent(3, true)
+    "Systematic Review", "Review" -> auraAccent(1, true)
+    "Guideline" -> auraAccent(4, true)
+    "Case Reports" -> auraAccent(2, true)
+    else -> PubMedBlue
+}
 
 // ───────────────────────── Data + network ─────────────────────────
 
@@ -344,9 +347,7 @@ fun PubMedScreen(onBackClick: () -> Unit) {
                                 .shadow(8.dp, RoundedCornerShape(24.dp))
                                 .clip(RoundedCornerShape(24.dp))
                                 .background(
-                                    Brush.linearGradient(
-                                        listOf(PubMedBlue, lerp(PubMedBlue, Color(0xFF0B2F5B), 0.6f))
-                                    )
+                                    pubmedHeroBrush()
                                 )
                         ) {
                             Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

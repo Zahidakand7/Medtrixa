@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import com.medtrixa.app.ui.theme.dosingHeroBrush
+import com.medtrixa.app.ui.theme.auraAccent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -87,7 +89,7 @@ private fun BreakpointBanner() {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(Brush.linearGradient(listOf(Color(0xFF004D40), Color(0xFF00796B), Color(0xFF1565C0))))
+            .background(dosingHeroBrush())
             .padding(20.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -112,10 +114,10 @@ private fun BreakpointCard(b: ClsiBreakpoint) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(b.antibiotic, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                BpCell("Entero-\nbacterales", b.enterobacterales, Color(0xFF1565C0), Modifier.weight(1f))
-                BpCell("P. aerug-\ninosa", b.pseudomonas, Color(0xFF6A1B9A), Modifier.weight(1f))
-                BpCell("CRAB", b.crab, Color(0xFFE65100), Modifier.weight(1f))
-                BpCell("S. malto-\nphilia", b.stenotrophomonas, Color(0xFF2E7D32), Modifier.weight(1f))
+                BpCell("Entero-\nbacterales", b.enterobacterales, auraAccent(0), Modifier.weight(1f))
+                BpCell("P. aerug-\ninosa", b.pseudomonas, auraAccent(1), Modifier.weight(1f))
+                BpCell("CRAB", b.crab, auraAccent(2), Modifier.weight(1f))
+                BpCell("S. malto-\nphilia", b.stenotrophomonas, auraAccent(3), Modifier.weight(1f))
             }
             if (b.footnote.isNotBlank()) {
                 Text(b.footnote, fontSize = 12.sp, lineHeight = 17.sp,

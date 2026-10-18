@@ -32,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -52,13 +52,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.theme.dosingHeroBrush
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-
-private val RxInk = Color(0xFF1B2733)
-private val RxMuted = Color(0xFF5B6773)
 
 private data class RxSection(val title: String, val text: String)
 
@@ -102,14 +100,11 @@ fun AntibioticExtrasPanel(
     eyebrow: String,
     title: String,
     blurb: String,
-    searchHint: String,
-    c1: Color,
-    c2: Color,
-    c3: Color,
-    accent: Color,
-    tint: Color
+    searchHint: String
 ) {
     val context = LocalContext.current
+    val tint = MaterialTheme.colorScheme.primary
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val loaded by produceState<List<RxItem>?>(initialValue = null, key1 = file) {
         value = withContext(Dispatchers.IO) { loadRx(context, file) }
     }
@@ -141,7 +136,7 @@ fun AntibioticExtrasPanel(
         item {
             Box(Modifier.padding(horizontal = 16.dp)) {
                 val countText = if (shown.size == all.size) "${all.size} entries" else "${shown.size} of ${all.size} entries"
-                RxHero(eyebrow, title, blurb, countText, c1, c2, c3, accent)
+                RxHero(eyebrow, title, blurb, countText)
             }
         }
         item {
@@ -177,18 +172,18 @@ fun AntibioticExtrasPanel(
             }
         }
         if (loaded == null) {
-            item { Text("Loading\u2026", color = RxMuted, modifier = Modifier.padding(horizontal = 16.dp)) }
+            item { Text("Loading\u2026", color = muted, modifier = Modifier.padding(horizontal = 16.dp)) }
         } else if (shown.isEmpty()) {
             item {
                 val msg = if (all.isEmpty()) "Entries for this section are being added." else "No matching entries."
-                Text(msg, color = RxMuted, modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp))
+                Text(msg, color = muted, modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp))
             }
         }
-        items(shown, key = { it.id }) { item -> RxCard(item, tint) }
+        items(shown, key = { it.id }) { item -> RxCard(item) }
         item {
             Text(
                 "Educational reference. Verify doses against the current product label, local antimicrobial guidelines and the patient's renal and hepatic function before use.",
-                color = RxMuted,
+                color = muted,
                 fontSize = 11.sp,
                 lineHeight = 16.sp,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -198,47 +193,41 @@ fun AntibioticExtrasPanel(
 }
 
 @Composable
-private fun RxHero(
-    eyebrow: String,
-    title: String,
-    blurb: String,
-    count: String,
-    c1: Color,
-    c2: Color,
-    c3: Color,
-    accent: Color
-) {
+private fun RxHero(eyebrow: String, title: String, blurb: String, count: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(28.dp))
-            .background(Brush.linearGradient(listOf(c1, c2, c3)))
+            .background(dosingHeroBrush())
             .padding(20.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(eyebrow, color = accent, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp)
+            Text(eyebrow, color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp)
             Text(title, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(blurb, color = Color.White.copy(alpha = 0.9f), fontSize = 13.sp, lineHeight = 18.sp)
             Spacer(Modifier.height(4.dp))
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(accent.copy(alpha = 0.20f))
+                    .background(Color.White.copy(alpha = 0.20f))
                     .padding(horizontal = 12.dp, vertical = 5.dp)
             ) {
-                Text(count, color = accent, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                Text(count, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
             }
         }
     }
 }
 
 @Composable
-private fun RxCard(item: RxItem, tint: Color) {
+private fun RxCard(item: RxItem) {
+    val tint = MaterialTheme.colorScheme.primary
+    val ink = MaterialTheme.colorScheme.onSurface
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     Card(
         modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().animateContentSize(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = BorderStroke(1.dp, tint.copy(alpha = 0.30f))
     ) {
@@ -246,7 +235,7 @@ private fun RxCard(item: RxItem, tint: Color) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (item.category.isNotBlank()) RxPill(item.category, tint)
-                    Text(item.title, color = RxInk, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(item.title, color = ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     if (item.subtitle.isNotBlank()) {
                         Text(item.subtitle, color = tint, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
@@ -254,14 +243,14 @@ private fun RxCard(item: RxItem, tint: Color) {
                 Icon(
                     if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = RxMuted
+                    tint = muted
                 )
             }
             if (item.summary.isNotBlank()) {
                 Spacer(Modifier.height(8.dp))
                 Text(
                     item.summary,
-                    color = RxMuted,
+                    color = muted,
                     fontSize = 13.sp,
                     lineHeight = 19.sp,
                     maxLines = if (expanded) Int.MAX_VALUE else 2,
@@ -274,14 +263,14 @@ private fun RxCard(item: RxItem, tint: Color) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.width(4.dp).height(16.dp).clip(RoundedCornerShape(2.dp)).background(tint))
                         Spacer(Modifier.width(10.dp))
-                        Text(s.title, color = RxInk, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                        Text(s.title, color = ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Spacer(Modifier.height(10.dp))
-                    RxText(s.text, tint)
+                    RxText(s.text, tint, ink)
                 }
                 if (item.source.isNotBlank()) {
                     Spacer(Modifier.height(14.dp))
-                    Text("Source: " + item.source, color = RxMuted, fontSize = 11.sp, lineHeight = 16.sp)
+                    Text("Source: " + item.source, color = muted, fontSize = 11.sp, lineHeight = 16.sp)
                 }
             }
         }
@@ -301,7 +290,7 @@ private fun RxPill(text: String, color: Color) {
 }
 
 @Composable
-private fun RxText(text: String, tint: Color) {
+private fun RxText(text: String, tint: Color, ink: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         text.split("\n").filter { it.isNotBlank() }.forEach { line ->
             if (line.startsWith("\u2022 ")) {
@@ -311,7 +300,7 @@ private fun RxText(text: String, tint: Color) {
                     }
                     Text(
                         line.removePrefix("\u2022 "),
-                        color = RxInk,
+                        color = ink,
                         fontSize = 14.sp,
                         lineHeight = 21.sp,
                         textAlign = TextAlign.Start,
@@ -319,7 +308,7 @@ private fun RxText(text: String, tint: Color) {
                     )
                 }
             } else {
-                Text(line, color = RxInk, fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify)
+                Text(line, color = ink, fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify)
             }
         }
     }

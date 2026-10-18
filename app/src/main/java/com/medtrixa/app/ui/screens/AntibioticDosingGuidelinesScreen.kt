@@ -27,6 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.lerp
+import com.medtrixa.app.ui.theme.auraAccent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -39,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.medtrixa.app.data.model.AntibioticDosingGuideline
 import com.medtrixa.app.data.repository.AntibioticDosingRepository
 import com.medtrixa.app.ui.components.PremiumBackButton
+import com.medtrixa.app.ui.theme.dosingHeroBrush
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -75,7 +79,7 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
     }
 
     Scaffold(
-        modifier = Modifier.statusBarsPadding(),
+        modifier = Modifier.background(MaterialTheme.colorScheme.surface).statusBarsPadding(),
         topBar = {
             TopAppBar(
                 title = { AutoSizeText("Antibiotic Dosing Guidelines", TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold)) },
@@ -112,8 +116,6 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
                         title = "Drugs A to Z",
                         blurb = "Adult dose, renal adjustment, pregnancy, administration and monitoring for each antibiotic.",
                         searchHint = "Search antibiotic, class or use",
-                        c1 = Color(0xFF042F2E), c2 = Color(0xFF0F4C4A), c3 = Color(0xFF14766F),
-                        accent = Color(0xFF7EE0C8), tint = Color(0xFF0F766E)
                     )
                     return@Column
                 }
@@ -124,8 +126,6 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
                         title = "Treatment by infection",
                         blurb = "First-line regimens, alternatives and usual duration for common infection syndromes.",
                         searchHint = "Search infection, organism or drug",
-                        c1 = Color(0xFF2A0A18), c2 = Color(0xFF5C1230), c3 = Color(0xFF8E2450),
-                        accent = Color(0xFFF2C9A0), tint = Color(0xFF8E2450)
                     )
                     return@Column
                 }
@@ -136,8 +136,6 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
                         title = "Renal and paediatric dosing",
                         blurb = "Creatinine clearance bands, dialysis, obesity and weight-based paediatric doses.",
                         searchHint = "Search drug, class or population",
-                        c1 = Color(0xFF111827), c2 = Color(0xFF1F2937), c3 = Color(0xFF374151),
-                        accent = Color(0xFFFFB74D), tint = Color(0xFFB45309)
                     )
                     return@Column
                 }
@@ -148,8 +146,6 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
                         title = "TDM and infusion strategies",
                         blurb = "Vancomycin AUC dosing, aminoglycoside monitoring and extended-infusion beta-lactams.",
                         searchHint = "Search drug or strategy",
-                        c1 = Color(0xFF0B2A1A), c2 = Color(0xFF14532D), c3 = Color(0xFF1F7A45),
-                        accent = Color(0xFFD9E27A), tint = Color(0xFF166534)
                     )
                     return@Column
                 }
@@ -317,7 +313,7 @@ private fun HeroBanner(count: Int) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(
-                Brush.linearGradient(listOf(Color(0xFF0D47A1), Color(0xFF1565C0), Color(0xFF00897B)))
+                dosingHeroBrush()
             )
             .padding(20.dp)
     ) {
@@ -385,22 +381,35 @@ private fun AutoSizeText(
     )
 }
 
+@Composable
 private fun groupColor(group: String): Color = when (group) {
-    "ESBL-E" -> Color(0xFF1565C0)
-    "AmpC-E" -> Color(0xFF00796B)
-    "CRE" -> Color(0xFFC62828)
-    "DTR P. aeruginosa" -> Color(0xFF6A1B9A)
-    "CRAB" -> Color(0xFFE65100)
-    "S. maltophilia" -> Color(0xFF2E7D32)
-    else -> Color(0xFF455A64)
+    "ESBL-E" -> auraAccent(0)
+    "AmpC-E" -> auraAccent(1)
+    "CRE" -> auraAccent(2)
+    "DTR P. aeruginosa" -> auraAccent(3)
+    "CRAB" -> auraAccent(4)
+    "S. maltophilia" -> auraAccent(5)
+    else -> MaterialTheme.colorScheme.secondary
 }
 
+@Composable
 private fun tierColor(tier: String): Color = when (tier) {
+    "Preferred" -> Color(0xFF2E7D32)   // green: kept
+    "Avoid" -> Color(0xFFC62828)       // red: kept
+    "Alternative" -> auraAccent(2)
+    "Step-down" -> auraAccent(1)
+    "Reserve" -> auraAccent(3)
+    else -> Color(0xFF546E7A)          // grey: kept
+}
+
+// Same colours, darkened in dark mode so the text stays readable on the white pill
+@Composable
+private fun tierPillColor(tier: String): Color = when (tier) {
     "Preferred" -> Color(0xFF2E7D32)
-    "Alternative" -> Color(0xFF1565C0)
-    "Step-down" -> Color(0xFF00838F)
-    "Reserve" -> Color(0xFFEF6C00)
     "Avoid" -> Color(0xFFC62828)
+    "Alternative" -> auraAccent(2, true)
+    "Step-down" -> auraAccent(1, true)
+    "Reserve" -> auraAccent(3, true)
     else -> Color(0xFF546E7A)
 }
 
@@ -415,7 +424,7 @@ private fun TierBadge(tier: String) {
     ) {
         Text(
             tier.uppercase(),
-            color = tierColor(tier),
+            color = tierPillColor(tier),
             fontSize = 11.sp,
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = 0.8.sp
@@ -429,6 +438,7 @@ private fun GuidelineCard(guideline: AntibioticDosingGuideline) {
         mutableStateOf(false)
     }
     val accent = groupColor(guideline.group)
+    val bandAccent = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) lerp(accent, Color.Black, 0.45f) else accent
     val isAvoid = guideline.tier == "Avoid"
     val hasDose = guideline.dose.isNotBlank() && guideline.dose != "Avoid" && guideline.dose != "Preserve"
 
@@ -446,7 +456,7 @@ private fun GuidelineCard(guideline: AntibioticDosingGuideline) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Brush.horizontalGradient(listOf(accent, accent.copy(alpha = 0.72f))))
+                    .background(Brush.horizontalGradient(listOf(bandAccent, bandAccent.copy(alpha = 0.72f))))
                     .padding(horizontal = 18.dp, vertical = 11.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
