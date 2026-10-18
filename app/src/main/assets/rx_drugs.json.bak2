@@ -1,0 +1,124 @@
+{
+  "items": [
+    {
+      "id": "penicillin_g",
+      "title": "Penicillin G (benzylpenicillin)",
+      "category": "Penicillins",
+      "subtitle": "Narrow-spectrum penicillin | IV, IM",
+      "summary": "Drug of choice for syphilis, susceptible streptococci, meningococcus and many anaerobes. Short half-life, so it needs frequent dosing or continuous infusion.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Typical IV dose: 2 to 4 million units every 4 hours (12 to 24 million units a day).\n• Meningitis: 24 million units a day IV, divided every 4 hours.\n• Streptococcal endocarditis: 12 to 18 million units a day IV, divided or as a continuous infusion; the regimen depends on the organism's MIC.\n• Early syphilis: benzathine penicillin G 2.4 million units IM as a single dose; late latent syphilis: weekly for 3 doses.\n• Benzathine and procaine preparations are for IM use only and must never be given IV."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 10 to 50 mL/min: about 75% of the usual dose.\n• CrCl below 10 mL/min: 20 to 50% of the usual dose.\n• High doses in renal failure can cause seizures (neurotoxicity)."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Streptococcus pyogenes, susceptible S. pneumoniae, viridans streptococci, susceptible Neisseria meningitidis, Treponema pallidum, Clostridium species, Actinomyces and Listeria.\n• Not reliable for most S. aureus (penicillinase), Gram-negative bacilli, or enterococci, where ampicillin is the better choice."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Safe in pregnancy; the drug of choice for syphilis (desensitise if allergic) and for group B streptococcal prophylaxis in labour.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Penicillin G potassium contains about 1.7 mEq of potassium per million units, so watch potassium in renal failure.\n• Jarisch-Herxheimer reaction can follow the first dose in syphilis.\n• Check the allergy history: many labelled penicillin allergies are not true allergy.\n• Prolonged high-dose courses can cause neutropenia and haemolytic anaemia."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "amoxicillin",
+      "title": "Amoxicillin",
+      "category": "Penicillins",
+      "subtitle": "Aminopenicillin | Oral (IV in some countries)",
+      "summary": "First-line oral beta-lactam for respiratory, ear and dental infections and for Helicobacter pylori combinations. Inactivated by beta-lactamases.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Oral: 500 mg every 8 hours, or 875 mg every 12 hours.\n• High dose: 1 g every 8 hours (up to 3 g a day) for community-acquired pneumonia and penicillin-nonsusceptible pneumococci.\n• Endocarditis prophylaxis before dental procedures in the highest-risk patients: 2 g orally as a single dose 30 to 60 minutes before.\n• IV amoxicillin is available in some countries, for example 1 g every 8 hours, and up to 2 g every 4 hours for meningitis or endocarditis.\n• H. pylori: used within combination regimens, so follow the regimen's own dosing."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 10 to 30 mL/min: 250 to 500 mg every 12 hours.\n• CrCl below 10 mL/min: 250 to 500 mg every 24 hours.\n• Haemodialysis: 250 to 500 mg every 24 hours, with a dose after dialysis.\n• Avoid the 875 mg tablet when CrCl is below 30 mL/min."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against streptococci, Enterococcus faecalis (ampicillin-susceptible), Listeria, and non-beta-lactamase-producing H. influenzae and E. coli.\n• Common uses: community-acquired pneumonia, otitis media, sinusitis, pharyngitis, dental infection, H. pylori combinations.\n• Not active against beta-lactamase producers (many S. aureus, H. influenzae, E. coli), MRSA or Pseudomonas."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding; watch the infant for rash, diarrhoea and thrush."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Can be taken with or without food.\n• A non-allergic rash is common in infectious mononucleosis and with allopurinol.\n• High doses can cause crystalluria, so keep the patient hydrated.\n• May raise INR with warfarin, and probenecid raises amoxicillin levels; reduces methotrexate clearance.\n• Diarrhoea and C. difficile infection are possible."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "amoxicillin_clavulanate",
+      "title": "Amoxicillin-clavulanate",
+      "category": "Penicillins",
+      "subtitle": "Beta-lactam with beta-lactamase inhibitor | Oral, IV (not US)",
+      "summary": "Extends amoxicillin to beta-lactamase producers and anaerobes. Used for bites, sinusitis, otitis media, aspiration and mixed infections.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Oral: 500/125 mg every 8 hours, or 875/125 mg every 12 hours.\n• Extended-release 2000/125 mg every 12 hours (where available) for resistant pneumococci.\n• IV (not available in the US): 1.2 g (1 g/200 mg) every 8 hours, up to every 6 hours in severe infection.\n• Take at the start of a meal to improve absorption and reduce diarrhoea."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 10 to 30 mL/min: 500/125 mg every 12 hours; do not use the 875 mg tablet.\n• CrCl below 10 mL/min: 500/125 mg every 24 hours.\n• Haemodialysis: 500/125 mg every 24 hours, with a dose after dialysis.\n• Do not use the 2000 mg extended-release tablet when CrCl is below 30 mL/min."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Covers beta-lactamase-producing H. influenzae, Moraxella, many E. coli and Klebsiella, methicillin-susceptible S. aureus and most oral anaerobes.\n• Common uses: animal and human bites, sinusitis, otitis media, aspiration pneumonia, mild diabetic foot infection, skin infection, and oral step-down for intra-abdominal infection.\n• Not active against Pseudomonas, MRSA or ESBL producers."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Generally considered safe in pregnancy.\n• Avoid in preterm prelabour rupture of membranes because of a possible link with necrotising enterocolitis in the newborn.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Tablets with different amoxicillin:clavulanate ratios are not interchangeable; do not substitute two 250/125 tablets for one 500/125.\n• Diarrhoea is common (the clavulanate component).\n• Cholestatic hepatitis can start days to weeks after stopping, more often in older men and with courses longer than 14 days; check liver tests in long courses.\n• C. difficile infection and hypersensitivity reactions are possible."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "ampicillin_sulbactam",
+      "title": "Ampicillin and ampicillin-sulbactam",
+      "category": "Penicillins",
+      "subtitle": "Aminopenicillin (with beta-lactamase inhibitor) | IV",
+      "summary": "Ampicillin is the drug of choice for Listeria and ampicillin-susceptible enterococci. Adding sulbactam covers beta-lactamase producers and gives sulbactam's own activity against Acinetobacter.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Ampicillin: 1 to 2 g IV every 4 to 6 hours.\n• Meningitis and Listeria: ampicillin 2 g IV every 4 hours.\n• Enterococcal endocarditis: ampicillin 2 g IV every 4 hours, combined with ceftriaxone or gentamicin.\n• Group B streptococcal prophylaxis in labour: 2 g IV, then 1 g every 4 hours until delivery.\n• Ampicillin-sulbactam: 3 g (2 g/1 g) IV every 6 hours.\n• Carbapenem-resistant Acinetobacter: high-dose sulbactam, about 9 g of the sulbactam component a day in divided doses, often as extended infusions. See the IDSA AMR tab."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Ampicillin: CrCl above 50 mL/min every 6 hours; 10 to 50 every 6 to 12 hours; below 10 every 12 to 24 hours.\n• Ampicillin-sulbactam: CrCl 30 or above, 3 g every 6 to 8 hours; 15 to 29, 3 g every 12 hours; 5 to 14, 3 g every 24 hours."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Ampicillin: Listeria, Enterococcus faecalis, group B streptococci, susceptible Salmonella and some other Gram-negatives.\n• Ampicillin-sulbactam: skin and soft tissue infection, aspiration pneumonia, community intra-abdominal infection, diabetic foot infection, and Acinetobacter baumannii.\n• E. coli resistance to ampicillin-sulbactam is common, so check local susceptibility. Not active against Pseudomonas or ESBL producers."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Rash is common in infectious mononucleosis.\n• High doses in renal failure can cause seizures.\n• Contains sodium, so watch fluid balance in heart or renal failure.\n• Diarrhoea, C. difficile infection and phlebitis at the infusion site are possible."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Acinetobacter dosing: IDSA AMR guidance."
+    }
+  ]
+}

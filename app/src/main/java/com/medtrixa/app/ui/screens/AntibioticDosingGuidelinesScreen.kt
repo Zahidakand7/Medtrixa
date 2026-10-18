@@ -19,6 +19,9 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,7 +78,7 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
         modifier = Modifier.statusBarsPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("Antibiotic Dosing Guidelines", fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold) },
+                title = { AutoSizeText("Antibiotic Dosing Guidelines", TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold)) },
                 navigationIcon = {
                     PremiumBackButton(onClick = onBackClick, edgeInset = 12.dp)
                 }
@@ -87,15 +90,73 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            TabRow(selectedTabIndex = selectedTab) {
+            ScrollableTabRow(selectedTabIndex = selectedTab, edgePadding = 8.dp) {
                 Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 },
-                    text = { Text("Dosing", fontWeight = FontWeight.SemiBold) })
+                    text = { Text("IDSA AMR", fontWeight = FontWeight.SemiBold) })
                 Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 },
+                    text = { Text("Drugs", fontWeight = FontWeight.SemiBold) })
+                Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 },
+                    text = { Text("Empirical", fontWeight = FontWeight.SemiBold) })
+                Tab(selected = selectedTab == 3, onClick = { selectedTab = 3 },
+                    text = { Text("Renal and paeds", fontWeight = FontWeight.SemiBold) })
+                Tab(selected = selectedTab == 4, onClick = { selectedTab = 4 },
+                    text = { Text("TDM", fontWeight = FontWeight.SemiBold) })
+                Tab(selected = selectedTab == 5, onClick = { selectedTab = 5 },
                     text = { Text("Breakpoints", fontWeight = FontWeight.SemiBold) })
             }
-            if (selectedTab == 1) {
-                ClsiBreakpointsPanel()
-                return@Column
+            when (selectedTab) {
+                1 -> {
+                    AntibioticExtrasPanel(
+                        file = "rx_drugs.json",
+                        eyebrow = "ANTIBIOTIC MONOGRAPHS",
+                        title = "Drugs A to Z",
+                        blurb = "Adult dose, renal adjustment, pregnancy, administration and monitoring for each antibiotic.",
+                        searchHint = "Search antibiotic, class or use",
+                        c1 = Color(0xFF042F2E), c2 = Color(0xFF0F4C4A), c3 = Color(0xFF14766F),
+                        accent = Color(0xFF7EE0C8), tint = Color(0xFF0F766E)
+                    )
+                    return@Column
+                }
+                2 -> {
+                    AntibioticExtrasPanel(
+                        file = "rx_empirical.json",
+                        eyebrow = "EMPIRICAL THERAPY",
+                        title = "Treatment by infection",
+                        blurb = "First-line regimens, alternatives and usual duration for common infection syndromes.",
+                        searchHint = "Search infection, organism or drug",
+                        c1 = Color(0xFF2A0A18), c2 = Color(0xFF5C1230), c3 = Color(0xFF8E2450),
+                        accent = Color(0xFFF2C9A0), tint = Color(0xFF8E2450)
+                    )
+                    return@Column
+                }
+                3 -> {
+                    AntibioticExtrasPanel(
+                        file = "rx_renal_paeds.json",
+                        eyebrow = "SPECIAL POPULATIONS",
+                        title = "Renal and paediatric dosing",
+                        blurb = "Creatinine clearance bands, dialysis, obesity and weight-based paediatric doses.",
+                        searchHint = "Search drug, class or population",
+                        c1 = Color(0xFF111827), c2 = Color(0xFF1F2937), c3 = Color(0xFF374151),
+                        accent = Color(0xFFFFB74D), tint = Color(0xFFB45309)
+                    )
+                    return@Column
+                }
+                4 -> {
+                    AntibioticExtrasPanel(
+                        file = "rx_tdm.json",
+                        eyebrow = "MONITORING AND INFUSION",
+                        title = "TDM and infusion strategies",
+                        blurb = "Vancomycin AUC dosing, aminoglycoside monitoring and extended-infusion beta-lactams.",
+                        searchHint = "Search drug or strategy",
+                        c1 = Color(0xFF0B2A1A), c2 = Color(0xFF14532D), c3 = Color(0xFF1F7A45),
+                        accent = Color(0xFFD9E27A), tint = Color(0xFF166534)
+                    )
+                    return@Column
+                }
+                5 -> {
+                    ClsiBreakpointsPanel()
+                    return@Column
+                }
             }
             OutlinedTextField(
                 value = query,
@@ -122,18 +183,15 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
                 maxLines = 1
             )
 
-            FilterRow(
-                options = groups,
-                selected = selectedGroup,
-                colorFor = { if (it == "All") MaterialTheme.colorScheme.primary else groupColor(it) },
-                onSelect = { selectedGroup = it }
-            )
-            FilterRow(
-                options = tierFilters,
-                selected = selectedTier,
-                colorFor = { if (it == "All") MaterialTheme.colorScheme.primary else tierColor(it) },
-                onSelect = { selectedTier = it }
-            )
+            CombinedFilterRow(
+                    groups = groups,
+                    tiers = tierFilters,
+                    selectedGroup = selectedGroup,
+                    selectedTier = selectedTier,
+                    onGroup = { selectedGroup = it },
+                    onTier = { selectedTier = it },
+                    onAll = { selectedGroup = "All"; selectedTier = "All" }
+                )
 
             if (results.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -184,6 +242,74 @@ private fun FilterRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CombinedFilterRow(
+    groups: List<String>,
+    tiers: List<String>,
+    selectedGroup: String,
+    selectedTier: String,
+    onGroup: (String) -> Unit,
+    onTier: (String) -> Unit,
+    onAll: () -> Unit
+) {
+    val allSelected = selectedGroup == "All" && selectedTier == "All"
+    val primary = MaterialTheme.colorScheme.primary
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(bottom = 4.dp)
+    ) {
+        item {
+            FilterChip(
+                selected = allSelected,
+                onClick = onAll,
+                label = { Text("All", fontSize = 13.sp, fontWeight = FontWeight.Medium) },
+                shape = RoundedCornerShape(50),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = primary.copy(alpha = 0.18f),
+                    selectedLabelColor = primary
+                )
+            )
+        }
+        items(groups.filter { it != "All" }) { g ->
+            val accent = groupColor(g)
+            FilterChip(
+                selected = g == selectedGroup,
+                onClick = { onGroup(if (g == selectedGroup) "All" else g) },
+                label = { Text(g, fontSize = 13.sp, fontWeight = FontWeight.Medium) },
+                shape = RoundedCornerShape(50),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = accent.copy(alpha = 0.18f),
+                    selectedLabelColor = accent
+                )
+            )
+        }
+        item {
+            Box(
+                Modifier
+                    .width(1.dp)
+                    .height(24.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant)
+            )
+        }
+        items(tiers.filter { it != "All" }) { t ->
+            val accent = tierColor(t)
+            FilterChip(
+                selected = t == selectedTier,
+                onClick = { onTier(if (t == selectedTier) "All" else t) },
+                label = { Text(t, fontSize = 13.sp, fontWeight = FontWeight.Medium) },
+                shape = RoundedCornerShape(50),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = accent.copy(alpha = 0.18f),
+                    selectedLabelColor = accent
+                )
+            )
+        }
+    }
+}
+
 @Composable
 private fun HeroBanner(count: Int) {
     Box(
@@ -203,12 +329,9 @@ private fun HeroBanner(count: Int) {
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.4.sp
             )
-            Text(
+            AutoSizeText(
                 "Resistant Gram-negative dosing",
-                color = Color.White,
-                fontSize = 22.sp,
-                lineHeight = 28.sp,
-                fontWeight = FontWeight.Bold
+                TextStyle(color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             )
             Text(
                 "Adult doses for normal renal and hepatic function. Current as of 1 March 2026.",

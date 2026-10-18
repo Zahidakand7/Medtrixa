@@ -1,0 +1,292 @@
+{
+  "items": [
+    {
+      "id": "emp_cap",
+      "title": "Community-acquired pneumonia (CAP)",
+      "category": "Respiratory",
+      "subtitle": "Adults | outpatient, ward and ICU",
+      "summary": "Choose the regimen by severity and by comorbidity. Cover pneumococcus and atypicals, add MRSA or Pseudomonas cover only when there is a specific risk, and treat for at least 5 days.",
+      "sections": [
+        {
+          "title": "Outpatient, no comorbidities",
+          "text": "• Amoxicillin 1 g orally three times a day, or doxycycline 100 mg orally every 12 hours.\n• A macrolide (azithromycin 500 mg on day 1, then 250 mg daily; or clarithromycin 500 mg every 12 hours) is an option only where local pneumococcal macrolide resistance is below 25%."
+        },
+        {
+          "title": "Outpatient, with comorbidities",
+          "text": "• Comorbidities: chronic heart, lung, liver or renal disease, diabetes, alcohol use disorder, malignancy, asplenia.\n• Combination: amoxicillin-clavulanate (500/125 mg three times a day, or 875/125 mg twice a day) or a cephalosporin (cefpodoxime 200 mg twice a day, or cefuroxime 500 mg twice a day), plus a macrolide or doxycycline.\n• Alternative: monotherapy with a respiratory fluoroquinolone (levofloxacin 750 mg once a day or moxifloxacin 400 mg once a day), reserved for when beta-lactam combinations cannot be used."
+        },
+        {
+          "title": "Inpatient, non-severe",
+          "text": "• Beta-lactam plus macrolide: ampicillin-sulbactam 1.5 to 3 g IV every 6 hours, ceftriaxone 1 to 2 g IV once a day, cefotaxime 1 to 2 g IV every 8 hours, or ceftaroline 600 mg IV every 12 hours; plus azithromycin 500 mg once a day or clarithromycin 500 mg every 12 hours.\n• Alternative: respiratory fluoroquinolone monotherapy (levofloxacin 750 mg once a day or moxifloxacin 400 mg once a day).\n• If both a macrolide and a fluoroquinolone are unsuitable: beta-lactam plus doxycycline 100 mg every 12 hours."
+        },
+        {
+          "title": "Severe CAP (ICU)",
+          "text": "• Beta-lactam plus macrolide, or beta-lactam plus a respiratory fluoroquinolone; monotherapy is not recommended.\n• Beta-lactam choices: ampicillin-sulbactam, cefotaxime, ceftriaxone or ceftaroline, at the doses above.\n• Start immediately: delay in antibiotics worsens outcome in severe disease."
+        },
+        {
+          "title": "Add-on cover and testing",
+          "text": "• Prior MRSA or Pseudomonas isolation from the respiratory tract: send cultures and add cover. MRSA: vancomycin or linezolid. Pseudomonas: piperacillin-tazobactam, cefepime, ceftazidime, meropenem, imipenem or aztreonam.\n• Recent hospitalisation with IV antibiotics in the last 90 days: in severe CAP add MRSA and Pseudomonas cover and send cultures; in non-severe CAP send cultures and add cover only if they turn positive.\n• Send a nasal MRSA PCR in suspected MRSA: a negative result lets you stop MRSA cover.\n• Test for influenza in season and give oseltamivir if positive or strongly suspected, even without waiting for results in sick patients.\n• Legionella urine antigen and PCR in severe disease or epidemiologic clues; ensure atypical cover.\n• Aspiration alone does not need added anaerobic cover, except with lung abscess or empyema."
+        },
+        {
+          "title": "Duration and review",
+          "text": "• At least 5 days of antibiotics, and stop once the patient is clinically stable (afebrile for 48 to 72 hours with no more than one sign of instability).\n• Switch to oral therapy when stable and able to absorb; do not extend because of residual cough.\n• No routine follow-up chest X-ray in adults who recover; consider it in smokers over 50 to exclude malignancy.\n• Corticosteroids: not routinely for non-severe CAP; evidence in severe CAP is evolving (for example hydrocortisone in recent trials), so follow local guidance."
+        },
+        {
+          "title": "Allergy and special situations",
+          "text": "• Penicillin allergy with low-risk history: a cephalosporin plus a macrolide is usually acceptable; otherwise a respiratory fluoroquinolone.\n• Pregnancy: avoid fluoroquinolones and doxycycline; use a beta-lactam plus azithromycin.\n• Check local resistance and the most recent ATS/IDSA update before applying these regimens."
+        }
+      ],
+      "source": "ATS/IDSA 2019 CAP guideline. Doses are standard adult doses; verify against current guidance and local resistance data."
+    },
+    {
+      "id": "emp_hap_vap",
+      "title": "Hospital-acquired and ventilator-associated pneumonia",
+      "category": "Respiratory",
+      "subtitle": "Adults | HAP onset after 48 hours in hospital; VAP after 48 hours of ventilation",
+      "summary": "Always cover Pseudomonas and other Gram-negatives, and add MRSA cover when risk is present. Use local antibiograms, send cultures, de-escalate early and treat for 7 days.",
+      "sections": [
+        {
+          "title": "HAP, low risk",
+          "text": "• No MRSA risk factors and not at high risk of death: one antipseudomonal agent is enough.\n• Choices: piperacillin-tazobactam 4.5 g IV every 6 hours, cefepime 2 g IV every 8 hours, levofloxacin 750 mg IV once a day, imipenem 500 mg IV every 6 hours, or meropenem 1 g IV every 8 hours."
+        },
+        {
+          "title": "HAP with MRSA risk or high mortality risk; and VAP",
+          "text": "• Antipseudomonal beta-lactam (as above, or ceftazidime 2 g every 8 hours or aztreonam 2 g every 8 hours) plus MRSA cover: vancomycin (loading dose, then level-guided dosing, see the TDM tab) or linezolid 600 mg every 12 hours.\n• VAP: guidelines recommend MRSA and double Gram-negative cover when MDR risk factors are present, or when the unit's resistance to the single agent is above 10%.\n• Second antipseudomonal agent (different class): ciprofloxacin 400 mg every 8 hours, levofloxacin 750 mg once a day, or an aminoglycoside such as amikacin or gentamicin; avoid colistin or polymyxin B unless needed (see the Polymyxins monograph).\n• Avoid two beta-lactams together."
+        },
+        {
+          "title": "Risk factors for resistant organisms",
+          "text": "• IV antibiotics in the previous 90 days.\n• Septic shock, or ARDS preceding the pneumonia.\n• 5 or more days of hospitalisation before onset, or acute renal replacement therapy before onset.\n• Known colonisation or prior infection with a resistant organism.\n• Treatment in a unit where more than 10 to 20% of isolates are resistant to the agent chosen."
+        },
+        {
+          "title": "Testing and de-escalation",
+          "text": "• Send lower respiratory samples for culture before antibiotics if this causes no delay.\n• A negative MRSA nasal PCR has a high negative predictive value, so MRSA cover can be stopped.\n• De-escalate to a narrow agent as soon as culture results and susceptibility are available.\n• Review daily; stop agents that are not needed."
+        },
+        {
+          "title": "Duration",
+          "text": "• 7 days of effective therapy for most patients, rather than 14 days.\n• Procalcitonin or clinical criteria can guide stopping.\n• Longer courses may be needed for empyema, lung abscess, or slow response, and for difficult-to-treat Gram-negatives.\n• Review any patient not improving by 48 to 72 hours: consider resistant organisms, empyema, other sources and non-infectious causes."
+        },
+        {
+          "title": "Resistant organisms",
+          "text": "• Carbapenem-resistant Enterobacterales, Pseudomonas, Acinetobacter and Stenotrophomonas: see the IDSA AMR tab for preferred regimens.\n• Newer agents (ceftazidime-avibactam, ceftolozane-tazobactam, cefiderocol, sulbactam-durlobactam) are described in the Drugs tab.\n• Daptomycin is inactive in the lung and must not be used for pneumonia.\n• Check the latest IDSA/ATS guidance for updates to HAP/VAP management."
+        }
+      ],
+      "source": "IDSA/ATS 2016 HAP and VAP guideline. Doses are standard adult doses; verify against current guidance and local antibiograms."
+    },
+    {
+      "id": "emp_cystitis",
+      "title": "Uncomplicated cystitis",
+      "category": "Urinary",
+      "subtitle": "Non-pregnant adult women | outpatient",
+      "summary": "Short oral courses of nitrofurantoin, fosfomycin, pivmecillinam or TMP-SMX. Avoid fluoroquinolones and broad beta-lactams unless there is no alternative. Do not treat asymptomatic bacteriuria.",
+      "sections": [
+        {
+          "title": "First-line options",
+          "text": "• Nitrofurantoin (macrocrystals/monohydrate) 100 mg orally every 12 hours for 5 days.\n• Fosfomycin trometamol 3 g orally as a single dose.\n• Pivmecillinam 200 mg orally three times a day for 3 days (UK practice uses a 400 mg first dose).\n• Trimethoprim-sulfamethoxazole one double-strength tablet every 12 hours for 3 days, only if local E. coli resistance is below about 20% and the patient has not used it in the past 3 to 6 months."
+        },
+        {
+          "title": "Newer options",
+          "text": "• Gepotidacin 1500 mg orally twice a day for 5 days.\n• Sulopenem etzadroxil/probenecid 500 mg/500 mg orally twice a day for 5 days.\n• Both are recent approvals: check the product label and local availability before use."
+        },
+        {
+          "title": "Second-line and avoid",
+          "text": "• Beta-lactams are less effective: cephalexin 500 mg every 12 hours for 3 to 7 days, or amoxicillin-clavulanate 500/125 mg every 12 hours for 3 to 7 days.\n• Fluoroquinolones (ciprofloxacin 250 mg every 12 hours or levofloxacin 250 mg once a day for 3 days) should be reserved for when other agents cannot be used, because of boxed-warning adverse effects and resistance.\n• Do not use nitrofurantoin or fosfomycin for pyelonephritis, prostatitis or bacteraemia."
+        },
+        {
+          "title": "When to send a urine culture",
+          "text": "• Symptoms persist or recur within 2 to 4 weeks.\n• Atypical symptoms, pregnancy, recent antibiotic use or recent travel to areas with high resistance.\n• Men, children, older adults with catheters, or anyone with a complicated urinary tract.\n• Recurrent cystitis: culture each episode, and consider prevention strategies with specialist advice."
+        },
+        {
+          "title": "Pregnancy",
+          "text": "• Treat both symptomatic and asymptomatic bacteriuria in pregnancy.\n• Usually acceptable: cephalexin, amoxicillin-clavulanate and fosfomycin, chosen by culture.\n• Avoid nitrofurantoin near term (38 to 42 weeks) and trimethoprim-sulfamethoxazole in the first trimester and near term; avoid fluoroquinolones and tetracyclines."
+        },
+        {
+          "title": "Do not treat",
+          "text": "• Asymptomatic bacteriuria in non-pregnant adults, including older adults and catheterised patients.\n• Exceptions: pregnancy, and before urological procedures that breach the mucosa.\n• A positive dipstick or odorous urine without symptoms is not an indication for antibiotics."
+        }
+      ],
+      "source": "IDSA cystitis guidance, EAU/AUA guidance and product labelling. Verify against current guidance and local resistance."
+    },
+    {
+      "id": "emp_pyelonephritis",
+      "title": "Pyelonephritis and complicated UTI",
+      "category": "Urinary",
+      "subtitle": "Adults | outpatient and inpatient, including catheter-associated",
+      "summary": "Send urine and blood cultures, start an agent with reliable tissue levels, and tailor to susceptibility. Look for obstruction or abscess in patients who are septic or slow to improve.",
+      "sections": [
+        {
+          "title": "Outpatient, mild to moderate",
+          "text": "• Oral fluoroquinolone if local resistance is low (below about 10%): ciprofloxacin 500 mg every 12 hours for 7 days, or levofloxacin 750 mg once a day for 5 days.\n• Trimethoprim-sulfamethoxazole one double-strength tablet every 12 hours, if the isolate is susceptible, often for 7 to 14 days.\n• Oral beta-lactams are less effective: if used, give a first dose of IV ceftriaxone 1 g and continue for 10 to 14 days.\n• Do not use nitrofurantoin or fosfomycin."
+        },
+        {
+          "title": "Inpatient or sepsis",
+          "text": "• Ceftriaxone 1 to 2 g IV once a day, or cefepime 1 to 2 g IV every 12 hours (2 g every 8 hours in severe sepsis), or piperacillin-tazobactam 3.375 to 4.5 g IV every 6 hours.\n• Aminoglycoside once daily (gentamicin or tobramycin 5 to 7 mg/kg) as an alternative or in severe sepsis, short courses only.\n• Fluoroquinolone IV (ciprofloxacin 400 mg every 12 hours or levofloxacin 750 mg once a day) if local resistance is low.\n• Prior ESBL infection, recent travel or other risk: start a carbapenem (ertapenem 1 g once a day or meropenem 1 g every 8 hours)."
+        },
+        {
+          "title": "ESBL and resistant organisms",
+          "text": "• ESBL-producing Enterobacterales (cUTI): trimethoprim-sulfamethoxazole, ciprofloxacin or levofloxacin if susceptible; carbapenem for severe infection or when those agents cannot be used; aminoglycosides are an alternative.\n• Carbapenem-resistant Enterobacterales and Pseudomonas: see the IDSA AMR tab for dosing.\n• Switch to oral therapy as soon as the patient is stable and the isolate is susceptible."
+        },
+        {
+          "title": "Source control and imaging",
+          "text": "• Obstructed infected kidney (stone, tumour) is a urological emergency: decompress with a stent or nephrostomy.\n• Image (ultrasound or CT) if septic, in renal failure, in diabetes with severe illness, with a history of stones, or if not improving by 48 to 72 hours.\n• Look for abscess, emphysematous pyelonephritis and prostatitis in men.\n• Remove or replace long-term catheters, ideally before starting therapy."
+        },
+        {
+          "title": "Catheter-associated UTI",
+          "text": "• Treat only if symptomatic; replace the catheter after 2 weeks or more of use.\n• Take the culture from the new catheter, or from a freshly placed specimen.\n• Duration: 7 days for prompt response, and 10 to 14 days for delayed response.\n• Women 65 or younger without upper-tract symptoms after catheter removal: 3 days may be enough."
+        },
+        {
+          "title": "Duration",
+          "text": "• About 7 days for patients who improve promptly, with a range of 5 to 14 days depending on the agent and response.\n• Men with possible prostatitis: 2 to 4 weeks with an agent that reaches the prostate (fluoroquinolone or trimethoprim-sulfamethoxazole).\n• Bacteraemia from a urinary source usually needs 7 days if there is a prompt response and source control."
+        },
+        {
+          "title": "Pregnancy",
+          "text": "• Admit and start IV therapy, usually ceftriaxone 1 to 2 g once a day; avoid fluoroquinolones and doxycycline.\n• Consider suppressive therapy for the rest of pregnancy after an episode, according to local guidance.\n• Check urine culture after treatment."
+        }
+      ],
+      "source": "IDSA pyelonephritis and complicated UTI guidance, IDSA AMR guidance and product labelling. Verify against current guidance and local resistance."
+    },
+    {
+      "id": "emp_meningitis",
+      "title": "Acute bacterial meningitis",
+      "category": "Central nervous system",
+      "subtitle": "Adults | community-acquired and post-neurosurgical",
+      "summary": "A medical emergency: give antibiotics and dexamethasone immediately after blood cultures, without waiting for imaging or lumbar puncture. Add ampicillin for Listeria in older or immunocompromised patients.",
+      "sections": [
+        {
+          "title": "Immediate steps",
+          "text": "• Take blood cultures, then start antibiotics at once; do not delay for CT or lumbar puncture.\n• CT before lumbar puncture if there is a focal deficit, papilloedema, depressed consciousness, new seizure, or immunocompromise.\n• CSF: cell count, glucose, protein, Gram stain, culture and multiplex PCR where available.\n• Give the first dose of dexamethasone with or just before the first antibiotic dose."
+        },
+        {
+          "title": "Empirical antibiotics",
+          "text": "• Age 18 to 50, community-acquired: vancomycin plus ceftriaxone 2 g IV every 12 hours (or cefotaxime 2 g every 4 to 6 hours).\n• Age over 50, alcohol use disorder, immunocompromise or pregnancy: add ampicillin 2 g IV every 4 hours to cover Listeria.\n• Vancomycin: loading dose 20 to 35 mg/kg, then level-guided dosing (see the TDM tab).\n• Post-neurosurgery, head trauma with CSF leak, or CSF shunt: vancomycin plus cefepime 2 g every 8 hours, ceftazidime 2 g every 8 hours, or meropenem 2 g every 8 hours."
+        },
+        {
+          "title": "Dexamethasone",
+          "text": "• 10 mg IV every 6 hours for 4 days (or 0.15 mg/kg every 6 hours for 2 to 4 days), started with or before the first antibiotic dose.\n• Continue only if the organism turns out to be Streptococcus pneumoniae; stop for other organisms or if the diagnosis is not meningitis.\n• Not recommended after antibiotics have already been given for some time, and for post-neurosurgical meningitis."
+        },
+        {
+          "title": "Organism-directed therapy and duration",
+          "text": "• S. pneumoniae: penicillin G 4 million units IV every 4 hours if the MIC is 0.06 or below; otherwise ceftriaxone, plus vancomycin if the ceftriaxone MIC is 1 or above. Duration 10 to 14 days.\n• Neisseria meningitidis: penicillin G, ampicillin or ceftriaxone. Duration 7 days.\n• Haemophilus influenzae: ceftriaxone. Duration 7 days.\n• Listeria monocytogenes: ampicillin 2 g every 4 hours, with or without gentamicin, for at least 21 days.\n• Group B streptococcus: penicillin G or ampicillin, 14 to 21 days.\n• Aerobic Gram-negative bacilli: meropenem or a third- or fourth-generation cephalosporin, for 21 days."
+        },
+        {
+          "title": "Allergy and special situations",
+          "text": "• Severe beta-lactam allergy: vancomycin plus aztreonam 2 g every 6 to 8 hours, or meropenem if the reaction was not severe; moxifloxacin 400 mg once a day is an alternative.\n• Listeria with penicillin allergy: trimethoprim-sulfamethoxazole 5 mg/kg (trimethoprim component) every 6 to 12 hours.\n• Consider herpes simplex encephalitis and give aciclovir when the picture is unclear.\n• TB and cryptococcal meningitis in the appropriate settings: see the Bacterial Atlas for M. tuberculosis."
+        },
+        {
+          "title": "Contacts and notification",
+          "text": "• Meningococcal disease is notifiable: inform public health immediately.\n• Close contacts need same-day prophylaxis: ciprofloxacin 500 mg as a single dose, rifampicin, or ceftriaxone; see the Drugs tab for details.\n• Hib contacts: rifampicin when an unvaccinated child under 4 lives in the household.\n• Droplet precautions for the first 24 hours of effective therapy."
+        }
+      ],
+      "source": "IDSA 2004 bacterial meningitis guideline and ESCMID 2016 guideline. Doses are standard adult doses; verify against current guidance."
+    },
+    {
+      "id": "emp_iai",
+      "title": "Intra-abdominal infection",
+      "category": "Abdominal",
+      "subtitle": "Adults | appendicitis, diverticulitis, peritonitis, biliary infection, SBP",
+      "summary": "Source control is the most important step. Antibiotics cover Enterobacterales and anaerobes, with broader cover for severe or healthcare-associated infection. Stop about 4 days after adequate source control.",
+      "sections": [
+        {
+          "title": "Source control first",
+          "text": "• Drain abscesses, repair perforations, resect necrotic bowel, and decompress an obstructed biliary tree.\n• Antibiotics alone rarely cure a collection; image early (CT) and involve surgery or interventional radiology.\n• Start antibiotics within the first hour in septic shock, and as soon as the diagnosis is made otherwise."
+        },
+        {
+          "title": "Community-acquired, mild to moderate",
+          "text": "• Single agents: ertapenem 1 g IV once a day, or moxifloxacin 400 mg once a day (where local resistance allows), or tigecycline 100 mg then 50 mg every 12 hours (boxed warning, so reserve it).\n• Combinations: ceftriaxone 1 to 2 g once a day, or ciprofloxacin 400 mg IV every 12 hours, or levofloxacin 750 mg once a day, each with metronidazole 500 mg every 8 hours.\n• Uncomplicated appendicitis without perforation: one preoperative dose, and no antibiotics beyond 24 hours after surgery."
+        },
+        {
+          "title": "High severity or healthcare-associated",
+          "text": "• Piperacillin-tazobactam 4.5 g IV every 6 hours, or meropenem 1 g every 8 hours, or imipenem-cilastatin 500 mg every 6 hours.\n• Alternatives: cefepime 2 g every 8 to 12 hours plus metronidazole, or ciprofloxacin or levofloxacin plus metronidazole.\n• Prior ESBL infection or high local ESBL prevalence: a carbapenem.\n• Use local antibiograms, send cultures at source control, and de-escalate once results are available."
+        },
+        {
+          "title": "Enterococcus, MRSA and Candida",
+          "text": "• Add enterococcal cover (ampicillin, or vancomycin if ampicillin-resistant) in healthcare-associated, postoperative or immunocompromised patients and those with valvular heart disease.\n• Add MRSA cover (vancomycin or linezolid) if MRSA colonisation or prior infection.\n• Consider an echinocandin when Candida is likely: recent upper gastrointestinal perforation, repeated surgery, prolonged hospital stay, immunosuppression or yeast on Gram stain.\n• Do not routinely cover Candida in community-acquired infection."
+        },
+        {
+          "title": "Biliary infection and cholangitis",
+          "text": "• Acute cholecystitis: treat until cholecystectomy, and stop within 24 hours of surgery if there is no infection beyond the gallbladder.\n• Cholangitis: urgent biliary drainage plus piperacillin-tazobactam 4.5 g every 6 hours, or ceftriaxone 2 g once a day plus metronidazole; a carbapenem for severe disease.\n• Duration: 4 to 7 days after drainage; about 2 weeks if bacteraemia with Gram-positive cocci such as enterococci or streptococci.\n• Acute pancreatitis: do not give prophylactic antibiotics; treat only for infected necrosis or another proven infection."
+        },
+        {
+          "title": "Spontaneous bacterial peritonitis",
+          "text": "• Diagnose when ascitic fluid neutrophils are 250 per mm3 or more.\n• Ceftriaxone 2 g IV once a day (or cefotaxime 2 g every 8 hours) for 5 days.\n• Give albumin 1.5 g/kg on day 1 and 1 g/kg on day 3, to protect the kidneys.\n• Secondary prophylaxis after an episode: ciprofloxacin 500 mg once a day or trimethoprim-sulfamethoxazole one double-strength tablet once a day (norfloxacin 400 mg once a day where available).\n• Reassess if the patient does not improve in 48 hours."
+        },
+        {
+          "title": "Duration and resistant organisms",
+          "text": "• About 4 days after adequate source control (STOP-IT trial); longer when source control is incomplete, and for infected pancreatic necrosis or abscess.\n• Review daily: stop when the patient is afebrile, the white count has normalised and gut function is returning.\n• Carbapenem-resistant organisms: see the IDSA AMR tab; newer agents appear in the Drugs tab."
+        }
+      ],
+      "source": "IDSA/SIS 2010 and SIS 2017 intra-abdominal infection guidelines, STOP-IT trial, AASLD ascites guidance. Doses are standard adult doses; verify against current guidance."
+    },
+    {
+      "id": "emp_ssti",
+      "title": "Skin and soft tissue infection",
+      "category": "Skin and soft tissue",
+      "subtitle": "Adults | cellulitis, abscess, necrotising infection, bites, diabetic foot",
+      "summary": "Cover streptococci for non-purulent cellulitis, drain purulent infection and add MRSA cover only when needed. Treat necrotising infection as a surgical emergency with broad cover plus clindamycin.",
+      "sections": [
+        {
+          "title": "Non-purulent cellulitis and erysipelas",
+          "text": "• Mostly beta-haemolytic streptococci: a beta-lactam is enough.\n• Oral: cefalexin 500 mg every 6 hours, dicloxacillin 500 mg every 6 hours, penicillin V 500 mg every 6 hours (erysipelas), or clindamycin 300 to 450 mg every 6 to 8 hours.\n• IV: cefazolin 1 to 2 g every 8 hours, or penicillin G 2 to 4 million units every 4 to 6 hours.\n• Add MRSA cover only with penetrating trauma, injection drug use, purulent drainage, known MRSA colonisation or SIRS; check for abscess.\n• Elevate the limb, treat tinea and oedema, and mark the margins."
+        },
+        {
+          "title": "Purulent infection (abscess, furuncle, carbuncle)",
+          "text": "• Incision and drainage is the primary treatment.\n• Add antibiotics if there is systemic illness or SIRS, extremes of age, immunosuppression, multiple lesions, a difficult-to-drain site (face, hand, genitals), or slow response to drainage.\n• Oral MRSA options: trimethoprim-sulfamethoxazole one or two double-strength tablets every 12 hours, doxycycline 100 mg every 12 hours, clindamycin 300 to 450 mg every 6 to 8 hours (if local resistance is low), or linezolid 600 mg every 12 hours.\n• If beta-haemolytic streptococci are also possible: trimethoprim-sulfamethoxazole or doxycycline plus a beta-lactam such as cefalexin or amoxicillin; clindamycin alone covers both."
+        },
+        {
+          "title": "Severe infection or MRSA (IV options)",
+          "text": "• Vancomycin, level-guided (see the TDM tab).\n• Daptomycin 4 mg/kg IV once a day, linezolid 600 mg IV or orally every 12 hours, or ceftaroline 600 mg IV every 12 hours.\n• Single-dose or two-dose options for outpatient therapy: dalbavancin 1500 mg once, and oritavancin where available; tedizolid 200 mg once a day for 6 days.\n• Duration 5 to 10 days, guided by response; see the Drugs tab for each agent."
+        },
+        {
+          "title": "Necrotising soft tissue infection",
+          "text": "• Surgical emergency: urgent exploration and debridement, with repeat operations as needed.\n• Broad empirical cover: vancomycin or linezolid, plus piperacillin-tazobactam 4.5 g every 6 hours (or a carbapenem), plus clindamycin 600 to 900 mg every 8 hours to suppress toxin production.\n• Group A streptococcus or clostridial infection: penicillin G 4 million units every 4 hours plus clindamycin 900 mg every 8 hours.\n• Consider intravenous immunoglobulin in streptococcal toxic shock, and intensive care support.\n• Suspect it with pain out of proportion, rapid spread, bullae, skin necrosis or crepitus."
+        },
+        {
+          "title": "Animal and human bites",
+          "text": "• Prophylaxis for 3 to 5 days in high-risk bites (hand, deep puncture, face, genitals, cat bites, delayed presentation, immunocompromise): amoxicillin-clavulanate 875/125 mg every 12 hours.\n• Treatment of established infection: amoxicillin-clavulanate, or ampicillin-sulbactam 3 g IV every 6 hours when IV therapy is needed, for 5 to 14 days.\n• Penicillin allergy: doxycycline 100 mg every 12 hours plus metronidazole, or clindamycin plus trimethoprim-sulfamethoxazole, or moxifloxacin 400 mg once a day.\n• Avoid cefalexin, dicloxacillin and clindamycin alone: they miss Pasteurella and anaerobes.\n• Check tetanus immunisation, and consider rabies post-exposure treatment per local protocol."
+        },
+        {
+          "title": "Diabetic foot infection",
+          "text": "• Mild: oral cefalexin, amoxicillin-clavulanate or clindamycin; add doxycycline or trimethoprim-sulfamethoxazole for MRSA risk.\n• Moderate or severe: IV piperacillin-tazobactam 4.5 g every 6 hours, ertapenem 1 g once a day or ampicillin-sulbactam 3 g every 6 hours; add vancomycin or linezolid when MRSA is likely.\n• Debride and probe to bone; image if osteomyelitis is possible, and assess perfusion.\n• Duration: 1 to 2 weeks for soft tissue infection, longer if slow to respond; see the bone and joint entry for osteomyelitis."
+        },
+        {
+          "title": "Duration and escalation",
+          "text": "• Cellulitis: 5 days if improving, and extend if not improved by then; purulent infection 5 to 10 days.\n• Review at 48 to 72 hours: if worsening, consider an abscess, necrotising infection, resistant organisms, deep venous thrombosis, or a non-infectious mimic such as stasis dermatitis.\n• Recurrent cellulitis: treat risk factors; penicillin V 250 to 500 mg twice a day prophylaxis for at least 1 year may help in selected patients."
+        }
+      ],
+      "source": "IDSA 2014 skin and soft tissue infection guideline, IWGDF/IDSA 2023 diabetic foot guideline. Doses are standard adult doses; verify against current guidance."
+    },
+    {
+      "id": "emp_bone_joint",
+      "title": "Bone and joint infection",
+      "category": "Bone and joint",
+      "subtitle": "Adults | septic arthritis, vertebral osteomyelitis, long-bone osteomyelitis, prosthetic joint infection",
+      "summary": "Get cultures before antibiotics when the patient is stable, drain or debride, and treat for weeks. Early switch to a highly bioavailable oral agent is as effective as prolonged IV therapy in many cases.",
+      "sections": [
+        {
+          "title": "Native septic arthritis",
+          "text": "• Urgent joint aspiration for cell count, Gram stain and culture, and drainage or washout (arthroscopic or open).\n• Empirical IV therapy: vancomycin when Gram-positive cocci are seen or likely; ceftriaxone 2 g once a day for Gram-negative bacilli or if gonococcus is possible; add an antipseudomonal agent such as cefepime 2 g every 8 hours with injection drug use or neutropenia.\n• Gonococcal arthritis: ceftriaxone 1 g IV once a day, then an oral step-down (such as cefixime 400 mg every 12 hours) for at least 7 days in total.\n• Duration: usually 2 to 4 weeks depending on the organism and response; S. aureus and Gram-negatives need the longer end."
+        },
+        {
+          "title": "Native vertebral osteomyelitis",
+          "text": "• If the patient is stable with no neurological deficit or sepsis, hold antibiotics until a CT-guided or open biopsy gives microbiological diagnosis.\n• If unstable: vancomycin plus ceftriaxone or cefepime, until cultures are known.\n• Image with MRI of the whole spine; look for epidural abscess, and refer for urgent surgery if neurological deficit or cord compression.\n• In endemic areas test for Brucella and tuberculosis; and look for endocarditis in S. aureus infection.\n• Duration: 6 weeks, with early oral step-down possible for susceptible organisms and good oral options."
+        },
+        {
+          "title": "Long-bone osteomyelitis",
+          "text": "• Debridement of necrotic bone is the cornerstone; cultures from bone are the best guide.\n• MSSA: cefazolin 2 g IV every 8 hours (or flucloxacillin or nafcillin); MRSA: vancomycin.\n• Pseudomonas and other Gram-negatives: a fluoroquinolone, or an antipseudomonal beta-lactam.\n• Duration: typically 6 weeks, longer with retained hardware or poorly vascularised bone.\n• Chronic osteomyelitis needs surgical resection of dead bone, with antibiotics after surgery."
+        },
+        {
+          "title": "Prosthetic joint infection",
+          "text": "• If stable, withhold antibiotics until at least 3 intraoperative cultures are taken.\n• Early (under 30 days after surgery) or acute haematogenous infection with a stable implant: debridement, antibiotics and implant retention (DAIR).\n• Staphylococcal infection with retained hardware: add rifampicin 300 to 450 mg every 12 hours to a second active drug (such as levofloxacin 750 mg once a day, trimethoprim-sulfamethoxazole, doxycycline or linezolid), after the wound is dry and bacteraemia has cleared.\n• Total duration with DAIR: about 3 months for a hip and 6 months for a knee; after one-stage or two-stage revision, about 6 weeks of pathogen-specific therapy.\n• Check the rifampicin interactions in the Drugs tab, and never use it alone."
+        },
+        {
+          "title": "Oral step-down",
+          "text": "• The OVIVA trial found oral therapy non-inferior to IV therapy in bone and joint infection when started within 7 days.\n• Good oral options: levofloxacin, ciprofloxacin, trimethoprim-sulfamethoxazole, doxycycline, linezolid, clindamycin, rifampicin combinations, and high-dose amoxicillin or cefalexin for susceptible organisms.\n• Avoid oral beta-lactams with poor bioavailability for staphylococci unless chosen on susceptibility and by specialist advice.\n• Monitor for drug toxicity and adherence during long courses."
+        },
+        {
+          "title": "Diabetic foot osteomyelitis",
+          "text": "• About 6 weeks of antibiotics when bone is retained.\n• Shorter courses (for example about 3 weeks) are used after resection with positive bone margin cultures; follow the current IWGDF/IDSA guidance.\n• Revascularisation and offloading are essential alongside antibiotics.\n• Bone culture or biopsy is preferred to swabs from the wound surface."
+        }
+      ],
+      "source": "IDSA 2013 prosthetic joint infection guideline, IDSA 2015 vertebral osteomyelitis guideline, OVIVA trial, IWGDF/IDSA 2023 diabetic foot guideline. Doses are standard adult doses; verify against current guidance."
+    }
+  ]
+}

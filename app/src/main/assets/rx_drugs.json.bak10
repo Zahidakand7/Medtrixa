@@ -1,0 +1,1148 @@
+{
+  "items": [
+    {
+      "id": "penicillin_g",
+      "title": "Penicillin G (benzylpenicillin)",
+      "category": "Penicillins",
+      "subtitle": "Narrow-spectrum penicillin | IV, IM",
+      "summary": "Drug of choice for syphilis, susceptible streptococci, meningococcus and many anaerobes. Short half-life, so it needs frequent dosing or continuous infusion.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Typical IV dose: 2 to 4 million units every 4 hours (12 to 24 million units a day).\n• Meningitis: 24 million units a day IV, divided every 4 hours.\n• Streptococcal endocarditis: 12 to 18 million units a day IV, divided or as a continuous infusion; the regimen depends on the organism's MIC.\n• Early syphilis: benzathine penicillin G 2.4 million units IM as a single dose; late latent syphilis: weekly for 3 doses.\n• Benzathine and procaine preparations are for IM use only and must never be given IV."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 10 to 50 mL/min: about 75% of the usual dose.\n• CrCl below 10 mL/min: 20 to 50% of the usual dose.\n• High doses in renal failure can cause seizures (neurotoxicity)."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Streptococcus pyogenes, susceptible S. pneumoniae, viridans streptococci, susceptible Neisseria meningitidis, Treponema pallidum, Clostridium species, Actinomyces and Listeria.\n• Not reliable for most S. aureus (penicillinase), Gram-negative bacilli, or enterococci, where ampicillin is the better choice."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Safe in pregnancy; the drug of choice for syphilis (desensitise if allergic) and for group B streptococcal prophylaxis in labour.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Penicillin G potassium contains about 1.7 mEq of potassium per million units, so watch potassium in renal failure.\n• Jarisch-Herxheimer reaction can follow the first dose in syphilis.\n• Check the allergy history: many labelled penicillin allergies are not true allergy.\n• Prolonged high-dose courses can cause neutropenia and haemolytic anaemia."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "amoxicillin",
+      "title": "Amoxicillin",
+      "category": "Penicillins",
+      "subtitle": "Aminopenicillin | Oral (IV in some countries)",
+      "summary": "First-line oral beta-lactam for respiratory, ear and dental infections and for Helicobacter pylori combinations. Inactivated by beta-lactamases.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Oral: 500 mg every 8 hours, or 875 mg every 12 hours.\n• High dose: 1 g every 8 hours (up to 3 g a day) for community-acquired pneumonia and penicillin-nonsusceptible pneumococci.\n• Endocarditis prophylaxis before dental procedures in the highest-risk patients: 2 g orally as a single dose 30 to 60 minutes before.\n• IV amoxicillin is available in some countries, for example 1 g every 8 hours, and up to 2 g every 4 hours for meningitis or endocarditis.\n• H. pylori: used within combination regimens, so follow the regimen's own dosing."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 10 to 30 mL/min: 250 to 500 mg every 12 hours.\n• CrCl below 10 mL/min: 250 to 500 mg every 24 hours.\n• Haemodialysis: 250 to 500 mg every 24 hours, with a dose after dialysis.\n• Avoid the 875 mg tablet when CrCl is below 30 mL/min."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against streptococci, Enterococcus faecalis (ampicillin-susceptible), Listeria, and non-beta-lactamase-producing H. influenzae and E. coli.\n• Common uses: community-acquired pneumonia, otitis media, sinusitis, pharyngitis, dental infection, H. pylori combinations.\n• Not active against beta-lactamase producers (many S. aureus, H. influenzae, E. coli), MRSA or Pseudomonas."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding; watch the infant for rash, diarrhoea and thrush."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Can be taken with or without food.\n• A non-allergic rash is common in infectious mononucleosis and with allopurinol.\n• High doses can cause crystalluria, so keep the patient hydrated.\n• May raise INR with warfarin, and probenecid raises amoxicillin levels; reduces methotrexate clearance.\n• Diarrhoea and C. difficile infection are possible."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "amoxicillin_clavulanate",
+      "title": "Amoxicillin-clavulanate",
+      "category": "Penicillins",
+      "subtitle": "Beta-lactam with beta-lactamase inhibitor | Oral, IV (not US)",
+      "summary": "Extends amoxicillin to beta-lactamase producers and anaerobes. Used for bites, sinusitis, otitis media, aspiration and mixed infections.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Oral: 500/125 mg every 8 hours, or 875/125 mg every 12 hours.\n• Extended-release 2000/125 mg every 12 hours (where available) for resistant pneumococci.\n• IV (not available in the US): 1.2 g (1 g/200 mg) every 8 hours, up to every 6 hours in severe infection.\n• Take at the start of a meal to improve absorption and reduce diarrhoea."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 10 to 30 mL/min: 500/125 mg every 12 hours; do not use the 875 mg tablet.\n• CrCl below 10 mL/min: 500/125 mg every 24 hours.\n• Haemodialysis: 500/125 mg every 24 hours, with a dose after dialysis.\n• Do not use the 2000 mg extended-release tablet when CrCl is below 30 mL/min."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Covers beta-lactamase-producing H. influenzae, Moraxella, many E. coli and Klebsiella, methicillin-susceptible S. aureus and most oral anaerobes.\n• Common uses: animal and human bites, sinusitis, otitis media, aspiration pneumonia, mild diabetic foot infection, skin infection, and oral step-down for intra-abdominal infection.\n• Not active against Pseudomonas, MRSA or ESBL producers."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Generally considered safe in pregnancy.\n• Avoid in preterm prelabour rupture of membranes because of a possible link with necrotising enterocolitis in the newborn.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Tablets with different amoxicillin:clavulanate ratios are not interchangeable; do not substitute two 250/125 tablets for one 500/125.\n• Diarrhoea is common (the clavulanate component).\n• Cholestatic hepatitis can start days to weeks after stopping, more often in older men and with courses longer than 14 days; check liver tests in long courses.\n• C. difficile infection and hypersensitivity reactions are possible."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "ampicillin_sulbactam",
+      "title": "Ampicillin and ampicillin-sulbactam",
+      "category": "Penicillins",
+      "subtitle": "Aminopenicillin (with beta-lactamase inhibitor) | IV",
+      "summary": "Ampicillin is the drug of choice for Listeria and ampicillin-susceptible enterococci. Adding sulbactam covers beta-lactamase producers and gives sulbactam's own activity against Acinetobacter.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Ampicillin: 1 to 2 g IV every 4 to 6 hours.\n• Meningitis and Listeria: ampicillin 2 g IV every 4 hours.\n• Enterococcal endocarditis: ampicillin 2 g IV every 4 hours, combined with ceftriaxone or gentamicin.\n• Group B streptococcal prophylaxis in labour: 2 g IV, then 1 g every 4 hours until delivery.\n• Ampicillin-sulbactam: 3 g (2 g/1 g) IV every 6 hours.\n• Carbapenem-resistant Acinetobacter: high-dose sulbactam, about 9 g of the sulbactam component a day in divided doses, often as extended infusions. See the IDSA AMR tab."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Ampicillin: CrCl above 50 mL/min every 6 hours; 10 to 50 every 6 to 12 hours; below 10 every 12 to 24 hours.\n• Ampicillin-sulbactam: CrCl 30 or above, 3 g every 6 to 8 hours; 15 to 29, 3 g every 12 hours; 5 to 14, 3 g every 24 hours."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Ampicillin: Listeria, Enterococcus faecalis, group B streptococci, susceptible Salmonella and some other Gram-negatives.\n• Ampicillin-sulbactam: skin and soft tissue infection, aspiration pneumonia, community intra-abdominal infection, diabetic foot infection, and Acinetobacter baumannii.\n• E. coli resistance to ampicillin-sulbactam is common, so check local susceptibility. Not active against Pseudomonas or ESBL producers."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Rash is common in infectious mononucleosis.\n• High doses in renal failure can cause seizures.\n• Contains sodium, so watch fluid balance in heart or renal failure.\n• Diarrhoea, C. difficile infection and phlebitis at the infusion site are possible."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Acinetobacter dosing: IDSA AMR guidance."
+    },
+    {
+      "id": "antistaph_penicillins",
+      "title": "Flucloxacillin, nafcillin and oxacillin",
+      "category": "Penicillins",
+      "subtitle": "Anti-staphylococcal penicillins | IV, oral",
+      "summary": "Drugs of choice for methicillin-susceptible Staphylococcus aureus (MSSA). Flucloxacillin is used in the UK, Europe and Australasia; nafcillin and oxacillin in the US.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Flucloxacillin IV: 1 to 2 g every 6 hours; up to 2 g every 4 hours (12 g a day) for endocarditis, osteomyelitis and severe infection.\n• Flucloxacillin oral: 500 mg to 1 g every 6 hours, taken on an empty stomach (1 hour before or 2 hours after food).\n• Nafcillin or oxacillin IV: 2 g every 4 hours (up to 12 g a day) for MSSA bacteraemia, endocarditis and bone infection.\n• Dicloxacillin oral (US): 250 to 500 mg every 6 hours for mild skin infection.\n• Oral step-down is not an equivalent alternative to IV therapy for S. aureus bacteraemia, because of poor oral bioavailability."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Flucloxacillin: no change is needed for mild to moderate impairment; in severe renal failure (CrCl below 10 mL/min), follow local guidance to reduce the dose or lengthen the interval.\n• Nafcillin and oxacillin are mainly cleared by the liver, so no renal adjustment is usually needed.\n• Nafcillin: reduce the dose in combined severe renal and hepatic failure."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against methicillin-susceptible S. aureus and streptococci.\n• Not active against MRSA, enterococci or Gram-negative bacilli.\n• For MSSA bacteraemia, anti-staphylococcal penicillins or cefazolin are superior to vancomycin."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Flucloxacillin: cholestatic hepatitis can appear up to 2 months after stopping, with higher risk above age 50 and with courses over 14 days; monitor liver tests.\n• Flucloxacillin with paracetamol can cause high anion gap metabolic acidosis (pyroglutamic acidosis), especially in women, malnourished patients and those with renal impairment.\n• Nafcillin: causes hypokalaemia and phlebitis; extravasation can cause tissue necrosis, so a central line is preferred for long courses; it reduces warfarin effect and lowers levels of some drugs through enzyme induction.\n• Oxacillin: can cause interstitial nephritis and raised transaminases.\n• Monitor full blood count and liver and renal function on prolonged therapy."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "piperacillin_tazobactam",
+      "title": "Piperacillin-tazobactam",
+      "category": "Penicillins",
+      "subtitle": "Antipseudomonal penicillin with beta-lactamase inhibitor | IV",
+      "summary": "Broad-spectrum cover for Gram-positives, Gram-negatives including Pseudomonas, and anaerobes. Workhorse for hospital-acquired and intra-abdominal infection, but not recommended for ESBL bloodstream infection.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Standard: 4.5 g (4 g/0.5 g) IV every 6 hours; 3.375 g every 6 hours for lower-severity infection.\n• Nosocomial pneumonia and Pseudomonas: 4.5 g every 6 hours.\n• Extended infusion (commonly used): 4.5 g over 4 hours every 8 hours, after an initial 30-minute loading dose.\n• Doses are expressed as total piperacillin plus tazobactam."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl above 40 mL/min: no adjustment.\n• CrCl 20 to 40: 2.25 g every 6 hours (3.375 g every 6 hours for nosocomial pneumonia).\n• CrCl below 20: 2.25 g every 8 hours (2.25 g every 6 hours for nosocomial pneumonia).\n• Haemodialysis: 2.25 g every 12 hours (every 8 hours for nosocomial pneumonia), plus 0.75 g after each dialysis session.\n• Local extended-infusion protocols may use different renal doses, so follow your hospital's guideline."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Covers streptococci, methicillin-susceptible S. aureus, Enterococcus faecalis, many Enterobacterales, Pseudomonas aeruginosa and anaerobes.\n• Common uses: hospital-acquired pneumonia, intra-abdominal infection, febrile neutropenia, diabetic foot infection, and sepsis of unknown source.\n• Not active against MRSA or most ESBL producers.\n• IDSA guidance recommends carbapenems rather than piperacillin-tazobactam for ESBL-E infections outside the urinary tract, based on the MERINO trial."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered acceptable in pregnancy when needed.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Combination with vancomycin is associated with a higher rate of acute kidney injury than vancomycin with cefepime or a carbapenem; monitor creatinine.\n• Contains sodium (about 2.35 mEq per gram of piperacillin), so watch fluid balance in heart failure and renal failure.\n• Hypokalaemia, cytopenias with prolonged courses, and raised liver tests can occur.\n• Piperacillin can reduce methotrexate clearance.\n• Do not mix with aminoglycosides in the same bag or line, because they inactivate each other.\n• Penicillin allergy history matters; cross-reactivity with cephalosporins is low."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. ESBL guidance: IDSA AMR guidance."
+    },
+    {
+      "id": "cefazolin",
+      "title": "Cefazolin",
+      "category": "Cephalosporins",
+      "subtitle": "First-generation cephalosporin | IV, IM",
+      "summary": "First choice for MSSA infections and for most surgical prophylaxis. A unique side chain makes cross-reactivity with penicillins unlikely, so it is usable in most patients labelled penicillin-allergic.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Typical: 1 to 2 g IV every 8 hours.\n• MSSA bacteraemia and endocarditis: 2 g IV every 8 hours.\n• Surgical prophylaxis: 2 g IV within 60 minutes before incision (3 g if the patient weighs 120 kg or more); repeat every 4 hours during long operations.\n• Cellulitis and bone or joint infection: 1 to 2 g every 8 hours, with the dose chosen by site and severity."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 55 mL/min or above: usual dose.\n• CrCl 35 to 54: usual dose, with at least 8 hours between doses.\n• CrCl 11 to 34: half the usual dose every 12 hours.\n• CrCl 10 or below: half the usual dose every 18 to 24 hours.\n• Haemodialysis: dose after each session, for example 2 g after dialysis, or 2 g/2 g/3 g three times a week."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against methicillin-susceptible S. aureus, streptococci, and some Enterobacterales (E. coli, Klebsiella, Proteus).\n• Not active against MRSA, enterococci, Listeria, Pseudomonas or anaerobes such as Bacteroides.\n• Does not penetrate the central nervous system, so it should not be used for meningitis."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Penicillin allergy: cefazolin shares no side chain with penicillins or other cephalosporins, so it can be given to most patients with a non-severe penicillin allergy.\n• Rash, diarrhoea and C. difficile infection are possible.\n• Can cause false-positive urine glucose tests with copper-reduction methods, and a positive Coombs test.\n• Prolonged courses need blood count and liver test monitoring."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "ceftriaxone",
+      "title": "Ceftriaxone",
+      "category": "Cephalosporins",
+      "subtitle": "Third-generation cephalosporin | IV, IM",
+      "summary": "Once-daily cephalosporin for pneumonia, meningitis, gonorrhoea, complicated urinary infection and many community infections. Excreted by both bile and kidney.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Standard: 1 to 2 g IV or IM every 24 hours.\n• Bacterial meningitis: 2 g IV every 12 hours.\n• Community-acquired pneumonia: 1 to 2 g every 24 hours, with a macrolide or doxycycline when atypical cover is needed.\n• Uncomplicated gonorrhoea: 500 mg IM as a single dose (1 g if the patient weighs 150 kg or more), per CDC guidance.\n• Endocarditis (streptococcal): 2 g every 24 hours; enterococcal endocarditis (with ampicillin): 2 g every 12 hours.\n• Lyme neuroborreliosis and disseminated Lyme disease: 2 g every 24 hours.\n• IM injections are given with 1% lidocaine to reduce pain."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• No adjustment for renal impairment alone.\n• In combined severe renal and hepatic impairment, do not exceed 2 g a day.\n• Haemodialysis: no supplemental dose is needed."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against streptococci, methicillin-susceptible S. aureus, Neisseria (including gonorrhoea and meningococcus), H. influenzae, and many Enterobacterales.\n• Not active against enterococci, Listeria, MRSA, anaerobes (moderate), or Pseudomonas.\n• Do not rely on it for serious infection with Enterobacter, Citrobacter or Serratia, which can develop AmpC resistance during therapy; and it is not suitable for ESBL producers."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding; watch the infant for diarrhoea and thrush."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Never mix or give ceftriaxone with calcium-containing IV solutions in neonates, because of fatal precipitation; avoid in neonates with hyperbilirubinaemia.\n• In adults, do not give calcium-containing solutions through the same line at the same time.\n• Biliary sludge and pseudolithiasis can occur with high doses, and are more common in children.\n• Can cause haemolytic anaemia (rare), diarrhoea and C. difficile infection.\n• May increase the effect of warfarin; check INR."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Gonorrhoea: CDC STI guidance."
+    },
+    {
+      "id": "cefalexin",
+      "title": "Cefalexin (cephalexin)",
+      "category": "Cephalosporins",
+      "subtitle": "First-generation cephalosporin | Oral",
+      "summary": "Oral workhorse for skin and soft tissue infection, uncomplicated urinary infection and streptococcal pharyngitis, and a common step-down after IV cefazolin.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Usual: 500 mg orally every 6 hours; 250 mg to 1 g every 6 hours depending on severity.\n• Twice-daily regimen for uncomplicated skin infection, pharyngitis or cystitis: 500 mg every 12 hours.\n• Maximum 4 g a day.\n• Can be taken with or without food."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 30 mL/min or above: no adjustment is usually needed.\n• CrCl 15 to 29: 250 mg every 8 to 12 hours.\n• CrCl 5 to 14: 250 mg every 24 hours.\n• CrCl below 5: 250 mg every 48 to 60 hours.\n• Haemodialysis: dose after dialysis."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against methicillin-susceptible S. aureus, streptococci, and some E. coli, Klebsiella and Proteus.\n• Common uses: cellulitis, impetigo, skin abscess after drainage (when cover is needed), streptococcal pharyngitis, uncomplicated UTI, and step-down after IV therapy.\n• Not active against MRSA, enterococci, Pseudomonas, anaerobes, or ESBL producers.\n• Poor choice for pyelonephritis in areas with high E. coli resistance."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Raises metformin levels by reducing renal tubular secretion, so monitor for lactic acidosis in renal impairment.\n• Diarrhoea and C. difficile infection are possible.\n• Cross-reactivity with penicillins is low for a first-generation agent, but cefalexin shares a side chain with ampicillin and amoxicillin, so avoid it after a severe reaction to those drugs.\n• Can cause false-positive urine glucose tests with copper-reduction methods."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "cefuroxime",
+      "title": "Cefuroxime",
+      "category": "Cephalosporins",
+      "subtitle": "Second-generation cephalosporin | IV, oral (axetil)",
+      "summary": "Respiratory and skin cover with activity against H. influenzae, plus a first-line oral option for early Lyme disease. Do not use for meningitis.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• IV: 750 mg to 1.5 g every 8 hours.\n• Oral (cefuroxime axetil): 250 to 500 mg every 12 hours, taken with food to improve absorption.\n• Early Lyme disease: 500 mg orally every 12 hours for 14 days (14 to 21 days for erythema migrans per guidance).\n• Do not use for bacterial meningitis, because treatment failure and neurological sequelae have been reported."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• IV: CrCl above 20 mL/min no change; 10 to 20: 750 mg every 12 hours; below 10: 750 mg every 24 hours.\n• Oral: CrCl 10 to 29: usual dose every 24 hours; below 10: usual dose every 48 hours.\n• Haemodialysis: dose after dialysis."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against streptococci, methicillin-susceptible S. aureus, H. influenzae (including beta-lactamase producers), Moraxella and some Enterobacterales.\n• Common uses: community-acquired pneumonia (with a macrolide when atypicals are suspected), sinusitis, otitis media, skin infection, and early Lyme disease.\n• Not active against MRSA, enterococci, Pseudomonas or anaerobes such as Bacteroides."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Tablets are poorly absorbed on an empty stomach, so take them with food; do not crush them because of the bitter taste.\n• Not interchangeable with cefuroxime axetil suspension on a mg-for-mg basis, since the formulations differ.\n• Diarrhoea and C. difficile infection are possible.\n• H2 blockers and antacids reduce the absorption of cefuroxime axetil; space doses apart."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "ceftazidime",
+      "title": "Ceftazidime",
+      "category": "Cephalosporins",
+      "subtitle": "Third-generation antipseudomonal cephalosporin | IV, IM",
+      "summary": "Antipseudomonal cephalosporin with strong Gram-negative activity but weak Gram-positive activity. Mainstay for melioidosis and Pseudomonas infection when cefepime or other options are not suitable.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Typical: 2 g IV every 8 hours for Pseudomonas, febrile neutropenia, hospital-acquired infection and meningitis.\n• Melioidosis (intensive phase): 2 g IV every 6 to 8 hours for at least 10 to 14 days.\n• Lower-severity infection: 1 g IV or IM every 8 to 12 hours.\n• Can be given as an extended or continuous infusion; follow local protocol."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Label bands (for a usual 1 g every 8 hours dose): CrCl 31 to 50: 1 g every 12 hours; 16 to 30: 1 g every 24 hours; 6 to 15: 500 mg every 24 hours; 5 or below: 500 mg every 48 hours.\n• When the usual dose is 2 g every 8 hours, use your hospital's renal dosing table, because the bands above are too low for severe infection.\n• Haemodialysis: give a dose after each session."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against many Enterobacterales, Pseudomonas aeruginosa, H. influenzae, Neisseria, and Burkholderia pseudomallei.\n• Weak against Gram-positive organisms: not reliable for staphylococci or pneumococci.\n• No useful anaerobic activity, and not active against enterococci, MRSA or ESBL producers.\n• Resistance can emerge during therapy in AmpC producers."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered acceptable in pregnancy when needed.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Neurotoxicity (confusion, myoclonus, seizures) when the dose is not reduced for renal impairment.\n• Positive Coombs test is common; haemolytic anaemia is rare.\n• Diarrhoea and C. difficile infection are possible.\n• Reconstituted solutions release gas, so follow preparation instructions for the product.\n• Do not mix with aminoglycosides in the same line."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "cefepime",
+      "title": "Cefepime",
+      "category": "Cephalosporins",
+      "subtitle": "Fourth-generation cephalosporin | IV, IM",
+      "summary": "Broad cover for Gram-positives and Gram-negatives including Pseudomonas. First-line for febrile neutropenia and nosocomial pneumonia, and used for AmpC-producing Enterobacterales when the cefepime MIC is low. Neurotoxic in renal impairment.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Febrile neutropenia, nosocomial pneumonia and Pseudomonas infection: 2 g IV every 8 hours.\n• Moderate infection (for example pneumonia, UTI, skin infection): 1 to 2 g IV every 12 hours.\n• Meningitis (off-label but widely used): 2 g IV every 8 hours.\n• Extended infusions are used in some hospitals; follow local protocol."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Label bands for a usual 2 g every 8 hours dose: CrCl 30 to 60: 2 g every 12 hours; 11 to 29: 2 g every 24 hours; below 11: 1 g every 24 hours.\n• Label bands for a usual 2 g every 12 hours dose: CrCl 30 to 60: 2 g every 24 hours; 11 to 29: 1 g every 24 hours; below 11: 500 mg every 24 hours.\n• Haemodialysis: about 1 g on day one, then 500 mg to 1 g every 24 hours, with the dose after dialysis.\n• Underdosing renal impairment is a common cause of cefepime neurotoxicity."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against streptococci, methicillin-susceptible S. aureus, Enterobacterales, and Pseudomonas aeruginosa.\n• IDSA suggests cefepime for AmpC-producing Enterobacterales only when the cefepime MIC is 2 mcg/mL or lower; if the MIC is 4 or higher, use a carbapenem.\n• Not active against MRSA, enterococci, anaerobes, or ESBL producers, and not recommended for ESBL infections even if the isolate tests susceptible."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered acceptable in pregnancy when needed.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Cefepime-induced neurotoxicity: encephalopathy, myoclonus, aphasia and non-convulsive status epilepticus, especially in renal impairment, older age and brain injury; stop the drug and consider dialysis if severe.\n• Lower rate of acute kidney injury than piperacillin-tazobactam when combined with vancomycin.\n• Positive Coombs test, diarrhoea, C. difficile infection and rash are possible.\n• Do not mix with aminoglycosides or vancomycin in the same line."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. AmpC guidance: IDSA AMR guidance."
+    },
+    {
+      "id": "ceftaroline",
+      "title": "Ceftaroline fosamil",
+      "category": "Cephalosporins",
+      "subtitle": "Anti-MRSA cephalosporin | IV",
+      "summary": "The only cephalosporin with MRSA activity. Used for acute skin infection and community-acquired pneumonia, and as salvage therapy for persistent MRSA bacteraemia and endocarditis (off-label).",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Standard: 600 mg IV every 12 hours, infused over 5 to 60 minutes.\n• Skin infection caused by S. aureus with a ceftaroline MIC of 2 or 4 mcg/mL: 600 mg every 8 hours as a 2-hour infusion.\n• Off-label MRSA bacteraemia or endocarditis salvage: 600 mg every 8 hours, usually with specialist advice and often combined with another agent such as daptomycin."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl above 50 mL/min: no change.\n• CrCl 30 to 50: 400 mg every 12 hours.\n• CrCl 15 to below 30: 300 mg every 12 hours.\n• End-stage renal disease including haemodialysis: 200 mg every 12 hours, with the dose after dialysis on dialysis days."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against MRSA, methicillin-susceptible S. aureus, Streptococcus pneumoniae (including penicillin-resistant strains), other streptococci, H. influenzae and many Enterobacterales that do not produce ESBLs.\n• Approved for acute bacterial skin and skin structure infection and community-acquired bacterial pneumonia.\n• Not active against Pseudomonas, ESBL or AmpC producers, enterococci, or Acinetobacter."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited human data; use only if the benefit outweighs the risk.\n• Excretion into milk is not well studied; seek specialist advice."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Positive direct Coombs test is common; haemolytic anaemia is rare, so monitor the blood count on longer courses.\n• Diarrhoea, C. difficile infection and rash are possible.\n• Neutropenia and raised liver enzymes can occur on prolonged therapy, so check the blood count and liver tests on courses over 2 weeks.\n• Seizures have been reported in patients with renal impairment who were not dose-adjusted."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "meropenem",
+      "title": "Meropenem",
+      "category": "Carbapenems",
+      "subtitle": "Broad-spectrum carbapenem | IV",
+      "summary": "Reserve agent for serious infection with ESBL-producing Enterobacterales, Pseudomonas and mixed aerobic-anaerobic infection. Lower seizure risk than imipenem, so it is suitable for meningitis.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Standard: 1 g IV every 8 hours.\n• Bacterial meningitis and cystic fibrosis lung infection: 2 g IV every 8 hours.\n• Complicated skin infection: 500 mg to 1 g every 8 hours.\n• Extended infusion: 1 to 2 g over 3 hours every 8 hours, used in many hospitals for Pseudomonas and resistant organisms after a 30-minute loading dose.\n• ESBL-producing Enterobacterales (outside the urinary tract) and AmpC producers with high cefepime MIC: carbapenem, per IDSA guidance."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• For a usual 1 g every 8 hours dose: CrCl above 50 mL/min no change.\n• CrCl 26 to 50: 1 g every 12 hours.\n• CrCl 10 to 25: 500 mg every 12 hours.\n• CrCl below 10: 500 mg every 24 hours.\n• Haemodialysis: dose after each session.\n• Extended-infusion and CRRT regimens differ, so follow local dosing tables."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against streptococci, methicillin-susceptible S. aureus, Enterobacterales including ESBL and most AmpC producers, Pseudomonas aeruginosa, Acinetobacter (if susceptible), and anaerobes including Bacteroides.\n• Common uses: febrile neutropenia, intra-abdominal infection, hospital-acquired pneumonia, meningitis, ESBL infection, and mixed infection.\n• Not active against MRSA, Enterococcus faecium, Stenotrophomonas, or carbapenemase producers (for which see the IDSA AMR tab)."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited data; use only if the benefit outweighs the risk, and prefer alternatives where possible.\n• Compatible with breastfeeding in most references."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Valproate: carbapenems reduce valproic acid levels by 60 to 100% within 24 hours, which can cause breakthrough seizures; avoid the combination, and use an alternative antibiotic.\n• Seizure risk is low but present, especially with renal impairment and brain disease.\n• Diarrhoea, C. difficile infection, thrombocytopenia and raised liver enzymes are possible.\n• Cross-reactivity with penicillin allergy is low (about 1%).\n• Use carbapenem-sparing strategies where possible, because overuse drives resistance."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. ESBL and AmpC guidance: IDSA AMR guidance."
+    },
+    {
+      "id": "ertapenem",
+      "title": "Ertapenem",
+      "category": "Carbapenems",
+      "subtitle": "Once-daily carbapenem | IV, IM",
+      "summary": "Convenient once-daily carbapenem for ESBL infection and community intra-abdominal, pelvic and diabetic foot infection, including outpatient parenteral therapy. No Pseudomonas or Acinetobacter activity.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Standard: 1 g IV or IM every 24 hours.\n• IM is given with 1% lidocaine to reduce pain.\n• Surgical prophylaxis in elective colorectal surgery: 1 g IV as a single dose within 1 hour before incision.\n• Typical IV infusion over 30 minutes."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl above 30 mL/min: no change.\n• CrCl 30 or below, including haemodialysis: 500 mg every 24 hours.\n• Haemodialysis: if given within 6 hours before dialysis, a supplementary 150 mg dose is advised after the session."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against streptococci, methicillin-susceptible S. aureus, Enterobacterales including ESBL and AmpC producers, and anaerobes.\n• Common uses: ESBL urinary infection and bacteraemia (step-down option), complicated intra-abdominal infection, pelvic infection, diabetic foot infection, and community pneumonia in selected patients.\n• Not active against Pseudomonas, Acinetobacter, Enterococcus, MRSA, or Stenotrophomonas."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited data; use only if the benefit outweighs the risk.\n• Compatible with breastfeeding in most references."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Valproate: ertapenem lowers valproate levels sharply and can precipitate seizures, so avoid the combination.\n• Seizures and encephalopathy are reported, mainly with renal impairment or CNS disease.\n• Hypoalbuminaemia lowers total ertapenem protein binding, and free drug exposure can differ in critically ill patients.\n• Diarrhoea, headache, phlebitis, and C. difficile infection are possible.\n• Carbapenem-sparing choice: ertapenem has less selective pressure on Pseudomonas than broader carbapenems, but it still promotes resistance."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "imipenem_cilastatin",
+      "title": "Imipenem-cilastatin",
+      "category": "Carbapenems",
+      "subtitle": "Carbapenem with renal dehydropeptidase inhibitor | IV",
+      "summary": "Broad carbapenem with the highest seizure risk of the class, so it is avoided in meningitis and CNS disease. Imipenem-relebactam is a separate product for carbapenem-resistant organisms.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Typical: 500 mg IV every 6 hours (infuse over 20 to 30 minutes).\n• Less-susceptible organisms such as Pseudomonas: 1 g every 8 hours or 500 mg every 6 hours, depending on the site and susceptibility.\n• Maximum 4 g a day (50 mg/kg a day, whichever is lower).\n• Imipenem-cilastatin-relebactam: 1.25 g (imipenem 500 mg, cilastatin 500 mg, relebactam 250 mg) IV every 6 hours; used for KPC producers and difficult-to-treat Pseudomonas per the IDSA AMR guidance."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• For a usual 500 mg every 6 hours dose: CrCl 60 to 89 mL/min: 400 mg every 6 hours; 30 to 59: 300 mg every 6 hours; 15 to 29: 200 mg every 6 hours.\n• CrCl below 15: not recommended unless haemodialysis is started within 48 hours.\n• Relebactam combination has its own renal bands, so check the label or your hospital protocol."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against streptococci, methicillin-susceptible S. aureus, Enterococcus faecalis, Enterobacterales including ESBL and AmpC producers, Pseudomonas aeruginosa, and anaerobes.\n• Common uses: intra-abdominal infection, hospital-acquired pneumonia, febrile neutropenia, and polymicrobial infection.\n• Not active against MRSA, Enterococcus faecium, Stenotrophomonas, or most carbapenemase producers (except KPC with relebactam)."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited data; use only if the benefit outweighs the risk.\n• Compatible with breastfeeding in most references."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Seizure risk is higher than with meropenem or ertapenem, particularly with high doses, renal impairment, and CNS disease; avoid in meningitis.\n• Valproate: carbapenems drastically reduce valproate levels, so avoid the combination.\n• Ganciclovir plus imipenem increases seizure risk.\n• Nausea and vomiting with rapid infusion, so infuse slowly if the patient is symptomatic.\n• Diarrhoea, C. difficile infection and raised liver enzymes are possible."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Relebactam use: IDSA AMR guidance."
+    },
+    {
+      "id": "aztreonam",
+      "title": "Aztreonam",
+      "category": "Monobactams",
+      "subtitle": "Monobactam | IV, IM, inhaled",
+      "summary": "Active only against aerobic Gram-negative bacilli, including Pseudomonas. Useful in serious penicillin or cephalosporin allergy, and, combined with ceftazidime-avibactam, for metallo-beta-lactamase producers such as NDM.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Typical: 1 to 2 g IV or IM every 8 hours.\n• Severe or Pseudomonas infection: 2 g IV every 6 to 8 hours (maximum 8 g a day).\n• Uncomplicated urinary infection: 500 mg to 1 g every 8 to 12 hours.\n• Metallo-beta-lactamase producers (for example NDM): aztreonam 2 g IV every 8 hours together with ceftazidime-avibactam (2.5 g every 8 hours, given at the same time but as separate infusions), per IDSA AMR guidance.\n• Inhaled aztreonam lysine (cystic fibrosis): 75 mg three times a day for 28 days on, then 28 days off."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl above 30 mL/min: no change.\n• CrCl 10 to 30: after the usual loading dose, give 50% of the dose at the usual interval.\n• CrCl below 10 and haemodialysis: after the loading dose, give 25% of the dose at the usual interval; give an extra one-eighth of the initial dose after each haemodialysis session."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Enterobacterales, Pseudomonas aeruginosa, Haemophilus and Neisseria.\n• No activity against Gram-positive organisms, anaerobes, or Acinetobacter, and it is hydrolysed by ESBLs, AmpC and carbapenemases (unless combined with avibactam).\n• Common uses: Gram-negative infection in severe penicillin allergy, and combination therapy for NDM and other metallo-beta-lactamase producers."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited data; considered acceptable if clearly needed.\n• Compatible with breastfeeding in most references."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Allergy: aztreonam does not cross-react with penicillins or most cephalosporins, but it shares an identical side chain with ceftazidime (and cefiderocol is structurally related), so avoid it in patients allergic to ceftazidime.\n• Add Gram-positive and anaerobic cover when polymicrobial infection is possible.\n• Raised liver enzymes, rash, diarrhoea, C. difficile infection and phlebitis are possible.\n• Inhaled form: cough, bronchospasm, and wheeze, so use a bronchodilator first."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. NDM combination: IDSA AMR guidance."
+    },
+    {
+      "id": "vancomycin",
+      "title": "Vancomycin",
+      "category": "Glycopeptides",
+      "subtitle": "Glycopeptide | IV, oral (for C. difficile only)",
+      "summary": "First-line IV therapy for MRSA and other resistant Gram-positives, and oral therapy for C. difficile. Narrow therapeutic window, so IV dosing is guided by levels, now targeting an AUC rather than troughs.",
+      "sections": [
+        {
+          "title": "Adult dose (IV)",
+          "text": "• Dose by weight and levels, not a fixed dose: usual maintenance 15 to 20 mg/kg (actual body weight) every 8 to 12 hours, adjusted to renal function and levels.\n• Loading dose in critically ill patients or with serious infection: 20 to 35 mg/kg actual body weight, usually capped at 3 g.\n• Infuse no faster than 1 g an hour (10 mg/min), and slower for larger doses, to reduce infusion reactions.\n• Target an AUC/MIC of 400 to 600 (assuming an MIC of 1 mg/L) over 24 hours, per the 2020 ASHP/IDSA consensus guideline.\n• See the TDM tab for monitoring approaches."
+        },
+        {
+          "title": "Oral dose (C. difficile)",
+          "text": "• Oral vancomycin is not absorbed, so it works only inside the gut.\n• Initial non-severe or severe episode: 125 mg four times a day for 10 days (fidaxomicin is preferred if available).\n• Fulminant infection: 500 mg four times a day by mouth or nasogastric tube, plus IV metronidazole, with rectal vancomycin if ileus is present.\n• Recurrence: a tapered and pulsed regimen is one option; seek specialist advice."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Dose by levels in all patients with renal impairment.\n• Start with a loading dose, then use a nomogram or pharmacokinetic software to set the interval: for example, every 24 hours at CrCl 30 to 50, and dosing by level when CrCl is below 30 or unstable.\n• Haemodialysis: dose after each session, guided by pre-dialysis levels.\n• Do not adjust oral vancomycin for renal function."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against MRSA, coagulase-negative staphylococci, Enterococcus faecalis (ampicillin-resistant strains), streptococci, Clostridioides difficile (oral) and Corynebacterium.\n• Common uses: MRSA bacteraemia, endocarditis, pneumonia (with linezolid as an alternative), bone and joint infection, meningitis (with a cephalosporin), and device infection.\n• Inferior to anti-staphylococcal beta-lactams for MSSA, so de-escalate when susceptibility is known.\n• Not active against Gram-negatives; VRE and VISA or VRSA are resistant."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Used in pregnancy when needed, with levels guiding the dose because clearance rises.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Nephrotoxicity: risk rises with high troughs, long courses, critical illness and other nephrotoxins; vancomycin plus piperacillin-tazobactam carries a higher risk of acute kidney injury than alternatives.\n• Monitor creatinine at least two to three times a week, and daily in unstable patients.\n• Vancomycin infusion reaction (flushing from histamine release, not true allergy): slow the infusion and give an antihistamine.\n• Ototoxicity is uncommon, but more likely with high levels and aminoglycosides.\n• Neutropenia on prolonged courses, so check the blood count weekly.\n• Extravasation can cause tissue injury."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Dosing and monitoring: ASHP/IDSA/PIDS/SIDP 2020 vancomycin consensus guideline."
+    },
+    {
+      "id": "daptomycin",
+      "title": "Daptomycin",
+      "category": "Lipopeptides",
+      "subtitle": "Cyclic lipopeptide | IV",
+      "summary": "Concentration-dependent bactericidal agent for MRSA bacteraemia, right-sided endocarditis, skin infection and VRE. Inactivated by lung surfactant, so never use it for pneumonia.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Complicated skin and soft tissue infection: 4 mg/kg IV every 24 hours.\n• S. aureus bacteraemia and right-sided endocarditis: 6 mg/kg IV every 24 hours.\n• Many centres use 8 to 10 mg/kg for severe MRSA bacteraemia, endocarditis, or bone and joint infection, and 8 to 12 mg/kg for VRE (off-label, with specialist advice).\n• Give as a 30-minute infusion, or as a 2-minute IV push.\n• Dose by actual body weight."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 30 mL/min or above: no change.\n• CrCl below 30, including haemodialysis and peritoneal dialysis: give the same dose every 48 hours.\n• Haemodialysis: give after the session on dialysis days.\n• CRRT dosing varies, so follow a local protocol."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against MRSA, MSSA, streptococci, vancomycin-resistant enterococci and coagulase-negative staphylococci.\n• Common uses: bacteraemia, right-sided endocarditis, skin infection, bone and joint infection, and infection with VRE.\n• Not for pneumonia: surfactant binding inactivates it, but it can be used for septic emboli to the lungs from a bloodstream source.\n• Not active against Gram-negatives.\n• Resistance can emerge during therapy at low doses or with high bacterial burden, so use adequate doses."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited human data; use only if the benefit outweighs the risk.\n• Limited data on breastfeeding; seek specialist advice."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Myopathy and rhabdomyolysis: check creatine phosphokinase (CPK) at baseline and at least weekly, more often with renal impairment or statin use.\n• Consider holding statins during therapy; stop daptomycin if the patient has symptoms and a CPK above 5 times the upper limit of normal, or above 10 times without symptoms.\n• Eosinophilic pneumonia: new fever, cough and infiltrates after 2 or more weeks; stop the drug and treat.\n• Peripheral neuropathy, raised liver enzymes, and false prolongation of prothrombin time with some reagents.\n• Do not mix with dextrose-containing solutions."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "linezolid",
+      "title": "Linezolid",
+      "category": "Oxazolidinones",
+      "subtitle": "Oxazolidinone | IV, oral",
+      "summary": "Oral and IV protein-synthesis inhibitor with near-complete oral bioavailability. Used for MRSA pneumonia and skin infection, VRE, nocardiosis and drug-resistant TB. Watch for myelosuppression and serotonin syndrome.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• 600 mg IV or orally every 12 hours.\n• The oral and IV doses are the same (bioavailability about 100%), so switch early to the oral route when the patient can take it.\n• VRE infection: 600 mg every 12 hours.\n• Drug-resistant tuberculosis: typically 600 mg once a day, as part of a multidrug regimen under specialist supervision.\n• Nocardiosis and some mycobacterial infection: dose per specialist advice."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• No adjustment is needed for renal impairment.\n• The metabolites accumulate in renal failure, and the risk of myelosuppression may be higher, so monitor blood counts more closely.\n• Haemodialysis: give the dose after dialysis."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against MRSA, vancomycin-resistant enterococci, coagulase-negative staphylococci, penicillin-resistant pneumococci, Nocardia and many mycobacteria.\n• Common uses: MRSA pneumonia, skin and soft tissue infection, VRE infection, bone and joint infection (longer courses with monitoring), and toxin suppression in necrotising infection.\n• Bacteriostatic against staphylococci and enterococci, so it is not first choice for endocarditis or bacteraemia.\n• Not active against Gram-negatives."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited data; use only if the benefit outweighs the risk.\n• Limited data; seek specialist advice."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Myelosuppression (especially thrombocytopenia), usually after 10 to 14 days: check the full blood count weekly, or more often in renal failure or prior low counts.\n• Serotonin syndrome with SSRIs, SNRIs, tricyclics, triptans, opioids such as tramadol and methadone, and MAO inhibitors; avoid or monitor closely, and do not combine without specialist advice.\n• Peripheral and optic neuropathy with courses longer than 28 days; report visual change early.\n• Lactic acidosis and hypoglycaemia (especially in patients on insulin or oral hypoglycaemics).\n• Avoid large amounts of tyramine-rich foods; and consider hypertensive interaction with sympathomimetics.\n• Diarrhoea, nausea, and C. difficile infection are possible."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "clindamycin",
+      "title": "Clindamycin",
+      "category": "Lincosamides",
+      "subtitle": "Lincosamide | IV, oral",
+      "summary": "Protein-synthesis inhibitor with good tissue and bone penetration and toxin-suppressing effect in streptococcal and staphylococcal toxin disease. Highest C. difficile risk among oral antibiotics, so use it only when needed.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Oral: 150 to 450 mg every 6 hours (typically 300 mg every 6 to 8 hours).\n• IV: 600 to 900 mg every 8 hours (up to 2.7 g a day; some severe infections use up to 4.8 g a day in divided doses).\n• Toxic shock and necrotising infection (to suppress toxin): 900 mg IV every 8 hours, together with a bactericidal beta-lactam.\n• Group B streptococcal prophylaxis in labour when penicillin-allergic and the isolate is susceptible: 900 mg IV every 8 hours until delivery.\n• Take oral capsules with a full glass of water to avoid oesophageal irritation."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• No adjustment is needed for renal impairment.\n• Reduce the dose in severe hepatic impairment, and monitor liver tests on prolonged therapy.\n• Not removed by dialysis, so no supplement is needed."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against many streptococci, methicillin-susceptible S. aureus, some MRSA (check local susceptibility), and many anaerobes above the diaphragm; also Toxoplasma and Pneumocystis (combination therapy) and Plasmodium (with quinine).\n• Common uses: skin and soft tissue infection, bone and joint infection, dental infection, aspiration pneumonia, toxin-mediated disease, and alternative therapy in penicillin allergy.\n• Not reliable for Bacteroides fragilis, which is frequently resistant, and not active against Gram-negative aerobes or enterococci.\n• Poor penetration into the central nervous system, except in toxoplasmosis."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered safe in pregnancy.\n• Compatible with breastfeeding; watch the infant for diarrhoea and thrush."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• C. difficile infection: clindamycin carries a high risk even after a short course, and it can appear weeks later; stop clindamycin and treat promptly if diarrhoea develops.\n• Inducible resistance: do a D-test on erythromycin-resistant, clindamycin-susceptible staphylococci and streptococci; a positive test means clindamycin may fail.\n• Rash, raised liver enzymes, and neuromuscular blockade potentiation (rare).\n• Avoid rapid IV infusion because of hypotension and cardiac arrest; infuse over at least 10 to 60 minutes, no faster than 30 mg/min.\n• Not used for meningitis or brain abscess."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "gentamicin",
+      "title": "Gentamicin",
+      "category": "Aminoglycosides",
+      "subtitle": "Aminoglycoside | IV, IM",
+      "summary": "Rapidly bactericidal against Gram-negative bacilli and used for synergy in endocarditis. Concentration-dependent killing, so once-daily dosing is common. Narrow therapeutic window with kidney and ear toxicity.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Extended-interval (once-daily): 5 to 7 mg/kg IV every 24 hours; many hospitals use 5 mg/kg for pyelonephritis and urosepsis, and 7 mg/kg with a nomogram for severe sepsis.\n• Traditional (multiple daily): 1.5 to 2 mg/kg IV loading dose, then 1 to 1.7 mg/kg every 8 hours.\n• Synergy in endocarditis (with a beta-lactam or vancomycin): 1 mg/kg every 8 hours for staphylococci and enterococci; for viridans streptococci, 3 mg/kg a day in one or three divided doses, per AHA guidance.\n• Use ideal body weight, or adjusted body weight in obesity: IBW + 0.4 x (actual weight minus IBW).\n• Infuse over 30 to 60 minutes; give gentamicin separately from beta-lactams, which can inactivate it in the same bag."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Dose by renal function and levels, not a fixed schedule.\n• Use a nomogram (such as Hartford) for extended-interval dosing, which lengthens the interval to 36 or 48 hours as CrCl falls.\n• Extended-interval dosing is usually avoided when CrCl is below 40 mL/min, and in pregnancy, ascites, major burns, cystic fibrosis, endocarditis and dialysis; use traditional dosing with levels instead.\n• Haemodialysis: 1 to 2 mg/kg after each session, guided by pre-dialysis levels."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Enterobacterales, Pseudomonas aeruginosa (with a second active drug), and staphylococci; provides synergy with cell-wall agents against streptococci and enterococci.\n• Common uses: pyelonephritis and urosepsis, intra-abdominal infection (with another agent), febrile neutropenia (combination), endocarditis synergy, plague, tularaemia and brucellosis.\n• Not active against anaerobes, and poor activity in acid and low-oxygen environments (abscesses); also poor penetration into lung and CSF.\n• Do not use as monotherapy for serious Gram-positive or pneumonic infection."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Use only when the benefit outweighs the risk: aminoglycosides can cross the placenta and may cause fetal ototoxicity, mostly with streptomycin and kanamycin.\n• Compatible with breastfeeding, because oral absorption is poor."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Nephrotoxicity and ototoxicity (vestibular and cochlear, sometimes irreversible): risk rises with high troughs, long courses, older age, dehydration and other nephrotoxins such as vancomycin, contrast and loop diuretics.\n• Monitor creatinine at baseline and at least twice weekly (daily in unstable patients), with levels per local protocol: for traditional dosing aim for a trough below 1 mg/L, and a peak per indication.\n• Limit courses to 5 to 7 days when possible; ask about hearing loss, tinnitus and balance.\n• Neuromuscular blockade: avoid or use with caution in myasthenia gravis, and with neuromuscular blockers.\n• Correct hypomagnesaemia and hypokalaemia."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Endocarditis synergy: AHA statement on infective endocarditis."
+    },
+    {
+      "id": "amikacin",
+      "title": "Amikacin",
+      "category": "Aminoglycosides",
+      "subtitle": "Aminoglycoside | IV, IM, inhaled",
+      "summary": "Aminoglycoside least affected by aminoglycoside-modifying enzymes, so it often works when gentamicin and tobramycin fail. Used for resistant Gram-negatives, nontuberculous mycobacteria and drug-resistant TB.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Extended-interval: 15 to 20 mg/kg IV every 24 hours, using adjusted body weight in obesity, with level-based adjustment.\n• Traditional: 7.5 mg/kg IV every 12 hours (15 mg/kg a day, up to 1.5 g a day).\n• Single dose for uncomplicated cystitis from resistant Enterobacterales: 15 mg/kg once, per the IDSA AMR guidance (see that tab).\n• Nontuberculous mycobacteria and Nocardia: 10 to 15 mg/kg once a day, often 3 times a week for long courses, with specialist advice.\n• Inhaled liposomal amikacin for Mycobacterium avium complex lung disease that has not responded to a three-drug regimen: 590 mg once a day by nebuliser, as an add-on."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Dose by renal function and levels.\n• Extend the interval to 36 to 48 hours or longer as CrCl falls, using a nomogram or pharmacokinetic software.\n• Extended-interval dosing is usually avoided with CrCl below 40 mL/min; use traditional dosing and monitor levels.\n• Haemodialysis: dose after the session, guided by pre-dialysis levels."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Enterobacterales (including many gentamicin-resistant strains), Pseudomonas aeruginosa, Acinetobacter (variable), and many mycobacteria and Nocardia.\n• Common uses: resistant Gram-negative infection (combination therapy), febrile neutropenia, nontuberculous mycobacterial disease, drug-resistant tuberculosis, and carbapenem-resistant infection when other options are limited.\n• Not active against anaerobes or most Gram-positive organisms, and not reliable against Enterococcus."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Avoid unless essential: fetal ototoxicity and eighth-nerve damage are reported with aminoglycosides.\n• Compatible with breastfeeding, because oral absorption is poor."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Nephrotoxicity and ototoxicity (cochlear damage is more frequent than vestibular damage with amikacin): check audiology baseline for long courses, and ask about hearing and balance.\n• Monitor creatinine and drug levels per local protocol; keep the trough low, and use peak and trough values as the protocol directs.\n• Limit courses where possible and avoid combination with other nephrotoxic and ototoxic drugs.\n• Neuromuscular blockade: use with caution in myasthenia gravis.\n• Inhaled liposomal amikacin: cough, dysphonia and respiratory events; stop if hypersensitivity pneumonitis develops."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Cystitis single dose: IDSA AMR guidance."
+    },
+    {
+      "id": "azithromycin",
+      "title": "Azithromycin",
+      "category": "Macrolides",
+      "subtitle": "Macrolide-azalide | Oral, IV",
+      "summary": "Long half-life macrolide with excellent tissue and intracellular penetration. Used for atypical pneumonia, chlamydia alternatives, pertussis, cholera, travellers' diarrhoea and MAC. QT prolongation and rising resistance limit its use.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Community-acquired pneumonia and atypical cover: 500 mg orally or IV once a day, usually 3 to 5 days.\n• Five-day course: 500 mg on day 1, then 250 mg daily for days 2 to 5.\n• Chlamydia (alternative to doxycycline, for example in pregnancy): 1 g orally as a single dose.\n• Pertussis: 500 mg on day 1, then 250 mg daily for 4 days.\n• Cholera: 1 g orally as a single dose; travellers' diarrhoea: 1 g single dose, or 500 mg daily for up to 3 days.\n• MAC prophylaxis in advanced HIV, when ART is not started immediately and CD4 is below 50: 1200 mg once a week; MAC treatment: 250 to 500 mg daily, always with other drugs.\n• Trachoma mass treatment: 20 mg/kg single dose; azithromycin is no longer recommended as dual therapy for gonorrhoea in current CDC guidance."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• No adjustment is needed for mild to moderate renal impairment.\n• Use with caution when GFR is below 10 mL/min, because systemic exposure rises about 33%.\n• Use with caution in hepatic impairment; it is eliminated mainly in bile."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Streptococcus pneumoniae (resistance is common), Haemophilus influenzae, Moraxella, Mycoplasma, Chlamydia, Legionella, Bordetella pertussis, Campylobacter, Vibrio cholerae, and Mycobacterium avium complex.\n• Common uses: community-acquired pneumonia (as part of combination therapy), atypical pneumonia, chlamydia, pertussis, cholera, travellers' diarrhoea, trachoma and COPD exacerbation prevention in selected patients.\n• Not reliable for pneumococcal monotherapy in areas with high macrolide resistance, and not suitable for MRSA, enteric Gram-negative bacilli or anaerobes."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered acceptable in pregnancy; the preferred option for chlamydia in pregnancy.\n• Compatible with breastfeeding; watch the infant for diarrhoea and thrush."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• QT prolongation and torsades de pointes: avoid or monitor with other QT-prolonging drugs (for example amiodarone, fluoroquinolones, ondansetron, haloperidol), and in patients with long QT, hypokalaemia or hypomagnesaemia.\n• Fewer cytochrome P450 interactions than erythromycin or clarithromycin, but it can increase digoxin levels (P-glycoprotein) and the effect of warfarin; check INR.\n• Antacids containing aluminium or magnesium reduce peak levels; take azithromycin at least 2 hours apart from them.\n• Hearing loss with prolonged high-dose courses, cholestatic hepatitis, and diarrhoea or C. difficile infection.\n• Long-term use for prevention requires a baseline ECG and screening for nontuberculous mycobacteria."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. STI dosing: CDC STI guidance."
+    },
+    {
+      "id": "doxycycline",
+      "title": "Doxycycline",
+      "category": "Tetracyclines",
+      "subtitle": "Tetracycline | Oral, IV",
+      "summary": "Versatile oral and IV antibiotic for atypical pneumonia, rickettsial disease, Lyme disease, chlamydia, MRSA skin infection, malaria prophylaxis and post-exposure prevention. Chelates with calcium, iron and antacids.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Standard: 100 mg orally or IV every 12 hours (a 200 mg loading dose on day 1 is used in some regimens).\n• Community-acquired pneumonia and atypical cover: 100 mg every 12 hours for 5 to 7 days.\n• Rocky Mountain spotted fever and other rickettsial disease: 100 mg every 12 hours; start on suspicion and continue until afebrile for at least 3 days.\n• Early Lyme disease with erythema migrans: 100 mg every 12 hours for 10 days; Lyme prophylaxis after a high-risk tick bite: 200 mg once, within 72 hours.\n• Chlamydia and non-gonococcal urethritis: 100 mg every 12 hours for 7 days; syphilis in penicillin allergy: 100 mg every 12 hours for 14 days (early) or 28 days (late).\n• Malaria prophylaxis: 100 mg once a day, starting 1 to 2 days before travel and continuing 4 weeks after leaving; anthrax post-exposure and treatment: 100 mg every 12 hours.\n• Doxycycline post-exposure prophylaxis for bacterial STIs (selected high-risk groups): 200 mg once within 72 hours after sex, per CDC guidance."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• No adjustment is needed in renal impairment, and it is not removed by dialysis.\n• It is excreted mainly in the gut, so it is a useful tetracycline in renal failure.\n• Use with caution in severe hepatic impairment."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Rickettsia, Chlamydia, Mycoplasma, Legionella, Borrelia, Brucella, Vibrio, Coxiella, many MRSA strains, and Yersinia pestis.\n• Common uses: community-acquired pneumonia, atypical infection, tick-borne illness, chlamydia, acne and rosacea, leptospirosis, cholera, malaria prophylaxis, and post-exposure prophylaxis.\n• Not reliable for most pneumococcal and group A streptococcal infection, because of resistance; and not active against Pseudomonas or most Enterobacterales."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Avoid in pregnancy because of risk to fetal teeth and bones, except for serious infections such as rickettsial disease or anthrax, where the benefit outweighs the risk.\n• Short courses are generally considered acceptable during breastfeeding, because absorption by the infant is limited by calcium in milk."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Take with a full glass of water and remain upright for 30 minutes to avoid oesophageal ulceration.\n• Chelation: calcium, iron, magnesium, aluminium, zinc and dairy products reduce absorption; separate by 2 to 3 hours.\n• Photosensitivity: advise sun protection.\n• Intracranial hypertension is a rare complication; avoid combining with isotretinoin or other retinoids.\n• Children: current paediatric guidance allows short courses (up to 21 days) of doxycycline at any age when it is the best treatment, with minimal risk of tooth staining.\n• Diarrhoea, C. difficile infection and candidiasis are possible; it can increase warfarin effect."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. STI and tick-borne dosing: CDC guidance."
+    },
+    {
+      "id": "ciprofloxacin",
+      "title": "Ciprofloxacin",
+      "category": "Fluoroquinolones",
+      "subtitle": "Fluoroquinolone | Oral, IV",
+      "summary": "Oral and IV quinolone with the best Pseudomonas activity of the class. Reserved for infections where alternatives are unsuitable because of serious boxed-warning adverse effects. Chelates strongly with minerals.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Oral: 250 to 750 mg every 12 hours; IV: 400 mg every 8 to 12 hours.\n• Uncomplicated cystitis (when no other option): 250 mg every 12 hours for 3 days.\n• Pyelonephritis and complicated UTI: 500 mg orally every 12 hours (or 400 mg IV every 12 hours) for 7 days.\n• Pseudomonas aeruginosa: 750 mg orally every 12 hours, or 400 mg IV every 8 hours.\n• Post-exposure prophylaxis for meningococcal contacts: 500 mg orally as a single dose; plague and anthrax: 500 mg orally every 12 hours, or 400 mg IV every 12 hours, per public health guidance.\n• Take with water; avoid taking with dairy or calcium-fortified drinks alone."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl above 50 mL/min: no change.\n• CrCl 30 to 50: 250 to 500 mg every 12 hours.\n• CrCl 5 to 29: 250 to 500 mg every 18 hours orally, or 200 to 400 mg IV every 18 to 24 hours.\n• Haemodialysis: 250 to 500 mg every 24 hours, given after the session."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Enterobacterales, Pseudomonas aeruginosa, Haemophilus, Neisseria, Campylobacter, Salmonella, Shigella, Bacillus anthracis and Yersinia pestis.\n• Common uses: complicated urinary infection and pyelonephritis (where resistance is low), traveller's and bacterial diarrhoea, bone and joint infection (Gram-negative), prostatitis, and post-exposure prophylaxis.\n• Poor activity against streptococci and pneumococci, anaerobes, and MRSA; resistance among E. coli, Pseudomonas and Neisseria gonorrhoeae is widespread."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Avoid in pregnancy unless there is no safer alternative.\n• Generally avoided in breastfeeding, although short courses may be acceptable with specialist advice."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Boxed warning: tendinitis and tendon rupture, peripheral neuropathy, central nervous system effects, and worsening of myasthenia gravis; avoid for mild infections when other options exist.\n• Risk of tendon injury rises with age over 60, corticosteroids, kidney, heart or lung transplant.\n• Aortic aneurysm and dissection: avoid in patients with known aneurysm or at high risk.\n• Dysglycaemia (especially with diabetes drugs), QT prolongation, photosensitivity, and C. difficile infection.\n• Interactions: chelation with antacids, iron, zinc, calcium and sucralfate (take ciprofloxacin 2 hours before or 6 hours after); contraindicated with tizanidine; raises theophylline and caffeine levels; increases warfarin effect."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "levofloxacin",
+      "title": "Levofloxacin",
+      "category": "Fluoroquinolones",
+      "subtitle": "Respiratory fluoroquinolone | Oral, IV",
+      "summary": "Once-daily quinolone with improved Gram-positive cover compared with ciprofloxacin. Used for pneumonia when alternatives are unsuitable, and for some Gram-negative, anthrax and drug-resistant TB regimens.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Community-acquired pneumonia: 750 mg orally or IV once a day for 5 days, or 500 mg once a day for 7 to 14 days.\n• Pyelonephritis and complicated UTI: 750 mg once a day for 5 days.\n• Nosocomial pneumonia: 750 mg once a day for 7 to 14 days.\n• Oral and IV doses are the same (bioavailability about 99%).\n• Multidrug-resistant tuberculosis: dosed by weight within specialist-supervised regimens (generally 750 to 1000 mg once a day for adults)."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• For 750 mg every 24 hours: CrCl 20 to 49 mL/min: 750 mg every 48 hours; CrCl 10 to 19 or haemodialysis: 750 mg once, then 500 mg every 48 hours.\n• For 500 mg every 24 hours: CrCl 20 to 49: 500 mg once, then 250 mg every 24 hours; CrCl 10 to 19: 500 mg once, then 250 mg every 48 hours.\n• Haemodialysis: no supplemental dose after the session."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Streptococcus pneumoniae (including penicillin-resistant strains), Haemophilus, Moraxella, Legionella, Mycoplasma, Chlamydia, many Enterobacterales, and some Pseudomonas aeruginosa.\n• Common uses: community-acquired pneumonia in selected patients (for example beta-lactam allergy or comorbidity), Legionella infection, complicated urinary infection, prostatitis, and tuberculosis regimens.\n• Not reliable for MRSA, anaerobes, or enterococci, and gonococcal resistance is widespread."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Avoid in pregnancy unless there is no safer alternative.\n• Generally avoided in breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Boxed warning: tendon rupture, peripheral neuropathy, central nervous system effects, and myasthenia gravis exacerbation.\n• QT prolongation: avoid or monitor with other QT-prolonging drugs, and correct low potassium and magnesium.\n• Dysglycaemia (both hypoglycaemia and hyperglycaemia), aortic aneurysm risk, photosensitivity, and C. difficile infection.\n• Chelation: take 2 hours before or 2 hours after antacids, iron, zinc and calcium.\n• Fluoroquinolones can delay the diagnosis of tuberculosis because they have some TB activity; avoid empirical use when TB is a possibility."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "tmp_smx",
+      "title": "Trimethoprim-sulfamethoxazole (co-trimoxazole)",
+      "category": "Folate antagonists",
+      "subtitle": "Sulfonamide and diaminopyrimidine | Oral, IV",
+      "summary": "Versatile oral and IV combination for urinary infection, MRSA skin infection, Pneumocystis pneumonia, Stenotrophomonas, nocardiosis and toxoplasmosis prophylaxis. Doses are written by the trimethoprim component.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Standard double-strength (DS) tablet: 160 mg trimethoprim with 800 mg sulfamethoxazole.\n• Uncomplicated cystitis: 1 DS tablet every 12 hours for 3 days.\n• Skin and soft tissue infection (MRSA): 1 to 2 DS tablets every 12 hours.\n• Pneumocystis pneumonia treatment: trimethoprim 15 to 20 mg/kg a day (IV or oral) in 3 to 4 divided doses for 21 days; mild to moderate disease can use oral dosing, such as 2 DS tablets every 8 hours.\n• Pneumocystis prophylaxis: 1 DS or 1 single-strength tablet daily, or 1 DS three times a week.\n• Stenotrophomonas maltophilia: 8 to 12 mg/kg a day (trimethoprim component) IV in 2 to 3 divided doses, usually combined with another agent per IDSA AMR guidance.\n• Nocardia: 10 to 15 mg/kg a day (trimethoprim component) in divided doses, adjusted by specialist advice."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl above 30 mL/min: no change.\n• CrCl 15 to 30: give 50% of the usual dose.\n• CrCl below 15: avoid, or give 50% of the usual dose with close monitoring; for Pneumocystis, specialist advice is needed.\n• Haemodialysis: dose after the session.\n• Trimethoprim blocks tubular secretion of creatinine, so serum creatinine can rise by up to 0.3 to 0.4 mg/dL without a true drop in GFR."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against many Enterobacterales (resistance is common), MRSA and MSSA, Stenotrophomonas maltophilia, Nocardia, Pneumocystis jirovecii, Toxoplasma, Listeria and Burkholderia pseudomallei.\n• Common uses: urinary infection (where local resistance is below about 20%), community MRSA skin infection, Pneumocystis treatment and prophylaxis, Stenotrophomonas, nocardiosis, melioidosis eradication phase, and Listeria in penicillin allergy.\n• Not reliable for streptococcal pharyngitis, enterococci in vivo, or anaerobes."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Avoid in the first trimester (folate antagonism and neural tube defects) unless there is no alternative, and near term (risk of neonatal kernicterus); give folic acid supplements when used in pregnancy.\n• Avoid breastfeeding infants under 2 months, jaundiced infants, premature infants and infants with G6PD deficiency."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Hyperkalaemia, especially with higher doses, renal impairment, ACE inhibitors, angiotensin receptor blockers, spironolactone and potassium supplements; check potassium and creatinine within 3 to 7 days for high-dose therapy.\n• Severe cutaneous reactions (Stevens-Johnson syndrome, toxic epidermal necrolysis), and rash: stop at the first sign.\n• Cytopenias (neutropenia, thrombocytopenia, megaloblastic anaemia), haemolysis in G6PD deficiency, hyponatraemia and hepatotoxicity.\n• Interactions: markedly raises warfarin effect (check INR); contraindicated with methotrexate (severe pancytopenia); increases phenytoin and sulfonylurea effect (hypoglycaemia).\n• Encourage fluids to avoid crystalluria."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Stenotrophomonas dosing: IDSA AMR guidance."
+    },
+    {
+      "id": "metronidazole",
+      "title": "Metronidazole",
+      "category": "Nitroimidazoles",
+      "subtitle": "Nitroimidazole | Oral, IV, vaginal, topical",
+      "summary": "Bactericidal against anaerobes and many protozoa, with near-complete oral absorption. Backbone of anaerobic cover in intra-abdominal, pelvic and dental infection, and treatment for bacterial vaginosis, trichomoniasis, giardiasis and amoebiasis.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Anaerobic and mixed infection: 500 mg IV or orally every 8 hours (some guidelines use 500 mg every 12 hours for convenience).\n• Bacterial vaginosis: 500 mg orally every 12 hours for 7 days; trichomoniasis in women: 500 mg every 12 hours for 7 days; in men: 2 g orally as a single dose (CDC).\n• Amoebic colitis and liver abscess: 500 to 750 mg orally three times a day for 7 to 10 days, followed by a luminal agent such as paromomycin.\n• Giardiasis: 250 mg three times a day for 5 to 7 days (or 2 g once a day for 3 days in some guidelines).\n• C. difficile: no longer first-line; use only if fidaxomicin and vancomycin are unavailable, for non-severe disease, and as an IV adjunct in fulminant infection.\n• Oral and IV doses are equivalent."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• No adjustment is needed for renal impairment; metabolites accumulate in end-stage renal disease but are generally tolerated.\n• Haemodialysis: dose after the session, because it is removed by dialysis.\n• Severe hepatic impairment (Child-Pugh C): reduce the dose by about 50%."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against anaerobes (Bacteroides fragilis, Clostridium, Fusobacterium, Peptostreptococcus), C. difficile, Entamoeba histolytica, Giardia, Trichomonas, Gardnerella and Helicobacter pylori (in combination).\n• Common uses: intra-abdominal and pelvic infection (combined with an aerobic Gram-negative agent), diabetic foot infection, brain abscess (with a cephalosporin), dental infection, bacterial vaginosis, trichomoniasis, giardiasis, amoebiasis, and H. pylori bismuth quadruple therapy.\n• Not active against aerobes, and not reliable against Actinomyces or Cutibacterium (Propionibacterium)."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered acceptable in pregnancy, including the first trimester, where it is needed (for example for trichomoniasis or bacterial vaginosis).\n• Compatible with breastfeeding; for a single 2 g dose, some guidance suggests pausing breastfeeding for 12 to 24 hours."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Metallic taste, nausea and dark urine are common.\n• Peripheral neuropathy and encephalopathy (including cerebellar toxicity) with prolonged or high cumulative doses: limit courses to what is needed, and stop for new neurological symptoms.\n• Alcohol: advice is to avoid alcohol during and for about 48 hours after treatment, although the evidence for a true disulfiram-like reaction is weak.\n• Interactions: increases the effect of warfarin (check INR); raises lithium levels; QT prolongation is possible with other QT-prolonging drugs; busulfan levels can rise.\n• Disulfiram: do not combine, because of the risk of psychosis."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. STI dosing: CDC guidance."
+    },
+    {
+      "id": "nitrofurantoin",
+      "title": "Nitrofurantoin",
+      "category": "Urinary agents",
+      "subtitle": "Nitrofuran | Oral",
+      "summary": "First-line oral agent for uncomplicated cystitis, including many ESBL and enterococcal isolates. It reaches therapeutic levels only in urine, so it must never be used for pyelonephritis, prostatitis or bacteraemia.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Macrocrystals/monohydrate (Macrobid): 100 mg orally every 12 hours for 5 days.\n• Macrocrystals (Macrodantin): 50 to 100 mg every 6 hours for 5 to 7 days.\n• Take with food to improve absorption and reduce nausea.\n• Prophylaxis for recurrent cystitis (specialist decision): 50 to 100 mg at night, with regular review because of long-term toxicity."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• The label advises against use when CrCl is below 60 mL/min; current guidance (for example Beers criteria) allows short courses down to CrCl 30 when no alternative exists.\n• Avoid when CrCl is below 30 mL/min: urine levels are too low to work and toxicity rises.\n• Not removed adequately by dialysis; avoid in dialysis patients."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against E. coli (including most ESBL producers), Enterococcus faecalis and faecium (including VRE), Staphylococcus saprophyticus, and Staphylococcus aureus in urine.\n• Common use: uncomplicated cystitis in women, and step-down oral therapy for lower urinary infection.\n• Not active against Proteus, Providencia, Morganella, Serratia, or Pseudomonas, and Klebsiella is variable.\n• No systemic or renal tissue levels: not for pyelonephritis, prostatitis, catheter infection with fever, or bacteraemia."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Acceptable in the first and second trimester when there is no suitable alternative.\n• Avoid at term (38 to 42 weeks) and in labour, because of the risk of neonatal haemolytic anaemia.\n• Avoid breastfeeding infants under 1 month and any infant with G6PD deficiency."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Pulmonary reactions: acute hypersensitivity (fever, cough, dyspnoea, within days) and chronic interstitial fibrosis with prolonged use; stop at once if cough or breathlessness develops.\n• Hepatotoxicity, including chronic active hepatitis, and peripheral neuropathy (higher risk in renal impairment, diabetes and prolonged use).\n• Haemolysis in G6PD deficiency.\n• Urine may turn dark yellow or brown, which is harmless.\n• Magnesium trisilicate antacids reduce absorption; probenecid raises serum levels and reduces urinary levels.\n• Check lung and liver symptoms at each review in anyone on long-term therapy."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "fosfomycin",
+      "title": "Fosfomycin",
+      "category": "Urinary agents",
+      "subtitle": "Phosphonic acid | Oral (trometamol), IV (some countries)",
+      "summary": "Single-dose oral treatment for uncomplicated E. coli cystitis, including many ESBL isolates. IV fosfomycin is used in Europe and elsewhere as part of combination therapy for resistant infection.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Oral (fosfomycin trometamol): 3 g as a single dose dissolved in a glass of water, taken on an empty stomach, ideally at bedtime after emptying the bladder.\n• A repeat 3 g dose after 48 to 72 hours is used by some clinicians for complicated or male lower UTI, but this is off-label.\n• IV (not available in the US): typically 12 to 24 g a day in 3 to 4 divided doses (for example 4 g every 6 hours or 6 to 8 g every 8 hours), always combined with another active agent for serious infection, because resistance emerges quickly on monotherapy.\n• IDSA AMR guidance supports oral fosfomycin only for E. coli cystitis, not for other Enterobacterales or complicated infection."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Oral single dose: no adjustment is needed in mild to moderate impairment, but efficacy falls when CrCl is below about 30 mL/min because urinary levels are lower.\n• IV: reduce the daily dose and extend the interval as CrCl falls, using the product label or a hospital protocol (for example, a 50% reduction around CrCl 40 and further reductions below 20).\n• Haemodialysis: removed by dialysis; give the dose after the session."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against E. coli (including ESBL and many carbapenem-resistant strains), Enterococcus faecalis, and variable activity against Klebsiella, Enterobacter and Pseudomonas.\n• Common use: uncomplicated cystitis in women.\n• Klebsiella and other species often carry the fosA gene that causes intrinsic resistance, so do not extrapolate from E. coli.\n• Not recommended for pyelonephritis or bacteraemia as monotherapy, and oral fosfomycin does not reach adequate tissue levels."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Considered acceptable for cystitis in pregnancy.\n• Compatible with breastfeeding; limited data."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Diarrhoea, nausea and headache are common with the oral dose.\n• Metoclopramide and other drugs that increase gastric emptying lower fosfomycin levels, so avoid coadministration.\n• IV formulation is a disodium salt with a large sodium load, and it can cause hypokalaemia and fluid overload, so check electrolytes and fluid balance.\n• Phlebitis with peripheral IV infusion; dilute and use a large vein or central access when needed.\n• Resistance can develop quickly if used alone for deep infection."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Oral cystitis use: IDSA AMR guidance."
+    },
+    {
+      "id": "rifampicin",
+      "title": "Rifampicin (rifampin)",
+      "category": "Rifamycins",
+      "subtitle": "Rifamycin | Oral, IV",
+      "summary": "Bactericidal against mycobacteria and highly active against staphylococci in biofilm. Never used alone for treatment because resistance emerges rapidly. Notorious for powerful enzyme induction and many drug interactions.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Tuberculosis: 10 mg/kg (usually 600 mg) orally or IV once a day, as part of a multidrug regimen.\n• Prosthetic joint and device infection with staphylococci: 300 to 450 mg orally every 12 hours, combined with another active drug, and started only after the wound is debrided and bacteraemia has cleared.\n• Meningococcal prophylaxis for close contacts: 600 mg every 12 hours for 4 doses (2 days).\n• H. influenzae type b prophylaxis: adults 600 mg once a day for 4 days; children 20 mg/kg (maximum 600 mg) once a day for 4 days.\n• Brucellosis (with doxycycline): 600 to 900 mg once a day; leprosy: monthly or daily dosing within multidrug therapy.\n• Take on an empty stomach (1 hour before or 2 hours after food)."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• No adjustment is usually needed for renal impairment.\n• Hepatic impairment: use with caution and monitor closely, and avoid in severe liver disease where possible.\n• Dose adjustment may be needed with other hepatotoxic drugs and in older adults."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Mycobacterium tuberculosis, M. leprae, Staphylococcus aureus (including biofilm), Neisseria meningitidis, Haemophilus influenzae, and Brucella.\n• Common uses: tuberculosis, adjunct therapy for staphylococcal prosthetic material and endocarditis, brucellosis, leprosy, and prophylaxis for meningococcal and Hib contacts.\n• Never use as monotherapy for treatment: resistance emerges within days to weeks."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Used in pregnancy for tuberculosis when needed; give vitamin K to the newborn if the mother used it near term, because of the risk of haemorrhagic disease.\n• Compatible with breastfeeding."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Strong inducer of CYP3A4 and other enzymes: lowers levels of warfarin (monitor INR closely), DOACs, oral contraceptives (use non-hormonal contraception), many antiretrovirals including protease inhibitors, tacrolimus, ciclosporin, azole antifungals, methadone, opioids, antiepileptics, corticosteroids, and statins.\n• Review every medicine before starting; stopping rifampicin lets levels of affected drugs rise again within weeks.\n• Hepatotoxicity: check liver function at baseline and regularly, and warn patients about jaundice and dark urine.\n• Orange-red discolouration of urine, tears and sweat (it can stain soft contact lenses).\n• Thrombocytopenia and haemolysis (rare, more frequent with intermittent dosing), flu-like syndrome, and rash."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition."
+    },
+    {
+      "id": "polymyxins",
+      "title": "Colistin and polymyxin B",
+      "category": "Polymyxins",
+      "subtitle": "Polymyxins | IV, inhaled, intrathecal",
+      "summary": "Last-resort agents for carbapenem-resistant Gram-negatives when newer drugs are unavailable. Nephrotoxic and neurotoxic, and have confusing unit conventions. Current IDSA guidance prefers newer beta-lactam combinations.",
+      "sections": [
+        {
+          "title": "Adult dose (consensus)",
+          "text": "• Colistin is given as the prodrug colistimethate sodium (CMS), with doses written in millions of international units (MIU) or mg of colistin base activity (CBA), so check the label of your product: 1 MIU is about 80 mg of CMS, which is about 33 mg of CBA.\n• Colistin loading dose: 9 MIU (about 300 mg CBA) IV, regardless of renal function, over 30 minutes.\n• Colistin maintenance at normal renal function: 4.5 MIU every 12 hours (about 9 MIU a day), starting 12 to 24 hours after the loading dose, and reduced by renal function using a nomogram.\n• Polymyxin B: loading dose 2 to 2.5 mg/kg (actual body weight) over 1 hour, then 1.25 to 1.5 mg/kg every 12 hours, usually without renal adjustment.\n• Use combination therapy with a second active drug where possible, and never as monotherapy for serious infection.\n• Inhaled colistin or polymyxin B is used as adjunct therapy for ventilator-associated pneumonia, and intrathecal or intraventricular dosing for CNS infection should be directed by specialists."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• Colistin: reduce the daily maintenance dose in renal impairment according to creatinine clearance (for example, a lower daily dose when CrCl falls below about 50 mL/min), using a validated nomogram.\n• Haemodialysis: give a supplementary dose on dialysis days according to protocol; continuous renal replacement needs higher doses than intermittent dialysis.\n• Polymyxin B is cleared mainly non-renally, so the dose is usually not adjusted for kidney function."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against carbapenem-resistant Enterobacterales, Pseudomonas aeruginosa, and Acinetobacter baumannii.\n• Intrinsically resistant: Proteus, Providencia, Morganella, Serratia, Burkholderia, and all Gram-positive organisms and anaerobes.\n• IDSA AMR guidance prefers newer agents such as ceftazidime-avibactam, meropenem-vaborbactam, imipenem-relebactam, cefiderocol, and sulbactam-durlobactam, and reserves polymyxins for when these are unavailable.\n• Colistin (as CMS, converted to active colistin in urine) is the polymyxin used for urinary infection; polymyxin B should not be used for UTI because urinary levels are poor."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Avoid unless there are no alternatives; limited data.\n• Limited data, and oral absorption by the infant is poor."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Nephrotoxicity is common (acute kidney injury in roughly 30 to 50% of patients) and usually reversible: monitor creatinine daily to every other day and avoid other nephrotoxins such as vancomycin, aminoglycosides and contrast.\n• Neurotoxicity: paraesthesia, dizziness, confusion, and neuromuscular blockade with respiratory failure.\n• Inhaled therapy can cause bronchospasm: give a bronchodilator first.\n• Heteroresistance and plasmid-mediated resistance (mcr genes) are increasing, so test susceptibility by broth microdilution.\n• Skin hyperpigmentation with polymyxin B, and pain at the IM injection site (IM use is avoided)."
+        }
+      ],
+      "source": "Compiled from standard references (Sanford Guide, product labelling, BNF). Verify against the current edition. Unit conversions and dosing: 2019 international consensus guidelines for polymyxins. Use positioning: IDSA AMR guidance."
+    },
+    {
+      "id": "ceftazidime_avibactam",
+      "title": "Ceftazidime-avibactam",
+      "category": "Newer beta-lactams",
+      "subtitle": "Cephalosporin with novel beta-lactamase inhibitor | IV",
+      "summary": "Active against ESBL, AmpC, KPC and OXA-48 producers and many resistant Pseudomonas. Does not work against metallo-beta-lactamases (NDM, VIM, IMP) unless combined with aztreonam.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• 2.5 g (ceftazidime 2 g + avibactam 0.5 g) IV every 8 hours, infused over 2 hours.\n• Complicated intra-abdominal infection: give with metronidazole for anaerobic cover.\n• NDM and other metallo-beta-lactamase producers: ceftazidime-avibactam plus aztreonam 2 g IV every 8 hours, infused at the same time through separate lines.\n• Typical duration: 5 to 14 days depending on site; see the IDSA AMR tab."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl above 50 mL/min: 2.5 g every 8 hours.\n• CrCl 31 to 50: 1.25 g every 8 hours.\n• CrCl 16 to 30: 0.94 g every 12 hours.\n• CrCl 6 to 15: 0.94 g every 24 hours.\n• CrCl 5 or below, including haemodialysis: 0.94 g every 48 hours, with the dose given after dialysis on dialysis days.\n• Augmented renal clearance may need hospital-specific dosing."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Enterobacterales including ESBL, AmpC, KPC and OXA-48 producers, and Pseudomonas aeruginosa (including many difficult-to-treat strains).\n• IDSA AMR guidance lists it as a preferred option for KPC-producing and OXA-48-producing Enterobacterales and for difficult-to-treat Pseudomonas.\n• Not active against metallo-beta-lactamase producers (NDM, VIM, IMP), and not reliable for Acinetobacter, Gram-positive organisms or anaerobes."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited data; use only if the benefit outweighs the risk.\n• Limited data; seek specialist advice."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Neurotoxicity and seizures if the dose is not reduced for renal impairment.\n• Hypersensitivity: cross-reactivity with other cephalosporins is possible, and it shares the ceftazidime side chain with aztreonam.\n• Diarrhoea, C. difficile infection and a positive Coombs test are possible.\n• Keep it for infections where it is needed, because resistance to it has emerged, including through KPC variants."
+        }
+      ],
+      "source": "Compiled from product labelling and IDSA AMR guidance. Verify against the current label and your local guideline."
+    },
+    {
+      "id": "meropenem_vaborbactam",
+      "title": "Meropenem-vaborbactam",
+      "category": "Newer beta-lactams",
+      "subtitle": "Carbapenem with cyclic boronate inhibitor | IV",
+      "summary": "Carbapenem plus vaborbactam, active against KPC-producing Enterobacterales. Approved for complicated urinary infection and used by IDSA guidance for KPC infection at other sites.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• 4 g (meropenem 2 g + vaborbactam 2 g) IV every 8 hours, infused over 3 hours.\n• Approved for complicated urinary tract infection including pyelonephritis, usually for up to 14 days.\n• Used off-label for other KPC-producing infections as directed by IDSA AMR guidance."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• eGFR 50 mL/min/1.73 m2 or above: 4 g every 8 hours.\n• eGFR 30 to 49: 2 g every 8 hours.\n• eGFR 15 to 29: 2 g every 12 hours.\n• eGFR below 15: 1 g every 12 hours.\n• Haemodialysis: give after the session on dialysis days."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against KPC-producing Enterobacterales, ESBL and AmpC producers, with meropenem's usual activity against Gram-positive organisms and anaerobes.\n• Vaborbactam does not add reliable activity against Pseudomonas, Acinetobacter, or metallo-beta-lactamase and OXA-48 producers.\n• Preferred option for KPC-producing infection in IDSA AMR guidance, alongside ceftazidime-avibactam and imipenem-relebactam."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited data; use only if the benefit outweighs the risk.\n• Limited data; seek specialist advice."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Valproate: carbapenems sharply reduce valproic acid levels and can cause breakthrough seizures, so avoid the combination.\n• Seizures are possible, especially with renal impairment or brain disease.\n• Diarrhoea, C. difficile infection, headache and phlebitis are possible.\n• Cross-reactivity with penicillin allergy is low."
+        }
+      ],
+      "source": "Compiled from product labelling and IDSA AMR guidance. Verify against the current label and your local guideline."
+    },
+    {
+      "id": "cefiderocol",
+      "title": "Cefiderocol",
+      "category": "Newer beta-lactams",
+      "subtitle": "Siderophore cephalosporin | IV",
+      "summary": "Enters bacteria through iron-uptake channels, so it works against many carbapenem-resistant Gram-negatives including metallo-beta-lactamase producers, Pseudomonas, Acinetobacter and Stenotrophomonas.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• 2 g IV every 8 hours, infused over 3 hours.\n• CrCl 120 mL/min or above (augmented renal clearance): 2 g every 6 hours, infused over 3 hours.\n• Used for NDM-producing Enterobacterales, difficult-to-treat Pseudomonas, and as part of combination therapy for carbapenem-resistant Acinetobacter and Stenotrophomonas, per IDSA AMR guidance."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• CrCl 60 to 119 mL/min: 2 g every 8 hours.\n• CrCl 30 to 59: 1.5 g every 8 hours.\n• CrCl 15 to 29: 1 g every 8 hours.\n• CrCl below 15, with or without intermittent haemodialysis: 0.75 g every 12 hours.\n• CRRT doses depend on effluent flow rate, so follow the label table."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against carbapenem-resistant Enterobacterales (including NDM, KPC and OXA-48 producers), Pseudomonas aeruginosa, Acinetobacter baumannii and Stenotrophomonas maltophilia.\n• IDSA AMR guidance recommends it for NDM producers (as an alternative to ceftazidime-avibactam plus aztreonam), and for Stenotrophomonas and carbapenem-resistant Acinetobacter in combination regimens.\n• Not active against Gram-positive organisms or anaerobes."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited data; use only if the benefit outweighs the risk.\n• Limited data; seek specialist advice."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• The CREDIBLE-CR trial found higher all-cause mortality with cefiderocol than with best available therapy in carbapenem-resistant infection, mostly in Acinetobacter infection, and the label carries a warning, so use it with specialist input.\n• Hypersensitivity: its side chains resemble ceftazidime and aztreonam, so cross-reactivity is possible.\n• False-positive urine dipstick tests for protein, ketones and blood have been reported.\n• Seizures, diarrhoea and C. difficile infection are possible; it can raise liver enzymes."
+        }
+      ],
+      "source": "Compiled from product labelling and IDSA AMR guidance. Verify against the current label and your local guideline."
+    },
+    {
+      "id": "sulbactam_durlobactam",
+      "title": "Sulbactam-durlobactam",
+      "category": "Newer beta-lactams",
+      "subtitle": "Beta-lactam with novel diazabicyclooctane inhibitor | IV",
+      "summary": "Designed for carbapenem-resistant Acinetobacter baumannii. Sulbactam is the active drug against Acinetobacter and durlobactam protects it from beta-lactamases. Always given together with a carbapenem partner.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• Sulbactam 1 g + durlobactam 1 g IV every 6 hours, infused over 3 hours, for 7 to 14 days.\n• Given together with a carbapenem partner (imipenem-cilastatin was used in the pivotal trial), because the carbapenem protects against other co-pathogens and adds activity against the Acinetobacter co-infection.\n• Check the current label and the IDSA AMR tab for the carbapenem dose and combination details."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• The dose changes outside the normal creatinine clearance range, with lower doses for impaired renal function and a shorter interval for augmented renal clearance.\n• Exact bands are in the product label; do not extrapolate from sulbactam alone.\n• Haemodialysis: give after the session on dialysis days."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against Acinetobacter baumannii-calcoaceticus complex, including carbapenem-resistant isolates.\n• IDSA AMR guidance recommends sulbactam-durlobactam plus a carbapenem as the preferred regimen for carbapenem-resistant Acinetobacter infections.\n• Approved for hospital-acquired and ventilator-associated bacterial pneumonia caused by susceptible Acinetobacter.\n• Not a general-purpose Gram-negative drug: it has no reliable activity against Enterobacterales or Pseudomonas."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Limited data; use only if the benefit outweighs the risk.\n• Limited data; seek specialist advice."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Liver enzyme elevation, infusion site reactions, diarrhoea and C. difficile infection.\n• Hypersensitivity reactions are possible with beta-lactam allergy.\n• Carbapenem partner cautions apply as well: valproate interaction and seizure risk.\n• Keep it for confirmed or strongly suspected carbapenem-resistant Acinetobacter infection to protect its activity."
+        }
+      ],
+      "source": "Compiled from product labelling and IDSA AMR guidance. Verify against the current label and your local guideline."
+    },
+    {
+      "id": "tigecycline",
+      "title": "Tigecycline",
+      "category": "Glycylcyclines",
+      "subtitle": "Glycylcycline | IV",
+      "summary": "Broad-spectrum agent active against MRSA, VRE, ESBL and many carbapenem-resistant organisms, but with low blood and urine levels. Boxed warning for higher all-cause mortality, so it is not first choice for bacteraemia or pneumonia.",
+      "sections": [
+        {
+          "title": "Adult dose",
+          "text": "• 100 mg IV loading dose, then 50 mg IV every 12 hours.\n• Severe hepatic impairment (Child-Pugh C): 100 mg loading dose, then 25 mg every 12 hours.\n• Higher-dose regimens (for example 200 mg loading dose, then 100 mg every 12 hours) are used off-label for resistant infections, only with specialist advice.\n• Infuse over 30 to 60 minutes."
+        },
+        {
+          "title": "Renal adjustment",
+          "text": "• No adjustment is needed for renal impairment, including haemodialysis.\n• It is cleared mainly in bile and faeces."
+        },
+        {
+          "title": "Spectrum and uses",
+          "text": "• Active against MRSA, VRE, many ESBL-producing Enterobacterales, Acinetobacter baumannii, Stenotrophomonas maltophilia and anaerobes; variable against carbapenem-resistant Enterobacterales.\n• Approved for complicated skin and soft tissue infection, complicated intra-abdominal infection and community-acquired pneumonia.\n• No Pseudomonas, Proteus, Providencia or Morganella activity.\n• Because levels in blood and urine are low, avoid it as monotherapy for bacteraemia and for urinary infection."
+        },
+        {
+          "title": "Pregnancy and lactation",
+          "text": "• Avoid in pregnancy: tetracycline-class effects on fetal teeth and bones.\n• Limited data; avoid unless essential."
+        },
+        {
+          "title": "Cautions and monitoring",
+          "text": "• Boxed warning: increased all-cause mortality compared with comparator drugs in clinical trials, so use only when alternatives are unsuitable.\n• Nausea and vomiting are very common, especially with the loading dose; antiemetics help.\n• Pancreatitis, liver injury, and coagulopathy (low fibrinogen): monitor liver tests, lipase and coagulation in long courses.\n• Photosensitivity, and tooth discolouration in young children.\n• Not recommended for hospital-acquired or ventilator-associated pneumonia, or for diabetic foot infection."
+        }
+      ],
+      "source": "Compiled from product labelling and IDSA AMR guidance. Verify against the current label and your local guideline."
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "items": [
+    {
+      "id": "rp_egfr",
+      "title": "Estimating kidney function for dosing",
+      "category": "Renal function",
+      "subtitle": "Cockcroft-Gault, eGFR, weights and unstable kidney function",
+      "summary": "Most drug labels and dose tables use Cockcroft-Gault creatinine clearance. Choose the right weight, and be cautious when creatinine is changing, because the estimate then lags behind true function.",
+      "sections": [
+        {
+          "title": "Cockcroft-Gault",
+          "text": "• CrCl (mL/min) = (140 minus age) x weight in kg / (72 x serum creatinine in mg/dL).\n• Multiply by 0.85 for women.\n• With creatinine in micromol/L: CrCl = (140 minus age) x weight x 1.23 (men) or 1.04 (women) / creatinine.\n• Product labels and most antibiotic dosing tables use this estimate."
+        },
+        {
+          "title": "eGFR (CKD-EPI)",
+          "text": "• eGFR is normalised to 1.73 m2 of body surface area.\n• For very large or very small patients, convert to mL/min: eGFR x (patient BSA / 1.73).\n• Cystatin C-based estimates help when muscle mass is abnormal (sarcopenia, amputation, cirrhosis, very high muscle mass), where available."
+        },
+        {
+          "title": "Which weight to use",
+          "text": "• Ideal body weight (IBW): men 50 kg + 2.3 kg per inch over 5 feet; women 45.5 kg + 2.3 kg per inch over 5 feet.\n• Adjusted body weight = IBW + 0.4 x (actual weight minus IBW).\n• Common approach: use actual weight if it is below ideal; ideal weight if the patient is at normal weight; adjusted weight if actual weight is more than about 120% of ideal.\n• Follow your hospital pharmacy policy, because conventions differ."
+        },
+        {
+          "title": "Unstable kidney function",
+          "text": "• In acute kidney injury or sepsis, creatinine lags behind true GFR: estimates are unreliable.\n• In the first 24 to 48 hours of sepsis, give full loading and first doses of beta-lactams and other time-critical antibiotics, because underdosing early carries more risk than a short period of higher exposure.\n• Reassess renal function daily, and adjust doses as it settles.\n• Rising creatinine may overestimate recovery; falling creatinine may underestimate it."
+        },
+        {
+          "title": "Augmented renal clearance",
+          "text": "• CrCl of about 130 mL/min or more, seen in young patients with sepsis, burns, trauma, brain injury, and after major surgery.\n• Standard doses of renally cleared drugs (beta-lactams, vancomycin, aminoglycosides) may be too low.\n• Consider higher doses, shorter intervals, extended or continuous infusions, and therapeutic drug monitoring.\n• Measured urinary creatinine clearance over 8 to 24 hours can confirm it."
+        },
+        {
+          "title": "Pitfalls",
+          "text": "• Trimethoprim, cimetidine and some other drugs raise creatinine without a true GFR fall.\n• Elderly, malnourished and cirrhotic patients may have normal creatinine with low GFR.\n• Check the product label or local table for each drug, and recheck doses within 48 to 72 hours of any change in kidney function.\n• Report the renal function used on the prescription."
+        }
+      ],
+      "source": "Cockcroft-Gault equation, KDIGO guidance, SCCM/ASHP critical care dosing guidance. Verify against your hospital pharmacy policy."
+    },
+    {
+      "id": "rp_bands",
+      "title": "Renal dose bands by antibiotic",
+      "category": "Renal function",
+      "subtitle": "Adults | CrCl in mL/min, based on usual doses",
+      "summary": "A quick reference for common antibiotics: beta-lactams, carbapenems, quinolones, folate antagonists, glycopeptides, aminoglycosides and others. Bands assume the usual dose shown; always check the product label and your local table.",
+      "sections": [
+        {
+          "title": "Beta-lactams",
+          "text": "• Ampicillin IV: CrCl above 50: every 6 hours; 10 to 50: every 6 to 12 hours; below 10: every 12 to 24 hours.\n• Amoxicillin oral: CrCl 10 to 30: 250 to 500 mg every 12 hours; below 10: every 24 hours; avoid the 875 mg tablet when CrCl is below 30.\n• Amoxicillin-clavulanate oral: CrCl below 30: 500/125 mg every 12 hours, with no 875 mg tablets; below 10: every 24 hours.\n• Ampicillin-sulbactam 3 g: CrCl 30 or above: every 6 to 8 hours; 15 to 29: every 12 hours; 5 to 14: every 24 hours.\n• Penicillin G: CrCl 10 to 50: about 75% of the dose; below 10: 20 to 50%.\n• Piperacillin-tazobactam (usual 3.375 g every 6 hours): above 40: no change; 20 to 40: 2.25 g every 6 hours; below 20: 2.25 g every 8 hours; haemodialysis: 2.25 g every 12 hours plus 0.75 g after each session. For the 4.5 g pneumonia regimen: 20 to 40: 3.375 g every 6 hours; below 20: 2.25 g every 6 hours; haemodialysis: 2.25 g every 8 hours plus 0.75 g after each session."
+        },
+        {
+          "title": "Cephalosporins",
+          "text": "• Cefazolin: CrCl 55 or above: usual dose; 35 to 54: usual dose at least 8 hours apart; 11 to 34: half the dose every 12 hours; 10 or below: half the dose every 18 to 24 hours.\n• Cefalexin: CrCl 15 to 29: 250 mg every 8 to 12 hours; 5 to 14: 250 mg every 24 hours; below 5: 250 mg every 48 to 60 hours.\n• Cefuroxime IV: above 20: 750 mg to 1.5 g every 8 hours; 10 to 20: 750 mg every 12 hours; below 10: 750 mg every 24 hours.\n• Cefepime (usual 2 g every 8 hours): 30 to 60: 2 g every 12 hours; 11 to 29: 2 g every 24 hours; below 11: 1 g every 24 hours. (usual 2 g every 12 hours: 30 to 60: 2 g every 24 hours; 11 to 29: 1 g every 24 hours; below 11: 500 mg every 24 hours).\n• Ceftriaxone: no adjustment for renal impairment alone (maximum 2 g a day in combined severe renal and hepatic failure).\n• Ceftazidime and the newer combinations: use the bands in the Drugs tab or your local table; the label bands are for lower doses than are often given for serious infection."
+        },
+        {
+          "title": "Carbapenems and aztreonam",
+          "text": "• Meropenem (usual 1 g every 8 hours): CrCl 26 to 50: 1 g every 12 hours; 10 to 25: 500 mg every 12 hours; below 10: 500 mg every 24 hours.\n• Ertapenem: CrCl above 30: 1 g every 24 hours; 30 or below, including haemodialysis: 500 mg every 24 hours.\n• Imipenem-cilastatin (usual 500 mg every 6 hours): CrCl 60 to 89: 400 mg every 6 hours; 30 to 59: 300 mg every 6 hours; 15 to 29: 200 mg every 6 hours; below 15: avoid unless dialysis is started within 48 hours.\n• Aztreonam: CrCl 10 to 30: 50% of the dose after the loading dose; below 10: 25% of the dose after the loading dose."
+        },
+        {
+          "title": "Quinolones, folate antagonists, urinary agents",
+          "text": "• Ciprofloxacin: CrCl 30 to 50: 250 to 500 mg every 12 hours; 5 to 29: 250 to 500 mg every 18 hours orally (or 200 to 400 mg IV every 18 to 24 hours).\n• Levofloxacin 750 mg every 24 hours: CrCl 20 to 49: 750 mg every 48 hours; 10 to 19 or haemodialysis: 750 mg once, then 500 mg every 48 hours.\n• Moxifloxacin: no adjustment.\n• Trimethoprim-sulfamethoxazole: CrCl 15 to 30: 50% of the dose; below 15: avoid, or use 50% with close monitoring.\n• Nitrofurantoin: avoid when CrCl is below 30 (the label says below 60); urine levels are too low to work.\n• Fosfomycin oral single dose: works less well when CrCl is below about 30; IV doses need a protocol."
+        },
+        {
+          "title": "Glycopeptides, aminoglycosides, others",
+          "text": "• Vancomycin: dose by levels in all patients with kidney impairment; use a loading dose, then AUC- or trough-guided maintenance (see the TDM tab).\n• Gentamicin and amikacin: dose by levels, extend the interval as CrCl falls, and avoid extended-interval dosing when CrCl is below about 40.\n• Daptomycin: CrCl below 30, including dialysis: the same dose every 48 hours.\n• Colistin: reduce the daily maintenance dose by CrCl, using a validated nomogram; polymyxin B usually needs no kidney adjustment.\n• Linezolid: no adjustment, although metabolites accumulate and blood counts need closer monitoring."
+        },
+        {
+          "title": "No adjustment for kidney function",
+          "text": "• Azithromycin, clarithromycin (reduce below CrCl 30), doxycycline, minocycline, clindamycin, metronidazole, moxifloxacin, linezolid, tigecycline, rifampicin, nafcillin, oxacillin, flucloxacillin (mild to moderate impairment), fidaxomicin, tedizolid and ceftriaxone.\n• Check each drug in the Drugs tab for cautions and interactions."
+        }
+      ],
+      "source": "Product labelling (as summarised in the Drugs tab), Sanford Guide, BNF renal impairment tables. Verify against the current label and your local pharmacy table."
+    },
+    {
+      "id": "rp_dialysis",
+      "title": "Dialysis and CRRT dosing",
+      "category": "Dialysis and CRRT",
+      "subtitle": "Intermittent haemodialysis, peritoneal dialysis, CRRT",
+      "summary": "For intermittent haemodialysis, give drugs after the session on dialysis days. CRRT clears many antibiotics, so dosing depends on the effluent flow rate. Always use a local table, because practice varies.",
+      "sections": [
+        {
+          "title": "Intermittent haemodialysis (principles)",
+          "text": "• Give doses after the session on dialysis days, so the drug is not removed immediately.\n• Highly dialysed: most beta-lactams, aminoglycosides, vancomycin (more with high-flux membranes), metronidazole, fluconazole, ciprofloxacin.\n• Little dialysed: azithromycin, doxycycline, clindamycin, ceftriaxone, daptomycin (partly), tigecycline, rifampicin, linezolid (about 30%, give after the session).\n• Check pre-dialysis levels for vancomycin and gentamicin to guide the next dose."
+        },
+        {
+          "title": "Haemodialysis examples",
+          "text": "• Cefazolin: 2 g after each session, or 2 g, 2 g and 3 g after the three weekly sessions.\n• Vancomycin: loading dose 20 to 25 mg/kg, then about 5 to 10 mg/kg after each session, guided by pre-dialysis levels.\n• Gentamicin: 1 to 2 mg/kg after each session, guided by pre-dialysis levels.\n• Meropenem: 500 mg every 24 hours, given after dialysis on dialysis days.\n• Ertapenem: 500 mg every 24 hours; if given within 6 hours before dialysis, give a supplemental 150 mg afterwards.\n• Piperacillin-tazobactam: see the bands in the previous entry."
+        },
+        {
+          "title": "Peritoneal dialysis peritonitis",
+          "text": "• Follow the ISPD guideline: take cloudy effluent for cell count and culture, and treat early.\n• Empirical therapy covers Gram-positives (vancomycin or a first-generation cephalosporin) and Gram-negatives (ceftazidime or cefepime, or an aminoglycoside).\n• Intraperitoneal dosing is preferred, with doses given in the ISPD tables for intermittent and continuous regimens, which depend on whether the patient is on continuous ambulatory or automated dialysis.\n• Typical duration: 2 weeks, and 3 weeks for severe or complicated infection, S. aureus, enterococci or Pseudomonas.\n• Remove the catheter for refractory peritonitis, relapsing infection, fungal infection or tunnel infection."
+        },
+        {
+          "title": "CRRT principles",
+          "text": "• Do not reduce the first 24 to 48 hours of beta-lactam doses; give a full loading dose.\n• Dose depends on effluent rate (usually 20 to 35 mL/kg/hour), the filter, and residual kidney function.\n• Underdosing is a bigger risk than overdosing in the first days, so use extended infusions and therapeutic drug monitoring where available.\n• Typical ranges (effluent-dependent): meropenem 1 g every 8 to 12 hours; piperacillin-tazobactam 4.5 g every 8 hours (or 3.375 g every 6 hours); cefepime 1 to 2 g every 12 hours; ceftriaxone 2 g every 24 hours; ciprofloxacin 400 mg every 12 hours; vancomycin loading dose 15 to 25 mg/kg then level-guided maintenance.\n• Gentamicin and amikacin: loading dose, then dose by levels."
+        },
+        {
+          "title": "Practical advice",
+          "text": "• Pharmacy and infectious diseases review is strongly advised for every patient on CRRT.\n• Reassess doses when the effluent rate, filter or renal replacement mode changes, or when residual renal function recovers.\n• Document the dialysis schedule and the dosing assumptions on the prescription.\n• These ranges are indicative only: use your local CRRT dosing table."
+        }
+      ],
+      "source": "SCCM/ASHP critical care dosing guidance, ISPD 2022 peritonitis guidance, product labelling. Indicative ranges only: verify against your local CRRT and dialysis tables."
+    },
+    {
+      "id": "rp_obesity",
+      "title": "Dosing in obesity",
+      "category": "Obesity and liver",
+      "subtitle": "Adults | BMI 30 or above",
+      "summary": "Volume of distribution rises in obesity, but organ clearance does not rise as much. Use actual, ideal or adjusted weight depending on the drug, and monitor levels for vancomycin and aminoglycosides.",
+      "sections": [
+        {
+          "title": "Weights",
+          "text": "• Ideal body weight (IBW): men 50 kg + 2.3 kg per inch over 5 feet; women 45.5 kg + 2.3 kg per inch over 5 feet.\n• Adjusted body weight = IBW + 0.4 x (actual weight minus IBW).\n• Body mass index of 30 or more counts as obesity; severe obesity above 40.\n• Do not cap weight-based doses without a reason, and do not reduce initial doses of time-critical antibiotics."
+        },
+        {
+          "title": "Beta-lactams",
+          "text": "• Fixed standard doses are usually appropriate, but consider the higher end of the range in severe infection.\n• Cefazolin prophylaxis: 2 g, or 3 g if the patient weighs 120 kg or more.\n• Piperacillin-tazobactam and meropenem: extended infusions help achieve targets; follow local protocol.\n• Ceftriaxone: 2 g once a day is often used for serious infection, with no further weight adjustment."
+        },
+        {
+          "title": "Glycopeptides and aminoglycosides",
+          "text": "• Vancomycin: loading dose 20 to 35 mg/kg of actual body weight (usually capped at 3 g), then level-guided maintenance (see the TDM tab).\n• Gentamicin and tobramycin: use adjusted body weight (IBW + 0.4 x excess).\n• Amikacin: adjusted body weight, with levels.\n• Monitor creatinine and levels, because overdosing causes toxicity."
+        },
+        {
+          "title": "Other antibiotics",
+          "text": "• Daptomycin: actual body weight is used by many protocols, with others using adjusted weight; check local policy.\n• Trimethoprim-sulfamethoxazole (weight-based): adjusted body weight.\n• Fixed-dose drugs (linezolid, azithromycin, doxycycline, clindamycin 600 to 900 mg, metronidazole, ciprofloxacin, levofloxacin, rifampicin): no weight adjustment is needed.\n• Colistin and polymyxin B: follow the consensus guidelines in the Drugs tab."
+        },
+        {
+          "title": "Notes",
+          "text": "• Data are limited for many antibiotics in morbid obesity: use therapeutic drug monitoring where available.\n• Check renal function using an appropriate weight (see the kidney function entry).\n• Review the dose again if the patient loses or gains weight significantly."
+        }
+      ],
+      "source": "IDSA/ASHP guidance and published pharmacokinetic reviews of antibiotic dosing in obesity. Verify against local protocols."
+    },
+    {
+      "id": "rp_hepatic",
+      "title": "Antibiotics in liver impairment",
+      "category": "Obesity and liver",
+      "subtitle": "Adults | Child-Pugh A, B and C",
+      "summary": "Few antibiotics need dose changes for liver disease, but several should be avoided or reduced in severe impairment, and some are hepatotoxic. Monitor liver tests during long courses.",
+      "sections": [
+        {
+          "title": "Reduce the dose or use caution",
+          "text": "• Tigecycline: in severe impairment (Child-Pugh C), give 100 mg, then 25 mg every 12 hours.\n• Metronidazole: reduce the dose by about 50% in Child-Pugh C.\n• Rifampicin and isoniazid: use cautiously, with close liver monitoring; avoid in severe liver disease where possible.\n• Clindamycin and erythromycin: use caution; avoid erythromycin estolate.\n• Ceftriaxone: do not exceed 2 g a day when there is combined severe hepatic and renal failure.\n• Fluoroquinolones: moxifloxacin is not recommended in Child-Pugh C."
+        },
+        {
+          "title": "Hepatotoxic antibiotics to use with care",
+          "text": "• Flucloxacillin: cholestatic hepatitis, sometimes weeks after stopping.\n• Amoxicillin-clavulanate: cholestatic hepatitis, more often in older men and after courses over 14 days.\n• Nitrofurantoin: hepatitis in long-term use.\n• Rifampicin, isoniazid, pyrazinamide: hepatitis, so check liver tests regularly.\n• Trimethoprim-sulfamethoxazole: rare severe hepatitis.\n• Tigecycline: raised liver enzymes; and daptomycin, linezolid and ceftaroline can raise liver enzymes on long courses."
+        },
+        {
+          "title": "Generally safe, no adjustment",
+          "text": "• Most beta-lactams (penicillin, ampicillin, piperacillin-tazobactam, cefazolin, cefepime, carbapenems), vancomycin, aminoglycosides, fosfomycin, and colistin are cleared by the kidney, so liver disease alone does not require a change.\n• Remember that cirrhosis with hepatorenal syndrome changes renal clearance."
+        },
+        {
+          "title": "Cirrhosis and ascites",
+          "text": "• Spontaneous bacterial peritonitis: ceftriaxone 2 g once a day for 5 days, plus albumin on days 1 and 3.\n• Prophylaxis after an episode: ciprofloxacin 500 mg once a day, or trimethoprim-sulfamethoxazole one double-strength tablet once a day.\n• Avoid nephrotoxic drugs (aminoglycosides, vancomycin at high troughs) in cirrhosis, because of the risk of hepatorenal syndrome.\n• Avoid NSAIDs and other nephrotoxins."
+        },
+        {
+          "title": "Monitoring",
+          "text": "• Check liver tests at baseline and weekly for long courses of hepatotoxic drugs.\n• Stop the drug and seek advice for jaundice, rising transaminases above 3 times the upper limit with symptoms, or above 5 times without symptoms.\n• Review other hepatotoxic medicines, alcohol and paracetamol use."
+        }
+      ],
+      "source": "Product labelling (as summarised in the Drugs tab), AASLD guidance on ascites and SBP. Verify against the current label."
+    }
+  ]
+}

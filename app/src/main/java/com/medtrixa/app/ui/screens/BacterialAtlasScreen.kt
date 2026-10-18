@@ -1,11 +1,8 @@
 package com.medtrixa.app.ui.screens
 
+import android.content.Context
 import androidx.activity.compose.BackHandler
-import androidx.compose.ui.unit.sp
-import com.medtrixa.app.ui.components.PremiumBackButton
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,641 +16,444 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.MenuBook
-import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.medtrixa.app.ui.components.AutoSizeText
+import com.medtrixa.app.ui.components.PremiumBackButton
+import org.json.JSONArray
+import org.json.JSONObject
 
-private data class BacterialOrganism(
+private val Ink = Color(0xFF1B2733)
+private val Muted = Color(0xFF5B6773)
+private val atlasGroups = listOf("All", "Gram-positive", "Gram-negative", "Atypical", "Anaerobe", "Acid-fast")
+
+// Same outer spacing on list and detail screens
+private val ScreenSide = 16.dp
+private val ScreenVertical = 16.dp
+
+private data class AtlasSection(val title: String, val text: String)
+
+private data class Organism(
+    val id: String,
     val name: String,
-    val classification: String,
-    val gramStainMorphology: String,
-    val clinicalSyndromes: String,
-    val resistancePatterns: String,
-    val empiricTherapy: String,
-    val notes: String,
-    val source: String,
-    val sourceStatus: String,
-    val reviewDate: String
+    val group: String,
+    val morphology: String,
+    val tagline: String,
+    val diseases: List<String>,
+    val sections: List<AtlasSection>,
+    val pearls: List<String>,
+    val references: List<String>
 )
 
-private val bacterialOrganisms = listOf(
+private fun JSONArray.toStrings(): List<String> = List(length()) { getString(it) }
 
-    // =========================
-    // GRAM-POSITIVE COCCI
-    // =========================
-    BacterialOrganism(
-        name = "Staphylococcus aureus (MSSA)",
-        classification = "Gram-positive coccus, Staphylococcaceae",
-        gramStainMorphology = "Gram-positive cocci in clusters; catalase-positive; coagulase-positive",
-        clinicalSyndromes = "Skin/soft-tissue infection, bacteremia, endocarditis, osteomyelitis, septic arthritis, pneumonia (including post-influenza), device-related infection",
-        resistancePatterns = "Methicillin-susceptible (mecA negative); beta-lactamase production common, inactivating penicillin but not antistaphylococcal penicillins/cephalosporins",
-        empiricTherapy = "Antistaphylococcal beta-lactam (e.g. cefazolin, nafcillin/oxacillin) once MSSA confirmed",
-        notes = "Always confirm methicillin susceptibility before narrowing; beta-lactams are preferred over vancomycin for MSSA bacteremia once susceptibility is known.",
-        source = "IDSA/ESCMID 2026 SAB Consensus Statements",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Staphylococcus aureus (MRSA)",
-        classification = "Gram-positive coccus, Staphylococcaceae",
-        gramStainMorphology = "Gram-positive cocci in clusters; catalase-positive; coagulase-positive",
-        clinicalSyndromes = "Skin/soft-tissue infection, bacteremia, endocarditis, osteomyelitis, septic arthritis, necrotizing pneumonia, device-related infection",
-        resistancePatterns = "mecA/mecC-mediated methicillin resistance (altered PBP2a); frequently resistant to multiple beta-lactam classes",
-        empiricTherapy = "Vancomycin or daptomycin (non-pulmonary); linezolid or ceftaroline in selected scenarios",
-        notes = "Risk-stratify per 2026 SAB consensus (low-risk vs increased-risk for deep-seated/metastatic infection); obtain follow-up blood cultures and echocardiography per protocol.",
-        source = "IDSA/ESCMID 2026 SAB Consensus Statements",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Streptococcus pneumoniae",
-        classification = "Gram-positive coccus, Streptococcaceae",
-        gramStainMorphology = "Gram-positive diplococci, lancet-shaped; alpha-hemolytic; optochin-sensitive",
-        clinicalSyndromes = "Community-acquired pneumonia, otitis media, sinusitis, meningitis, bacteremia",
-        resistancePatterns = "Penicillin-binding-protein-mediated reduced penicillin susceptibility; variable macrolide resistance depending on region",
-        empiricTherapy = "Amoxicillin (non-meningeal) or ceftriaxone/vancomycin combination (meningitis pending susceptibility)",
-        notes = "Confirm susceptibility before narrowing in meningitis; standard CAP dosing does not treat meningeal disease.",
-        source = "ATS/IDSA 2019 CAP Guideline",
-        sourceStatus = "Current IDSA-listed guideline",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Streptococcus pyogenes (Group A Strep)",
-        classification = "Gram-positive coccus, Streptococcaceae",
-        gramStainMorphology = "Gram-positive cocci in chains; beta-hemolytic; bacitracin-sensitive",
-        clinicalSyndromes = "Pharyngitis, cellulitis, necrotizing fasciitis, streptococcal toxic shock syndrome, bacteremia",
-        resistancePatterns = "Remains uniformly susceptible to penicillin; macrolide resistance reported regionally",
-        empiricTherapy = "Penicillin or amoxicillin; add clindamycin for suspected toxin-mediated severe disease (adjunctive, not substitute)",
-        notes = "Clindamycin is added for antitoxin effect in necrotizing/toxic-shock presentations, not as monotherapy.",
-        source = "IDSA Skin and Soft Tissue Infection Guideline 2014",
-        sourceStatus = "Current IDSA-listed guideline",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Enterococcus faecalis",
-        classification = "Gram-positive coccus, Enterococcaceae",
-        gramStainMorphology = "Gram-positive cocci in pairs/short chains; catalase-negative",
-        clinicalSyndromes = "UTI, bacteremia, endocarditis, intra-abdominal infection (often polymicrobial)",
-        resistancePatterns = "Intrinsic low-level aminoglycoside and cephalosporin resistance; usually ampicillin-susceptible (unlike E. faecium)",
-        empiricTherapy = "Ampicillin; add synergistic aminoglycoside for endocarditis per susceptibility",
-        notes = "Distinguish from E. faecium, which is far more likely to be ampicillin- and vancomycin-resistant.",
-        source = "General clinical microbiology reference",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Enterococcus faecium (VRE)",
-        classification = "Gram-positive coccus, Enterococcaceae",
-        gramStainMorphology = "Gram-positive cocci in pairs/short chains; catalase-negative",
-        clinicalSyndromes = "Bacteremia, endocarditis, intra-abdominal/device-related infection, often in healthcare-associated settings",
-        resistancePatterns = "vanA/vanB-mediated vancomycin resistance common; frequent ampicillin resistance",
-        empiricTherapy = "Linezolid or daptomycin pending susceptibility for confirmed VRE infection",
-        notes = "Empiric coverage for VRE is generally reserved for high-risk healthcare-associated infection, not routine empiric therapy.",
-        source = "General clinical microbiology reference",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
+private fun loadOrganisms(context: Context): List<Organism> = try {
+    val text = context.assets.open("bacterial_atlas.json").bufferedReader().use { it.readText() }
+    val arr = JSONObject(text).getJSONArray("organisms")
+    List(arr.length()) { i ->
+        val o = arr.getJSONObject(i)
+        val secs = o.getJSONArray("sections")
+        Organism(
+            id = o.getString("id"),
+            name = o.getString("name"),
+            group = o.getString("group"),
+            morphology = o.getString("morphology"),
+            tagline = o.getString("tagline"),
+            diseases = o.optJSONArray("diseases")?.toStrings() ?: emptyList(),
+            sections = List(secs.length()) { j ->
+                val s = secs.getJSONObject(j)
+                AtlasSection(s.getString("title"), s.getString("text"))
+            },
+            pearls = o.optJSONArray("pearls")?.toStrings() ?: emptyList(),
+            references = o.optJSONArray("references")?.toStrings() ?: emptyList()
+        )
+    }
+} catch (e: Exception) {
+    emptyList()
+}
 
-    // =========================
-    // GRAM-NEGATIVE ENTEROBACTERALES
-    // =========================
-    BacterialOrganism(
-        name = "Escherichia coli",
-        classification = "Gram-negative rod, Enterobacterales",
-        gramStainMorphology = "Gram-negative bacilli; lactose-fermenting on MacConkey agar",
-        clinicalSyndromes = "UTI (uncomplicated and complicated), bacteremia, intra-abdominal infection, neonatal meningitis",
-        resistancePatterns = "ESBL production increasingly common; fluoroquinolone and TMP-SMX resistance variable by region",
-        empiricTherapy = "Nitrofurantoin or TMP-SMX (uncomplicated cystitis); ceftriaxone or piperacillin-tazobactam (systemic, pending susceptibility)",
-        notes = "Check local antibiogram; ESBL-producing strains require susceptibility-directed therapy per current IDSA AMR guidance.",
-        source = "IDSA 2026 AMR Guidance",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Klebsiella pneumoniae",
-        classification = "Gram-negative rod, Enterobacterales",
-        gramStainMorphology = "Gram-negative encapsulated bacilli; lactose-fermenting; mucoid colonies",
-        clinicalSyndromes = "UTI, pneumonia, bacteremia, liver abscess (hypervirulent strains), intra-abdominal infection",
-        resistancePatterns = "ESBL and carbapenemase production (notably KPC) well described; can be carbapenem-resistant (CRE)",
-        empiricTherapy = "Ceftriaxone or piperacillin-tazobactam pending susceptibility; mechanism-directed therapy if CRE confirmed",
-        notes = "For confirmed CRE, select agent by carbapenemase mechanism (KPC/NDM/OXA-48-like) per current IDSA AMR guidance.",
-        source = "IDSA 2026 AMR Guidance",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Enterobacter cloacae complex",
-        classification = "Gram-negative rod, Enterobacterales",
-        gramStainMorphology = "Gram-negative bacilli; variable lactose fermentation",
-        clinicalSyndromes = "Healthcare-associated pneumonia, bacteremia, intra-abdominal and device-related infection",
-        resistancePatterns = "Moderate risk of clinically significant inducible AmpC beta-lactamase; can become resistant to third-generation cephalosporins during therapy",
-        empiricTherapy = "Cefepime or carbapenem for invasive infection pending susceptibility",
-        notes = "2026 IDSA AMR guidance does not suggest ceftriaxone/cefotaxime/ceftazidime for invasive infection with organisms at moderate AmpC risk.",
-        source = "IDSA 2026 AMR Guidance",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Proteus mirabilis",
-        classification = "Gram-negative rod, Enterobacterales",
-        gramStainMorphology = "Gram-negative bacilli; characteristic swarming motility on agar",
-        clinicalSyndromes = "UTI (associated with struvite/staghorn calculi), bacteremia",
-        resistancePatterns = "Intrinsically resistant to nitrofurantoin and tetracyclines; generally susceptible to beta-lactams unless ESBL-producing",
-        empiricTherapy = "Ceftriaxone or a fluoroquinolone pending susceptibility",
-        notes = "Urease production predisposes to struvite stone formation; consider imaging in recurrent infection.",
-        source = "General clinical microbiology reference",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Salmonella species (non-typhoidal)",
-        classification = "Gram-negative rod, Enterobacterales",
-        gramStainMorphology = "Gram-negative bacilli; non-lactose-fermenting",
-        clinicalSyndromes = "Gastroenteritis, bacteremia (especially in immunocompromised or extremes of age), focal infection",
-        resistancePatterns = "Fluoroquinolone and third-generation cephalosporin resistance reported regionally",
-        empiricTherapy = "Supportive care for uncomplicated gastroenteritis in healthy hosts; ceftriaxone or fluoroquinolone for invasive disease",
-        notes = "Antibiotics are generally not indicated for uncomplicated gastroenteritis in immunocompetent adults; treat invasive/high-risk cases.",
-        source = "General clinical microbiology reference",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
+private fun groupColor(g: String): Color = when (g) {
+    "Gram-positive" -> Color(0xFF6A1B9A)
+    "Gram-negative" -> Color(0xFFC2185B)
+    "Atypical" -> Color(0xFF00796B)
+    "Anaerobe" -> Color(0xFF283593)
+    "Acid-fast" -> Color(0xFFE65100)
+    else -> Color(0xFF455A64)
+}
 
-    // =========================
-    // NON-FERMENTING GRAM-NEGATIVE RODS
-    // =========================
-    BacterialOrganism(
-        name = "Pseudomonas aeruginosa",
-        classification = "Gram-negative rod, non-fermenter",
-        gramStainMorphology = "Gram-negative bacilli; oxidase-positive; often produces blue-green pigment (pyocyanin)",
-        clinicalSyndromes = "Healthcare-associated pneumonia (including ventilator-associated), bacteremia, UTI, osteomyelitis, malignant otitis externa",
-        resistancePatterns = "Difficult-to-treat (DTR) phenotypes with resistance to multiple beta-lactam classes and fluoroquinolones increasingly reported",
-        empiricTherapy = "Antipseudomonal beta-lactam (e.g. piperacillin-tazobactam, cefepime, meropenem) pending susceptibility",
-        notes = "For confirmed DTR P. aeruginosa, preferred agents include ceftazidime-avibactam, ceftolozane-tazobactam, imipenem-relebactam and cefiderocol per current IDSA AMR guidance.",
-        source = "IDSA 2026 AMR Guidance",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Acinetobacter baumannii",
-        classification = "Gram-negative coccobacillus, non-fermenter",
-        gramStainMorphology = "Gram-negative coccobacilli; oxidase-negative; can survive on dry surfaces for extended periods",
-        clinicalSyndromes = "Healthcare-associated pneumonia, bacteremia, wound infection, often in ICU settings",
-        resistancePatterns = "Carbapenem resistance (CRAB) common in healthcare-associated strains; frequently multidrug-resistant",
-        empiricTherapy = "Sulbactam-durlobactam in combination with a carbapenem is the priority approach for invasive CRAB infection",
-        notes = "2026 IDSA guidance applies to invasive infection, not colonization; consider infection-control implications given environmental persistence.",
-        source = "IDSA 2026 AMR Guidance",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Stenotrophomonas maltophilia",
-        classification = "Gram-negative rod, non-fermenter",
-        gramStainMorphology = "Gram-negative bacilli; oxidase-negative; intrinsically resistant to most carbapenems",
-        clinicalSyndromes = "Healthcare-associated pneumonia, bacteremia (often catheter-associated), infection in immunocompromised hosts",
-        resistancePatterns = "Intrinsic carbapenem resistance via chromosomal beta-lactamases; variable TMP-SMX susceptibility",
-        empiricTherapy = "Cefiderocol monotherapy is the preferred approach for invasive infection per 2026 IDSA guidance",
-        notes = "Distinguish colonization from true infection; aztreonam-avibactam (preferably with a second active agent) is an alternative.",
-        source = "IDSA 2026 AMR Guidance",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
+// "Pseudomonas aeruginosa" -> "P. aeruginosa"
+private fun shortName(name: String): String {
+    val parts = name.trim().split(" ").filter { it.isNotBlank() }
+    return if (parts.size >= 2) "${parts[0].first()}. ${parts.drop(1).joinToString(" ")}" else name
+}
 
-    // =========================
-    // OTHER GRAM-NEGATIVE / FASTIDIOUS ORGANISMS
-    // =========================
-    BacterialOrganism(
-        name = "Haemophilus influenzae",
-        classification = "Gram-negative coccobacillus, Pasteurellaceae",
-        gramStainMorphology = "Small gram-negative coccobacilli; requires factors X and V for growth (chocolate agar)",
-        clinicalSyndromes = "Otitis media, sinusitis, community-acquired pneumonia, epiglottitis, meningitis (unvaccinated populations)",
-        resistancePatterns = "Beta-lactamase production causes ampicillin resistance in a substantial proportion of isolates",
-        empiricTherapy = "Amoxicillin-clavulanate or a third-generation cephalosporin pending susceptibility",
-        notes = "Incidence of invasive disease markedly reduced by Hib vaccination; non-typeable strains still cause mucosal infection.",
-        source = "General clinical microbiology reference",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Neisseria meningitidis",
-        classification = "Gram-negative diplococcus, Neisseriaceae",
-        gramStainMorphology = "Gram-negative diplococci, kidney-bean shaped; oxidase-positive",
-        clinicalSyndromes = "Meningitis, meningococcemia, rapidly progressive septic shock with petechial/purpuric rash",
-        resistancePatterns = "Remains largely penicillin-susceptible in most regions; resistance reported in some areas",
-        empiricTherapy = "Ceftriaxone; add vancomycin empirically until pneumococcal meningitis is excluded",
-        notes = "Post-exposure prophylaxis (e.g. rifampin, ciprofloxacin, ceftriaxone) indicated for close contacts.",
-        source = "General clinical microbiology reference",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Listeria monocytogenes",
-        classification = "Gram-positive rod, Listeriaceae",
-        gramStainMorphology = "Gram-positive bacilli; tumbling motility at room temperature; catalase-positive",
-        clinicalSyndromes = "Meningitis/meningoencephalitis, bacteremia, febrile gastroenteritis, invasive disease in pregnancy/neonates and the immunocompromised or elderly",
-        resistancePatterns = "Intrinsically resistant to cephalosporins; ampicillin remains active",
-        empiricTherapy = "Ampicillin (add gentamicin for synergy in severe disease); add empirically to meningitis regimens in at-risk age groups",
-        notes = "Always add ampicillin to empiric meningitis coverage in neonates, pregnancy, age over 50, or immunocompromise, since cephalosporins do not cover Listeria.",
-        source = "General clinical microbiology reference",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Clostridioides difficile",
-        classification = "Gram-positive rod (anaerobic), Peptostreptococcaceae",
-        gramStainMorphology = "Gram-positive spore-forming bacilli; obligate anaerobe; toxin-producing strains cause disease",
-        clinicalSyndromes = "Antibiotic-associated diarrhea, pseudomembranous colitis, fulminant colitis",
-        resistancePatterns = "Not treated with systemic antibiotics used for other GI infections; recurrence risk after prior episodes",
-        empiricTherapy = "Oral vancomycin or fidaxomicin for an initial episode, per current IDSA C. difficile guidance",
-        notes = "Diagnosis requires clinical correlation with symptomatic diarrhea, not colonization; discontinue inciting antibiotics when feasible.",
-        source = "IDSA/SHEA C. difficile Guideline",
-        sourceStatus = "Current IDSA-listed guideline",
-        reviewDate = "2026-09"
-    ),
-    BacterialOrganism(
-        name = "Bacteroides fragilis",
-        classification = "Gram-negative rod (anaerobic), Bacteroidaceae",
-        gramStainMorphology = "Gram-negative bacilli; obligate anaerobe; predominant anaerobe of the colonic flora",
-        clinicalSyndromes = "Intra-abdominal abscess, polymicrobial bacteremia, pelvic infection, often alongside Enterobacterales",
-        resistancePatterns = "Beta-lactamase production causes intrinsic resistance to penicillin; generally susceptible to metronidazole and beta-lactam/beta-lactamase-inhibitor combinations",
-        empiricTherapy = "Metronidazole or piperacillin-tazobactam as part of combination therapy for polymicrobial intra-abdominal infection",
-        notes = "Almost always encountered as part of polymicrobial infection; source control is essential alongside antibiotics.",
-        source = "General clinical microbiology reference",
-        sourceStatus = "Current",
-        reviewDate = "2026-09"
-    )
-)
+@Composable
+fun BacterialAtlasScreen(onBackClick: () -> Unit) {
+    val context = LocalContext.current
+    val organisms = remember { loadOrganisms(context) }
+    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    val selected = organisms.firstOrNull { it.id == selectedId }
 
-private fun BacterialOrganism.matches(query: String): Boolean {
-    if (query.isBlank()) return true
-    val q = query.trim().lowercase()
-    val searchableText = listOf(
-        name,
-        classification,
-        gramStainMorphology,
-        clinicalSyndromes,
-        resistancePatterns,
-        empiricTherapy,
-        notes,
-        source
-    ).joinToString(" ").lowercase()
+    BackHandler { if (selected != null) selectedId = null else onBackClick() }
 
-    return q.split(Regex("\\s+"))
-        .filter { it.isNotBlank() }
-        .all { searchableText.contains(it) }
+    if (selected != null) {
+        OrganismDetail(selected) { selectedId = null }
+    } else {
+        AtlasList(organisms, onBackClick) { selectedId = it.id }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BacterialAtlasScreen(
-    onBackClick: () -> Unit
-) {
-    var query by remember { mutableStateOf("") }
-    val results = remember(query) {
-        bacterialOrganisms.filter { it.matches(query) }
+private fun AtlasList(organisms: List<Organism>, onBackClick: () -> Unit, onOpen: (Organism) -> Unit) {
+    var query by rememberSaveable { mutableStateOf("") }
+    var group by rememberSaveable { mutableStateOf("All") }
+
+    // Only show chips for groups that actually have organisms
+    val availableGroups = remember(organisms) {
+        listOf("All") + atlasGroups.drop(1).filter { g -> organisms.any { it.group == g } }
+    }
+    val activeGroup = if (group in availableGroups) group else "All"
+
+    val filtered = organisms.filter { o ->
+        (activeGroup == "All" || o.group == activeGroup) &&
+            (query.isBlank() ||
+                o.name.contains(query, true) ||
+                o.morphology.contains(query, true) ||
+                o.diseases.any { it.contains(query, true) })
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-        ) {
+    val side = Modifier.padding(horizontal = ScreenSide)
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                PremiumBackButton(onClick = onBackClick)
-
-                Column() {
-                    Text(
-                        text = "Bacterial Atlas",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold, fontSize = 20.sp, lineHeight = 26.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "Organism classification, morphology, syndromes and resistance patterns",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = 8.dp,
-                    bottom = 24.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                item {
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Search,
-                                contentDescription = null
-                            )
-                        },
-                        label = {
-                            Text("Search organism, syndrome or resistance pattern")
-                        },
-                        placeholder = {
-                            Text("e.g. MRSA, meningitis, ESBL")
-                        }
-                    )
-                }
-
-                item {
-                    Text(
-                        text = if (query.isBlank()) {
-                            "${results.size} verified reference entries"
-                        } else {
-                            "${results.size} result${if (results.size == 1) "" else "s"}"
-                        },
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-
-                if (results.isEmpty()) {
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(18.dp)
-                            ) {
-                                Text(
-                                    text = "No matching organism",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
-                                Spacer(modifier = Modifier.height(6.dp))
-
-                                Text(
-                                    text = "Try an organism name, syndrome, or resistance pattern.",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    items(
-                        items = results,
-                        key = { "${it.name}|${it.classification}" }
-                    ) { organism ->
-                        BacterialOrganismCard(organism)
-                    }
-                }
-
-                item {
-                    BacterialAtlasGuideCard(
-                        icon = Icons.Outlined.MenuBook,
-                        title = "Bacterial Atlas — Intern Quick Reference",
-                        subtitle = "Organism-focused overview • Always confirm with local microbiology, susceptibility results and current full guidelines before prescribing",
-                        sections = listOf(
-                            "1. How to use this atlas" to
-                                "Use organism identification alongside Gram stain morphology, clinical syndrome and local resistance patterns to guide empiric therapy. Always narrow to susceptibility-directed therapy once culture results are available.",
-                            "2. Gram stain interpretation" to
-                                "Gram-positive organisms retain crystal violet stain (purple); Gram-negative organisms do not and counterstain pink/red with safranin. Cocci are round, bacilli are rod-shaped. Gram stain morphology narrows the differential before culture results return.",
-                            "3. Key resistance mechanisms to know" to
-                                "Beta-lactamases (including ESBLs and carbapenemases) hydrolyze beta-lactam antibiotics. mecA/mecC confer methicillin resistance in staphylococci. vanA/vanB confer vancomycin resistance in enterococci. Inducible AmpC beta-lactamases can emerge during cephalosporin therapy in certain Enterobacterales.",
-                            "4. Colonization versus infection" to
-                                "Many organisms in this atlas (e.g. Enterococcus, Stenotrophomonas, C. difficile) are frequently isolated as colonizers or from non-sterile sites. Treat clinical infection supported by signs, symptoms and appropriate specimen collection, not isolated positive cultures alone.",
-                            "5. Empiric versus definitive therapy" to
-                                "Empiric therapy is chosen based on likely pathogens, local antibiogram, infection site and patient risk factors. Definitive therapy should be narrowed once organism identification and susceptibility results are available.",
-                            "6. Intern bedside checklist" to
-                                "1) What is the suspected source? 2) What does the Gram stain show? 3) What organisms are typical for this syndrome and setting? 4) What resistance patterns are locally common? 5) Has therapy been reassessed once culture and susceptibility data return?"
-                        ),
-                        source = "General clinical microbiology reference; IDSA 2026 AMR Guidance; IDSA/ESCMID 2026 SAB Consensus Statements",
-                        status = "CURRENT — 2026 clinical reference"
-                    )
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Clinical reference notice",
-                        style = MaterialTheme.typography.titleSmall
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "This atlas is a reference aid, not a substitute for patient-specific clinical judgment, local microbiology results, susceptibility testing, or institutional protocols.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Bacterial Atlas", fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold) },
+                navigationIcon = { PremiumBackButton(onClick = onBackClick, edgeInset = 12.dp) }
+            )
         }
-    }
-
-    BackHandler(onBack = onBackClick)
-}
-
-@Composable
-private fun BacterialAtlasGuideCard(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    sections: List<Pair<String, String>>,
-    source: String,
-    status: String
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(vertical = ScreenVertical),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-                            shape = RoundedCornerShape(12.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+            item { Box(side) { AtlasHero(total = organisms.size, shown = filtered.size) } }
+            item {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    singleLine = true,
+                    modifier = side.fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    placeholder = { Text("Search organism, disease or shape", maxLines = 1) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
                 )
             }
-
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            sections.forEach { (label, value) ->
-                Column {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                    Text(
-                        text = value,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+            item {
+                // Padding lives inside the row so chips scroll edge to edge and are never clipped
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = ScreenSide),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(availableGroups) { g ->
+                        val n = if (g == "All") organisms.size else organisms.count { it.group == g }
+                        FilterChip(
+                            selected = activeGroup == g,
+                            onClick = { group = g },
+                            label = { Text("$g ($n)", maxLines = 1) }
+                        )
+                    }
                 }
             }
-
-            Text(
-                text = "Source: $source",
-                style = MaterialTheme.typography.labelMedium
-            )
-
-            Text(
-                text = "Status: $status",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            items(filtered, key = { it.id }) { o -> Box(side) { OrganismCard(o) { onOpen(o) } } }
+            if (filtered.isEmpty()) {
+                item {
+                    Column(
+                        modifier = side.fillMaxWidth().padding(top = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null,
+                            tint = Muted.copy(alpha = 0.6f),
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Text("No matching organisms", color = Muted, fontSize = 15.sp)
+                        TextButton(onClick = { query = ""; group = "All" }) { Text("Clear filters") }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun BacterialOrganismCard(
-    organism: BacterialOrganism
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+private fun AtlasHero(total: Int, shown: Int) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFF0F0C20), Color(0xFF1F1747), Color(0xFF3B2A6B))))
+            .padding(20.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp)
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                "CLINICAL MICROBIOLOGY",
+                color = Color(0xFFE8C468),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.4.sp
+            )
+            AutoSizeText(
+                text = "Pathogen-First Reference",
+                style = TextStyle(color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            )
+            Text(
+                "Morphology, virulence, syndromes, diagnosis and evidence-based treatment for each organism.",
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                textAlign = TextAlign.Start
+            )
+            Spacer(Modifier.height(4.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(Color(0xFFE8C468).copy(alpha = 0.20f))
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
+            ) {
+                val label = if (shown == total) "$total organisms" else "$shown of $total organisms"
+                Text(label, color = Color(0xFFE8C468), fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+private fun Pill(text: String, color: Color, filled: Boolean = false) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(if (filled) Color.White else color.copy(alpha = 0.12f))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(text, color = color, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OrganismCard(o: Organism, onClick: () -> Unit) {
+    val c = groupColor(o.group)
+    Card(
+        onClick = onClick,
+        shape = RoundedCornerShape(22.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .background(Brush.horizontalGradient(listOf(c, c.copy(alpha = 0.35f))))
+        )
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Pill(o.group, c)
+            AutoSizeText(
+                text = o.name,
+                style = TextStyle(color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
+            )
+            Text(o.morphology, color = c, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            Text(
+                o.diseases.take(3).joinToString("  |  "),
+                color = Muted,
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
+                maxLines = 2
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OrganismDetail(o: Organism, onBack: () -> Unit) {
+    val c = groupColor(o.group)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        shortName(o.name),
+                        fontSize = 20.sp,
+                        lineHeight = 26.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontStyle = FontStyle.Italic,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = { PremiumBackButton(onClick = onBack, edgeInset = 12.dp) }
+            )
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentPadding = PaddingValues(horizontal = ScreenSide, vertical = ScreenVertical),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item { DetailHeader(o, c) }
+            if (o.diseases.isNotEmpty()) {
+                item { SectionCard("Key Diseases", c) { RichText(o.diseases.joinToString("\n") { "• $it" }, c) } }
+            }
+            items(o.sections) { s -> SectionCard(s.title, c) { RichText(s.text, c) } }
+            if (o.pearls.isNotEmpty()) item { PearlsCard(o.pearls) }
+            if (o.references.isNotEmpty()) {
+                item { SectionCard("References", c) { RichText(o.references.joinToString("\n") { "• $it" }, c) } }
+            }
+            item {
+                Text(
+                    "Educational reference. Confirm regimens and doses against current guidelines and local susceptibility data before clinical use.",
+                    color = Muted,
+                    fontSize = 11.sp,
+                    lineHeight = 16.sp,
+                    textAlign = TextAlign.Start
+                )
+            }
+        }
+    }
+}
 
-            Text(
-                text = organism.name,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
+@Composable
+private fun DetailHeader(o: Organism, c: Color) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(28.dp))
+            .background(Brush.linearGradient(listOf(lerp(c, Color.Black, 0.45f), c)))
+            .padding(20.dp)
+    ) {
+        Column {
+            Pill(o.group, c, filled = true)
+            Spacer(Modifier.height(14.dp))
+            AutoSizeText(
+                text = o.name,
+                style = TextStyle(color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
             )
-
+            Spacer(Modifier.height(6.dp))
             Text(
-                text = organism.classification,
-                style = MaterialTheme.typography.titleMedium
+                o.morphology,
+                color = Color.White.copy(alpha = 0.75f),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1
             )
-
+            Spacer(Modifier.height(14.dp))
             Text(
-                text = organism.gramStainMorphology,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            DetailRow("Clinical syndromes", organism.clinicalSyndromes)
-            DetailRow("Resistance patterns", organism.resistancePatterns)
-            DetailRow("Empiric therapy", organism.empiricTherapy)
-            DetailRow("Notes", organism.notes)
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Source: ${organism.source}",
-                style = MaterialTheme.typography.labelMedium
-            )
-
-            Text(
-                text = "Status: ${organism.sourceStatus} • Reviewed ${organism.reviewDate}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                o.tagline,
+                color = Color.White.copy(alpha = 0.92f),
+                fontSize = 14.sp,
+                lineHeight = 21.sp,
+                textAlign = TextAlign.Start
             )
         }
     }
 }
 
 @Composable
-private fun DetailRow(
-    label: String,
-    value: String
-) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = "$label: ",
-                style = MaterialTheme.typography.labelMedium
-            )
+private fun SectionCard(title: String, color: Color, content: @Composable () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.width(4.dp).height(18.dp).clip(RoundedCornerShape(2.dp)).background(color))
+                Spacer(Modifier.width(10.dp))
+                AutoSizeText(
+                    text = title,
+                    style = TextStyle(color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                )
+            }
+            content()
+        }
+    }
+}
 
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium
-            )
+@Composable
+private fun PearlsCard(pearls: List<String>) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF4D6)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text("Clinical Pearls", color = Color(0xFFB45F06), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            RichText(pearls.joinToString("\n") { "• $it" }, Color(0xFFB45F06))
+        }
+    }
+}
+
+@Composable
+private fun RichText(text: String, dotColor: Color = Ink) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        text.split("\n").filter { it.isNotBlank() }.forEach { line ->
+            if (line.startsWith("• ")) {
+                // Bullets: always left-aligned, never justified
+                Row {
+                    Box(Modifier.width(22.dp).padding(top = 7.dp)) {
+                        Box(Modifier.size(8.dp).clip(CircleShape).background(dotColor))
+                    }
+                    Text(
+                        line.removePrefix("• "),
+                        color = Ink,
+                        fontSize = 14.sp,
+                        lineHeight = 21.sp,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            } else {
+                // Paragraph style: justified
+                Text(line, color = Ink, fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify)
+            }
         }
     }
 }

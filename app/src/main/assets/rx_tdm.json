@@ -1,0 +1,226 @@
+{
+  "items": [
+    {
+      "id": "tdm_principles",
+      "title": "Therapeutic drug monitoring: principles",
+      "category": "Principles",
+      "subtitle": "When to monitor, when to sample, what to record",
+      "summary": "Monitor drugs with a narrow therapeutic index, patients with altered pharmacokinetics, and any suspected toxicity or failure. Sample at the right time, record exact times, and interpret levels with kidney function and the clinical picture.",
+      "sections": [
+        {
+          "title": "When to monitor",
+          "text": "• Narrow therapeutic index: vancomycin, aminoglycosides, teicoplanin, colistin and polymyxin B.\n• Altered pharmacokinetics: critical illness and sepsis, burns, obesity, kidney failure and dialysis, CRRT, ECMO, cystic fibrosis, pregnancy, and extremes of age.\n• Suspected toxicity (kidney injury, hearing loss, neurotoxicity, cytopenias) or treatment failure.\n• Long courses, and drug interactions that change levels (for example rifampicin lowering linezolid levels)."
+        },
+        {
+          "title": "Sample timing",
+          "text": "• Take samples at steady state: usually after the third or fourth dose, or after about 4 to 5 half-lives; Bayesian software can use earlier samples.\n• Trough: within 30 minutes before the next dose.\n• Peak: 30 to 60 minutes after the end of the infusion for traditional aminoglycoside dosing; 1 to 2 hours after the end of infusion for the two-level vancomycin method.\n• Never draw from the line or lumen used for the infusion, and note any dose given by another route.\n• Record the exact start and end times of the dose and the sample time: a wrong time makes the result misleading."
+        },
+        {
+          "title": "What to record",
+          "text": "• Dosing weight and height, current serum creatinine and trend, and the estimated kidney function.\n• Indication, suspected organism, MIC if known, and the site of infection.\n• Concurrent nephrotoxic drugs (loop diuretics, contrast, other antibiotics) and interacting drugs.\n• The assay used and the units (mg/L), because immunoassays and chromatography differ slightly."
+        },
+        {
+          "title": "Interpreting results",
+          "text": "• A level is not a verdict: use it with kidney function, MIC, source control and clinical response.\n• Check that the sample was taken at the right time before changing the dose.\n• Recheck levels after any dose change, when kidney function changes, and at least weekly in stable patients on long courses.\n• Report high levels promptly: hold or reduce the dose and review for toxicity."
+        },
+        {
+          "title": "Software and equations",
+          "text": "• Bayesian software is preferred for vancomycin AUC dosing: it uses one or two levels with population models, and can be used after the first dose.\n• Choose software validated for the patient group (adult, paediatric, critically ill, obese).\n• Two-level equation methods are an alternative when Bayesian software is not available.\n• Documented, hospital-approved nomograms and protocols take priority over general advice here."
+        }
+      ],
+      "source": "ASHP/IDSA/PIDS/SIDP 2020 vancomycin consensus guideline, IATDMCT and international TDM consensus statements. Verify against your hospital protocol."
+    },
+    {
+      "id": "tdm_vancomycin_auc",
+      "title": "Vancomycin: AUC-guided dosing",
+      "category": "Vancomycin",
+      "subtitle": "AUC24/MIC 400 to 600 | serious MRSA infection",
+      "summary": "Current consensus guidance targets an area under the curve over 24 hours of 400 to 600 mg·h/L, assuming an MIC of 1 mg/L, instead of trough levels of 15 to 20 mg/L. This keeps efficacy while lowering kidney injury risk.",
+      "sections": [
+        {
+          "title": "Target",
+          "text": "• AUC24/MIC of 400 to 600, assuming a broth microdilution MIC of 1 mg/L (AUC about 400 to 600 mg·h/L).\n• The target applies to serious MRSA infection: bacteraemia, endocarditis, bone and joint infection, meningitis, pneumonia and severe skin infection.\n• AUC above 600 is linked to more nephrotoxicity without added benefit, so avoid it.\n• If the MIC is above 1 mg/L, consider an alternative drug: the target is unlikely to be reached safely."
+        },
+        {
+          "title": "Why not trough-only",
+          "text": "• Troughs of 15 to 20 mg/L overestimate exposure and were linked to more acute kidney injury without better outcomes.\n• Trough alone does not reliably predict AUC.\n• Trough-only monitoring is no longer recommended for serious MRSA infection.\n• In some stable, lower-risk patients, local protocols still use troughs of about 10 to 15 mg/L: follow your hospital policy."
+        },
+        {
+          "title": "How to estimate AUC",
+          "text": "• Bayesian software (preferred): one or two levels, which can be drawn after the first dose or at steady state.\n• Two-level method: a peak 1 to 2 hours after the end of infusion, and a trough shortly before the next dose, both in the same dosing interval at steady state.\n• From two levels: calculate the elimination rate constant, extrapolate to the peak and trough, calculate the AUC over the interval, and scale to 24 hours.\n• Use software or your hospital calculator: do not hand-calculate in a busy ward unless the method is validated."
+        },
+        {
+          "title": "Continuous infusion option",
+          "text": "• Target a steady-state concentration of about 20 to 25 mg/L (equivalent AUC about 480 to 600).\n• Give a loading dose, then a continuous infusion, with a level 24 hours later and after any dose change.\n• May help in unstable kidney function or critical illness, but it needs a dedicated line and stable preparations."
+        },
+        {
+          "title": "Adjusting the dose",
+          "text": "• Adjust the total daily dose in proportion to the AUC: if the AUC is 800 on 2 g a day, the dose needed for an AUC of 500 is about 1.25 g a day.\n• Round to practical doses and intervals, and recheck after changes.\n• Reassess when creatinine changes by 0.3 mg/dL or more, or when the clinical picture changes.\n• In patients with unstable kidney function, dose by levels rather than a fixed schedule."
+        }
+      ],
+      "source": "ASHP/IDSA/PIDS/SIDP 2020 vancomycin consensus guideline. Verify against your hospital protocol."
+    },
+    {
+      "id": "tdm_vancomycin_practical",
+      "title": "Vancomycin: loading, starting doses and safety",
+      "category": "Vancomycin",
+      "subtitle": "Adults and children | infusion, special populations, kidney monitoring",
+      "summary": "Give a weight-based loading dose in serious infection, start maintenance by kidney function, and adjust to levels. Infuse slowly, avoid unnecessary nephrotoxins, and monitor creatinine at least two to three times a week.",
+      "sections": [
+        {
+          "title": "Loading dose",
+          "text": "• 20 to 35 mg/kg of actual body weight in critically ill or serious infection, usually capped at 3 g.\n• A loading dose is given regardless of kidney function; reduce only the maintenance dose.\n• Not needed for routine uncomplicated infections where the usual regimen is enough."
+        },
+        {
+          "title": "Maintenance dose (adults)",
+          "text": "• Normal kidney function: 15 to 20 mg/kg actual body weight every 8 to 12 hours; many protocols cap single doses at 2 g.\n• Approximate starting intervals by CrCl (replace with levels): above 90 mL/min every 8 hours; 50 to 90 every 12 hours; 15 to 49 every 24 hours; below 15 or changing kidney function dose by levels.\n• Obesity: dose by actual body weight for loading; cap maintenance doses, and monitor closely.\n• Use your hospital nomogram or software: these intervals are only a starting guide."
+        },
+        {
+          "title": "Infusion",
+          "text": "• Label rate: no faster than 10 mg/min, or over at least 60 minutes, whichever is longer.\n• Many hospitals give 1 g over 1 to 2 hours, and larger doses over 2 hours or longer.\n• Slow the infusion for flushing (vancomycin infusion reaction), which is not true allergy; an antihistamine can help.\n• Extravasation can cause tissue injury, so use a reliable line."
+        },
+        {
+          "title": "Special populations",
+          "text": "• Children: usually 60 to 80 mg/kg/day divided every 6 hours, with AUC 400 to 600 targets; use Bayesian software where available.\n• Haemodialysis: loading dose, then dose after each session guided by pre-dialysis levels.\n• CRRT: loading dose, then dose by levels; effluent flow changes the requirement.\n• Pregnancy: clearance rises, so levels are important.\n• Augmented renal clearance (young critically ill or burns patients) may need higher doses or continuous infusion."
+        },
+        {
+          "title": "Kidney safety",
+          "text": "• Check creatinine at least 2 to 3 times a week in hospital, and daily in critically ill or unstable patients.\n• Risk rises with high AUC, long courses, critical illness, and other nephrotoxins: loop diuretics, contrast, aminoglycosides, amphotericin.\n• Combination with piperacillin-tazobactam is linked to more acute kidney injury than combination with cefepime or a carbapenem.\n• Do not continue a drug that no longer fits the culture: de-escalate when cultures return."
+        },
+        {
+          "title": "Other cautions",
+          "text": "• Ototoxicity is uncommon, but more likely with high levels and aminoglycosides.\n• Check the blood count weekly on prolonged courses for neutropenia.\n• Review the need for vancomycin daily: for MSSA, switch to cefazolin or an anti-staphylococcal penicillin.\n• See the Vancomycin monograph in the Drugs tab for oral therapy for C. difficile."
+        }
+      ],
+      "source": "ASHP/IDSA/PIDS/SIDP 2020 vancomycin consensus guideline, product labelling. Verify against your hospital protocol."
+    },
+    {
+      "id": "tdm_ag_extended",
+      "title": "Aminoglycosides: extended-interval (once-daily) dosing",
+      "category": "Aminoglycosides",
+      "subtitle": "Gentamicin, tobramycin, amikacin | adults",
+      "summary": "One large daily dose achieves a high peak for concentration-dependent killing, with a drug-free period that reduces toxicity. Use ideal or adjusted body weight, and choose the interval with a validated nomogram.",
+      "sections": [
+        {
+          "title": "Dose",
+          "text": "• Gentamicin or tobramycin: 5 to 7 mg/kg IV once a day (many hospitals use 5 mg/kg, and the Hartford nomogram uses 7 mg/kg).\n• Amikacin: 15 to 20 mg/kg IV once a day.\n• Infuse over 30 to 60 minutes.\n• Use ideal body weight, or adjusted body weight in obesity (IBW + 0.4 x excess weight); see the Obesity entry in the Renal and paeds tab."
+        },
+        {
+          "title": "Monitoring",
+          "text": "• Take a level 6 to 14 hours after the start of the first dose, and plot it on a validated nomogram (the Hartford nomogram is common) to choose a 24-, 36- or 48-hour interval.\n• Alternative: AUC-guided dosing with software, targeting about 70 to 120 mg·h/L (targets vary between guidelines).\n• Pre-dose trough for gentamicin and tobramycin should be below 1 mg/L, ideally with a drug-free period of about 4 to 6 hours.\n• For amikacin, trough targets range from below 1 to 4 mg/L depending on protocol, and the peak target is high (about 8 to 10 times the MIC).\n• Recheck levels after kidney function changes and with prolonged courses."
+        },
+        {
+          "title": "Where extended-interval dosing is not suitable",
+          "text": "• Creatinine clearance below about 40 mL/min.\n• Pregnancy, ascites, major burns (over 20% body surface area), cystic fibrosis, dialysis, and endocarditis.\n• Use traditional dosing with levels in these groups (see the next entry).\n• Not for synergy dosing in Gram-positive endocarditis."
+        },
+        {
+          "title": "Safety",
+          "text": "• Baseline and at least twice-weekly creatinine (daily in unstable patients).\n• Ask about hearing loss, tinnitus and balance: ototoxicity can be irreversible.\n• Limit courses to 5 to 7 days where possible, and avoid other nephrotoxic and ototoxic drugs.\n• Neuromuscular blockade: use caution in myasthenia gravis and with neuromuscular blockers.\n• Correct low magnesium and potassium."
+        },
+        {
+          "title": "Notes",
+          "text": "• See the Gentamicin and Amikacin monographs in the Drugs tab for spectrum, cautions and interactions.\n• Your hospital nomogram and software take priority over general advice here."
+        }
+      ],
+      "source": "Hartford and other validated nomograms, Therapeutic Guidelines, product labelling. Verify against your hospital protocol."
+    },
+    {
+      "id": "tdm_ag_traditional",
+      "title": "Aminoglycosides: traditional and synergy dosing",
+      "category": "Aminoglycosides",
+      "subtitle": "Multiple daily dosing with peak and trough targets",
+      "summary": "Used when extended-interval dosing is unsuitable and for synergy in Gram-positive endocarditis. Aim for a target peak for the site and a low trough, and adjust to levels.",
+      "sections": [
+        {
+          "title": "Gentamicin and tobramycin",
+          "text": "• Loading dose 2 mg/kg, then 1 to 1.7 mg/kg every 8 hours (use ideal or adjusted body weight).\n• Peak (30 to 60 minutes after the end of a 30-minute infusion): about 5 to 8 mg/L for urinary infection; about 8 to 10 mg/L for serious Gram-negative infection and pneumonia.\n• Trough (within 30 minutes before the next dose): below 1 mg/L, with some protocols accepting below 2 mg/L.\n• Adjust the dose or interval to reach the targets, and recheck levels."
+        },
+        {
+          "title": "Amikacin",
+          "text": "• 7.5 mg/kg every 12 hours (or 5 mg/kg every 8 hours), using ideal or adjusted body weight.\n• Peak: about 20 to 35 mg/L for serious infection (some protocols 25 to 40).\n• Trough: below 5 mg/L, and some protocols below 10 mg/L.\n• Use for resistant Gram-negative infection and mycobacterial disease, with specialist advice."
+        },
+        {
+          "title": "Synergy in endocarditis",
+          "text": "• Gentamicin 1 mg/kg every 8 hours for staphylococci and enterococci, or 3 mg/kg a day for viridans streptococci (once daily or in divided doses) per AHA guidance.\n• Targets: peak about 3 to 4 mg/L and trough below 1 mg/L.\n• Limit the duration to what the regimen needs, because of cumulative toxicity.\n• Not used for MRSA bacteraemia routinely."
+        },
+        {
+          "title": "Kidney impairment",
+          "text": "• Dose by levels: lengthen the interval, and re-dose only when the level falls below the target.\n• Haemodialysis: 1 to 2 mg/kg after each session, guided by pre-dialysis levels.\n• CRRT: loading dose, then dose by levels.\n• Avoid or minimise use in severe kidney injury when other options exist."
+        },
+        {
+          "title": "Cautions",
+          "text": "• Nephrotoxicity and ototoxicity are the main risks, and rise with high troughs, long courses, older age, and dehydration.\n• Monitor creatinine at least twice a week, and ask about hearing and balance.\n• Do not mix with beta-lactams in the same bag or line: they inactivate aminoglycosides.\n• Check magnesium and potassium."
+        }
+      ],
+      "source": "AHA endocarditis scientific statement, product labelling, Therapeutic Guidelines. Verify against your hospital protocol."
+    },
+    {
+      "id": "tdm_bl_infusion",
+      "title": "Beta-lactams: extended and continuous infusion",
+      "category": "Beta-lactams",
+      "subtitle": "Pharmacodynamic targets, example regimens and practical points",
+      "summary": "Beta-lactams kill best when free drug stays above the MIC for as long as possible. Extended or continuous infusion helps reach this target in severe infection, always after a full loading dose given over 30 minutes.",
+      "sections": [
+        {
+          "title": "Pharmacodynamic targets",
+          "text": "• Time that free drug stays above the MIC (fT>MIC): about 50% of the dosing interval for penicillins, 60 to 70% for cephalosporins, and 40% for carbapenems.\n• In critically ill patients many experts aim for 100% fT>MIC, and some for free trough levels of 4 times the MIC.\n• Augmented renal clearance and large volume of distribution can make standard bolus doses fall short."
+        },
+        {
+          "title": "Extended infusion: example regimens",
+          "text": "• Piperacillin-tazobactam: 4.5 g over 30 minutes, then 4.5 g over 4 hours every 8 hours (or 3.375 g over 4 hours every 8 hours in some protocols).\n• Meropenem: 1 to 2 g as a 30-minute loading dose, then 1 to 2 g over 3 hours every 8 hours.\n• Cefepime: 2 g loading dose, then 2 g over 4 hours every 8 hours (or per local protocol).\n• Ceftazidime: 2 g loading dose, then 2 g over 4 hours every 8 hours.\n• Newer combinations are labelled with their own infusion times (for example ceftazidime-avibactam over 2 hours, meropenem-vaborbactam over 3 hours, ceftolozane-tazobactam over 1 hour): follow the label."
+        },
+        {
+          "title": "Continuous infusion: example regimens",
+          "text": "• Piperacillin-tazobactam: 4.5 g loading dose, then 13.5 g over 24 hours (some centres use 9 g).\n• Meropenem: 1 to 2 g loading dose, then 3 g over 24 hours; the stability of the solution is limited, so replace bags often.\n• Flucloxacillin: 12 g over 24 hours (outpatient therapy services often use this).\n• Cefepime: loading dose, then about 4 to 6 g over 24 hours; ceftazidime: loading dose, then about 6 g over 24 hours.\n• Adjust for kidney function after the first 24 to 48 hours, not before."
+        },
+        {
+          "title": "Practical points",
+          "text": "• Always give a loading dose over 30 minutes first, so that therapeutic levels are reached without delay.\n• Use a dedicated line or lumen: many drugs are incompatible with co-infusion.\n• Check stability with pharmacy: meropenem and ampicillin lose potency quickly at room temperature, and bags may need changing every few hours.\n• Plan access and pumps early, especially for ward patients and outpatient therapy.\n• Do not delay the first dose to set up an infusion."
+        },
+        {
+          "title": "Evidence",
+          "text": "• The BLING III trial found lower 90-day mortality with continuous infusion in critically ill adults with sepsis, while earlier trials and meta-analyses were mixed.\n• Benefit is greatest in severe infection, resistant organisms with higher MICs, and augmented renal clearance.\n• Ward patients with susceptible organisms often do well on standard intermittent dosing."
+        },
+        {
+          "title": "Beta-lactam TDM",
+          "text": "• Not widely available, but increasingly used in critically ill patients and with resistant organisms.\n• Targets are usually the free trough above the MIC, with some aiming for 4 times the MIC.\n• Watch for toxicity: for cefepime, free trough concentrations above about 20 mg/L are linked to neurotoxicity, especially in kidney impairment.\n• Reduce doses promptly when kidney function falls, after the first 24 to 48 hours."
+        }
+      ],
+      "source": "BLING III trial, SCCM/ASHP and international consensus on beta-lactam infusion, product labelling. Indicative regimens only: use your hospital protocol and pharmacy stability data."
+    },
+    {
+      "id": "tdm_other",
+      "title": "Other antibiotics: teicoplanin, linezolid, daptomycin, polymyxins",
+      "category": "Other agents",
+      "subtitle": "Targets and when monitoring helps",
+      "summary": "Level monitoring is useful for teicoplanin and polymyxins, and increasingly for linezolid. Daptomycin is mainly monitored by clinical signs and creatine kinase.",
+      "sections": [
+        {
+          "title": "Teicoplanin",
+          "text": "• Not available in the US, but used widely elsewhere.\n• Give a loading regimen (several doses over the first days), then maintenance once daily.\n• Pre-dose trough targets (HPLC): about 15 to 30 mg/L for most serious infections, and at least 20 mg/L (sometimes higher) for endocarditis and bone and joint infection, per local protocol.\n• Check the first level after the loading doses and again once the dose is stable.\n• Monitor creatinine, blood count and liver tests on long courses."
+        },
+        {
+          "title": "Linezolid",
+          "text": "• Usual trough target: about 2 to 7 mg/L.\n• Thrombocytopenia and other toxicity rise with troughs above about 7 to 8 mg/L, especially in kidney impairment.\n• Consider monitoring in kidney failure, prolonged courses (including tuberculosis regimens), and with rifampicin, which lowers linezolid levels.\n• Check the blood count weekly.\n• Dose reduction (for example to 300 mg every 12 hours or 600 mg once a day) is guided by levels and specialist advice."
+        },
+        {
+          "title": "Daptomycin",
+          "text": "• Level monitoring is not routine.\n• Check creatine kinase weekly (more often with kidney impairment or statins), and stop for symptoms with a high level or very high values.\n• Trough concentrations above about 24 mg/L are associated with creatine kinase elevation.\n• Use adequate doses for bacteraemia and endocarditis (6 to 10 mg/kg) to avoid resistance."
+        },
+        {
+          "title": "Colistin",
+          "text": "• Target average steady-state plasma concentration of about 2 mg/L (international consensus).\n• Give a loading dose, then maintenance doses by kidney function, using a validated nomogram.\n• Monitor creatinine daily to every other day: acute kidney injury is common.\n• Use combination therapy where possible."
+        },
+        {
+          "title": "Polymyxin B",
+          "text": "• Target AUC24 at steady state of about 50 to 100 mg·h/L (average concentration about 2 to 4 mg/L).\n• Loading dose 2 to 2.5 mg/kg, then 1.25 to 1.5 mg/kg every 12 hours, usually without kidney adjustment.\n• Monitor creatinine, and check for neurotoxicity."
+        },
+        {
+          "title": "Notes",
+          "text": "• Azole antifungal and antiviral TDM is outside the scope of this app.\n• See the Polymyxins, Linezolid and Daptomycin monographs in the Drugs tab.\n• Use your hospital TDM service and protocol."
+        }
+      ],
+      "source": "2019 international polymyxin consensus guidelines, BSAC and IATDMCT guidance, product labelling. Verify against your hospital protocol."
+    }
+  ]
+}

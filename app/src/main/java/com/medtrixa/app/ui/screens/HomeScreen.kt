@@ -9,6 +9,13 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -131,8 +138,18 @@ fun HomeScreen(
     var overflowExpanded by remember { mutableStateOf(false) }
 
     Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
+                            .compositeOver(MaterialTheme.colorScheme.background),
+                        MaterialTheme.colorScheme.background
+                    )
+                )
+            ),
+        color = Color.Transparent
     ) {
         Column(
             modifier = Modifier
@@ -154,7 +171,18 @@ fun HomeScreen(
 
                 item {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.03f)
+                                    )
+                                ),
+                                RoundedCornerShape(24.dp)
+                            )
+                            .padding(horizontal = 20.dp, vertical = 18.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -176,11 +204,19 @@ fun HomeScreen(
                         }
 
                         Box {
-                            IconButton(onClick = { overflowExpanded = true }) {
+                            IconButton(
+                                onClick = { overflowExpanded = true },
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                        CircleShape
+                                    )
+                            ) {
                                 Icon(
                                     imageVector = Icons.Outlined.MoreHoriz,
                                     contentDescription = "More options",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                             DropdownMenu(
@@ -265,15 +301,6 @@ fun HomeScreen(
 
                 item {
                     Column {
-                        Text(
-                            text = "Calculate. Assess. Decide.",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
                         OutlinedTextField(
                             value = searchField,
                             onValueChange = { searchField = it },
@@ -370,6 +397,7 @@ fun HomeScreen(
                             title = "Drug Tools",
                             subtitle = "Dosing & More",
                             icon = Icons.Outlined.LocalPharmacy,
+                            badge = "Updated",
                             onClick = onDrugToolsClick
                         )
 
@@ -392,7 +420,7 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             title = "AI Insights",
                             subtitle = "Ask Anything",
-                            icon = Icons.Outlined.Info,
+                            icon = Icons.Outlined.AutoAwesome,
                             onClick = onAiInsightsClick
                         )
 
@@ -400,7 +428,7 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             title = "Healthcare Insights",
                             subtitle = "Facts & Pearls",
-                            icon = Icons.Outlined.Star
+                            icon = Icons.Outlined.Lightbulb
                         )
                     }
                 }
@@ -441,6 +469,7 @@ private fun QuickAccessCard(
     title: String,
     subtitle: String,
     icon: ImageVector,
+    badge: String? = null,
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -455,47 +484,69 @@ private fun QuickAccessCard(
             defaultElevation = 2.dp
         )
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Box(
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
                 modifier = Modifier
-                    .size(42.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                    .padding(16.dp)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                            shape = RoundedCornerShape(12.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(2.dp))
-
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+            if (badge != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(10.dp)
+                        .background(
+                            MaterialTheme.colorScheme.primary,
+                            RoundedCornerShape(50)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = badge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

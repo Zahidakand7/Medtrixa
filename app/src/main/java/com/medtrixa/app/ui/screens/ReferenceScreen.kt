@@ -55,14 +55,14 @@ fun ReferenceScreen(
             description = "Search medical literature."
         ),
         ReferenceItem(
-            id = "antibiotic_stewardship",
-            title = "Antibiotic Stewardship",
-            description = "Quick reference for everyday prescribing, adapted from CDC's Core Elements"
-        ),
-        ReferenceItem(
             id = "antibiotic_dosing",
             title = "Antibiotics",
             description = "Empiric antibiotic selection and dosing by indication and likely organism"
+        ),
+        ReferenceItem(
+            id = "antibiotic_stewardship",
+            title = "Antibiotic Stewardship",
+            description = "Quick reference for everyday prescribing, adapted from CDC's Core Elements"
         )
     )
 
