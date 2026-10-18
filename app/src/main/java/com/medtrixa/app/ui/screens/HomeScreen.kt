@@ -9,11 +9,10 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.foundation.clickable
@@ -184,7 +183,7 @@ fun HomeScreen(
                             )
                             .padding(horizontal = 20.dp, vertical = 18.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top
                     ) {
                         Column {
                             Text(
@@ -206,17 +205,12 @@ fun HomeScreen(
                         Box {
                             IconButton(
                                 onClick = { overflowExpanded = true },
-                                modifier = Modifier
-                                    .size(46.dp)
-                                    .background(
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                        CircleShape
-                                    )
+                                modifier = Modifier.offset(y = (-12).dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.MoreHoriz,
                                     contentDescription = "More options",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             DropdownMenu(
@@ -397,7 +391,6 @@ fun HomeScreen(
                             title = "Drug Tools",
                             subtitle = "Dosing & More",
                             icon = Icons.Outlined.LocalPharmacy,
-                            badge = "Updated",
                             onClick = onDrugToolsClick
                         )
 
@@ -469,7 +462,6 @@ private fun QuickAccessCard(
     title: String,
     subtitle: String,
     icon: ImageVector,
-    badge: String? = null,
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -484,69 +476,47 @@ private fun QuickAccessCard(
             defaultElevation = 2.dp
         )
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .size(42.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-                            shape = RoundedCornerShape(12.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
 
-            if (badge != null) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(10.dp)
-                        .background(
-                            MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(50)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = badge,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
