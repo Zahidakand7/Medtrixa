@@ -10,7 +10,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -238,7 +241,7 @@ fun LabInterpreterScreen(onBackClick: () -> Unit) {
                 )
             }
         ) { padding ->
-            Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Column(modifier = Modifier.padding(padding).fillMaxSize().imePadding()) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
@@ -412,6 +415,7 @@ private fun LabCard(
     val isNt = t.name == NT_PROBNP
     val hasBands = t.bands.isNotEmpty()
     val narrow = narrowTests.contains(t.name)
+    val focusManager = LocalFocusManager.current
 
     val needSex = t.sexSpecific && sex.isEmpty()
     val low = if (sex == "M") t.lowM else t.lowF
@@ -435,11 +439,16 @@ private fun LabCard(
         v == null -> null
         isNt -> judgeNtProBnp(v, ntAge.toNumL(), ntLowEgfr)
         hasBands -> judgeBands(v, t.bands, t.unit)
-        needSex -> LabVerdict("", "Select sex above to interpret this test.", 9)
+        needSex -> null
         else -> judge(v, low, high, t.unit, narrow)
     }
 
     val graded = verdict != null && verdict.label.isNotEmpty() && verdict.level != 9
+
+    val vF: LabVerdict? =
+        if (v != null && needSex && !isNt && !hasBands) judge(v, t.lowF, t.highF, t.unit, narrow) else null
+    val vM: LabVerdict? =
+        if (v != null && needSex && !isNt && !hasBands) judge(v, t.lowM, t.highM, t.unit, narrow) else null
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -464,7 +473,8 @@ private fun LabCard(
                 label = { Text("Result (" + t.unit + ")", fontSize = 12.sp, maxLines = 1) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
                 modifier = Modifier.fillMaxWidth()
             )
             if (isNt) {
@@ -518,6 +528,16 @@ private fun LabCard(
                     )
                 }
             }
+            if (vF != null && vM != null) {
+                Text(
+                    "No sex selected, so both results are shown. Select Female or Male above for one.",
+                    fontSize = 11.sp,
+                    lineHeight = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                SexVerdictRow("Women", vF)
+                SexVerdictRow("Men", vM)
+            }
             if (t.note.isNotEmpty() && t.note != "special") {
                 Text(
                     t.note,
@@ -526,6 +546,30 @@ private fun LabCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SexVerdictRow(who: String, v: LabVerdict) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(who, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(60.dp))
+            Box(
+                modifier = Modifier
+                    .background(levelFill(v.level), RoundedCornerShape(50))
+                    .padding(horizontal = 12.dp, vertical = 5.dp)
+            ) {
+                Text(
+                    (v.arrow + " " + v.label).trim(),
+                    color = levelOn(v.level),
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 12.sp
+                )
+            }
+        }
+        if (v.detail.isNotEmpty()) {
+            Text(v.detail, fontSize = 13.sp, lineHeight = 18.sp)
         }
     }
 }
