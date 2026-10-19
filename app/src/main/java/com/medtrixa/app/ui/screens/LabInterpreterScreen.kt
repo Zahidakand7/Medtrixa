@@ -201,8 +201,8 @@ fun LabInterpreterScreen(onBackClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Sex", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    FilterChip(selected = sex == "F", onClick = { sex = if (sex == "F") "" else "F" }, label = { Text("Female") })
-                    FilterChip(selected = sex == "M", onClick = { sex = if (sex == "M") "" else "M" }, label = { Text("Male") })
+                    FilterChip(selected = sex == "F", onClick = { sex = if (sex == "F") "" else "F" }, label = { Text("Female") }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = primary.copy(alpha = 0.15f), selectedLabelColor = primary))
+                    FilterChip(selected = sex == "M", onClick = { sex = if (sex == "M") "" else "M" }, label = { Text("Male") }, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = primary.copy(alpha = 0.15f), selectedLabelColor = primary))
                 }
 
                 LazyRow(
@@ -213,7 +213,8 @@ fun LabInterpreterScreen(onBackClick: () -> Unit) {
                         FilterChip(
                             selected = category == c,
                             onClick = { category = c },
-                            label = { Text(c, fontSize = 12.sp) }
+                            label = { Text(c, fontSize = 12.sp) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = primary.copy(alpha = 0.15f), selectedLabelColor = primary)
                         )
                     }
                 }
@@ -305,9 +306,22 @@ private fun LabCard(
 
     val rangeLine: String = when {
         isNt -> "Age and kidney-function dependent thresholds"
-        hasBands -> t.bands.split(";").joinToString(", ") { p ->
-            val b = p.split("|")
-            if (b.size == 2) b[1] + (if (b[0] == "INF") "" else " (below " + b[0] + ")") else ""
+        hasBands -> {
+            var prev = 0.0
+            t.bands.split(";").mapNotNull { p ->
+                val b = p.split("|")
+                if (b.size != 2) null
+                else {
+                    val up = if (b[0] == "INF") Double.POSITIVE_INFINITY else (b[0].toDoubleOrNull() ?: 0.0)
+                    val txt = when {
+                        prev == 0.0 -> b[1] + ": below " + fmtNum(up)
+                        up.isInfinite() -> b[1] + ": " + fmtNum(prev) + " or more"
+                        else -> b[1] + ": " + fmtNum(prev) + " to " + fmtNum(up - 1.0)
+                    }
+                    prev = up
+                    txt
+                }
+            }.joinToString("\n")
         }
         t.sexSpecific && sex.isEmpty() ->
             "Women: " + rangeText(t.lowF, t.highF, t.unit) + ". Men: " + rangeText(t.lowM, t.highM, t.unit)
