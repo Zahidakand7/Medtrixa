@@ -45,6 +45,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.compositeOver
+import com.medtrixa.app.ui.theme.stewardshipHeroBrush
+import com.medtrixa.app.ui.theme.auraAccent
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.Hyphens
@@ -82,25 +86,11 @@ private val stewSources = listOf(
     "Rybak MJ, et al. Therapeutic monitoring of vancomycin for serious MRSA infections: 2020 consensus guideline. Am J Health Syst Pharm. 2020;77:835-864."
 )
 
-private fun accent1(a: SAccent): Color = when (a) {
-    SAccent.BLUE -> Color(0xFF2563EB)
-    SAccent.ROSE -> Color(0xFFE11D48)
-    SAccent.AMBER -> Color(0xFFD97706)
-    SAccent.RED -> Color(0xFFDC2626)
-    SAccent.VIOLET -> Color(0xFF7C3AED)
-    SAccent.GREEN -> Color(0xFF059669)
-    SAccent.TEAL -> Color(0xFF0D9488)
-}
+@Composable
+private fun accent1(a: SAccent): Color = MaterialTheme.colorScheme.primary
 
-private fun accent2(a: SAccent): Color = when (a) {
-    SAccent.BLUE -> Color(0xFF60A5FA)
-    SAccent.ROSE -> Color(0xFFFB7185)
-    SAccent.AMBER -> Color(0xFFFBBF24)
-    SAccent.RED -> Color(0xFFF87171)
-    SAccent.VIOLET -> Color(0xFFA78BFA)
-    SAccent.GREEN -> Color(0xFF34D399)
-    SAccent.TEAL -> Color(0xFF2DD4BF)
-}
+@Composable
+private fun accent2(a: SAccent): Color = MaterialTheme.colorScheme.tertiary
 
 @Composable
 private fun FitText(
@@ -170,7 +160,7 @@ fun AntibioticStewardshipReferenceScreen(
                     Spacer(modifier = Modifier.height(4.dp))
                     FitText(
                         text = "Evidence, spectrum, duration and resistance, 2026",
-                        maxSize = 14f,
+                        maxSize = 13f,
                         minSize = 10f,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Normal
@@ -204,7 +194,7 @@ fun AntibioticStewardshipReferenceScreen(
 
 @Composable
 private fun SectionChip(label: String, accent: SAccent, selected: Boolean, onClick: () -> Unit) {
-    val base = accent1(accent)
+    val base = MaterialTheme.colorScheme.primary
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
@@ -214,9 +204,9 @@ private fun SectionChip(label: String, accent: SAccent, selected: Boolean, onCli
     ) {
         Text(
             text = label,
-            color = if (selected) Color.White else base,
+            color = if (selected) MaterialTheme.colorScheme.onPrimary else base,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
+            fontSize = 13.sp,
             maxLines = 1
         )
     }
@@ -246,7 +236,7 @@ private fun SectionContent(section: SSection, listState: LazyListState) {
             when (val e = entries[i]) {
                 is SText -> Text(
                     text = e.text,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify, hyphens = Hyphens.Auto, lineBreak = LineBreak.Paragraph),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, lineHeight = 19.sp).copy(fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Justify, hyphens = Hyphens.Auto, lineBreak = LineBreak.Paragraph),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 is SBullets -> BulletCard(e.items, accent)
@@ -272,15 +262,24 @@ private fun SourcesContent(listState: LazyListState) {
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f).compositeOver(MaterialTheme.colorScheme.surface)
                 )
             ) {
-                Text(
-                    text = stewSources[i],
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Justify, hyphens = Hyphens.Auto, lineBreak = LineBreak.Paragraph),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
+                    Box(
+                        Modifier.size(26.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text((i + 1).toString(), color = MaterialTheme.colorScheme.primary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = stewSources[i],
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp, lineHeight = 17.sp, textAlign = TextAlign.Start),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
@@ -292,7 +291,7 @@ private fun Banner(title: String, count: Int, accent: SAccent) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(Brush.horizontalGradient(listOf(accent1(accent), accent2(accent))))
+            .background(stewardshipHeroBrush())
             .padding(horizontal = 20.dp, vertical = 20.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -315,7 +314,7 @@ private fun Banner(title: String, count: Int, accent: SAccent) {
                     Text(
                         text = count.toString() + " entries",
                         color = Color.White,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1
                     )
@@ -331,7 +330,7 @@ private fun BulletCard(items: List<String>, accent: Color) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f).compositeOver(MaterialTheme.colorScheme.surface)
         )
     ) {
         Column(
@@ -350,7 +349,7 @@ private fun BulletCard(items: List<String>, accent: Color) {
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = line,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Justify, hyphens = Hyphens.Auto, lineBreak = LineBreak.Paragraph),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Start),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -382,7 +381,7 @@ private fun CalloutCard(title: String, body: String, accent: Color) {
             ) {
                 FitText(
                     text = title,
-                    maxSize = 15f,
+                    maxSize = 16f,
                     minSize = 11f,
                     color = accent,
                     fontWeight = FontWeight.Bold
@@ -404,7 +403,7 @@ private fun RowCard(row: SRow, accent: Color) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f).compositeOver(MaterialTheme.colorScheme.surface)
         )
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
@@ -429,7 +428,7 @@ private fun RowCard(row: SRow, accent: Color) {
                 )
                 FitText(
                     text = row.full,
-                    maxSize = 14f,
+                    maxSize = 13f,
                     minSize = 10f,
                     color = muted,
                     fontWeight = FontWeight.Medium
@@ -446,7 +445,7 @@ private fun RowCard(row: SRow, accent: Color) {
                     ) {
                         Text(
                             text = note,
-                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify, hyphens = Hyphens.Auto, lineBreak = LineBreak.Paragraph),
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 17.sp, textAlign = TextAlign.Justify, hyphens = Hyphens.Auto, lineBreak = LineBreak.Paragraph),
                             color = muted
                         )
                     }

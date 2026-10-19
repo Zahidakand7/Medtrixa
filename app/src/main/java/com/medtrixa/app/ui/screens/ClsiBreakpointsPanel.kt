@@ -120,7 +120,7 @@ private fun BreakpointCard(b: ClsiBreakpoint) {
                 BpCell("S. malto-\nphilia", b.stenotrophomonas, auraAccent(3), Modifier.weight(1f))
             }
             if (b.footnote.isNotBlank()) {
-                Text(b.footnote, fontSize = 12.sp, lineHeight = 17.sp,
+                Text(b.footnote, fontSize = 11.sp, lineHeight = 17.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -138,7 +138,7 @@ private fun BpCell(label: String, value: String, accent: Color, modifier: Modifi
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text(label, fontSize = 9.sp, lineHeight = 11.sp, textAlign = TextAlign.Center,
+        Text(label, fontSize = 11.sp, lineHeight = 11.sp, textAlign = TextAlign.Center,
             fontWeight = FontWeight.SemiBold, color = if (has) accent else MaterialTheme.colorScheme.onSurfaceVariant)
         Text(if (has) value else "--", fontSize = if (has) 14.sp else 13.sp,
             fontWeight = if (has) FontWeight.Bold else FontWeight.Normal,

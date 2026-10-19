@@ -217,7 +217,7 @@ private fun AtlasList(organisms: List<Organism>, onBackClick: () -> Unit, onOpen
                             tint = Muted.copy(alpha = 0.6f),
                             modifier = Modifier.size(40.dp)
                         )
-                        Text("No matching organisms", color = Muted, fontSize = 15.sp)
+                        Text("No matching organisms", color = Muted, fontSize = 16.sp)
                         TextButton(onClick = { query = ""; group = "All" }) { Text("Clear filters") }
                     }
                 }
@@ -300,13 +300,13 @@ private fun OrganismCard(o: Organism, onClick: () -> Unit) {
             Pill(o.group, c)
             AutoSizeText(
                 text = o.name,
-                style = TextStyle(color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
+                style = TextStyle(color = Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
             )
             Text(o.morphology, color = c, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             Text(
                 o.diseases.take(3).joinToString("  |  "),
                 color = Muted,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 lineHeight = 17.sp,
                 maxLines = 2
             )
@@ -377,7 +377,7 @@ private fun DetailHeader(o: Organism, c: Color) {
             Spacer(Modifier.height(14.dp))
             AutoSizeText(
                 text = o.name,
-                style = TextStyle(color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
+                style = TextStyle(color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
             )
             Spacer(Modifier.height(6.dp))
             Text(
@@ -391,8 +391,8 @@ private fun DetailHeader(o: Organism, c: Color) {
             Text(
                 o.tagline,
                 color = Color.White.copy(alpha = 0.92f),
-                fontSize = 14.sp,
-                lineHeight = 21.sp,
+                fontSize = 13.sp,
+                lineHeight = 19.sp,
                 textAlign = TextAlign.Start
             )
         }
@@ -412,7 +412,7 @@ private fun SectionCard(title: String, color: Color, content: @Composable () -> 
                 Spacer(Modifier.width(10.dp))
                 AutoSizeText(
                     text = title,
-                    style = TextStyle(color = Ink, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                    style = TextStyle(color = Ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 )
             }
             content()
@@ -428,7 +428,7 @@ private fun PearlsCard(pearls: List<String>) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("Clinical Pearls", color = Color(0xFFB45F06), fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            Text("Clinical Pearls", color = Color(0xFFB45F06), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             RichText(pearls.joinToString("\n") { "• $it" }, Color(0xFFB45F06))
         }
     }
@@ -447,15 +447,15 @@ private fun RichText(text: String, dotColor: Color = Ink) {
                     Text(
                         line.removePrefix("• "),
                         color = Ink,
-                        fontSize = 14.sp,
-                        lineHeight = 21.sp,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier.weight(1f)
                     )
                 }
             } else {
                 // Paragraph style: justified
-                Text(line, color = Ink, fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify)
+                Text(line, color = Ink, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Justify)
             }
         }
     }

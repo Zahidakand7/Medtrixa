@@ -33,6 +33,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import com.medtrixa.app.ui.theme.auraSubOnDark
+import com.medtrixa.app.ui.theme.auraOnDark
+import com.medtrixa.app.ui.theme.auraPanel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -49,10 +52,13 @@ import kotlin.math.exp
 class VisualBlock(val content: @Composable () -> Unit) : SBlock()
 
 object SvColor {
-    val bg0 = Color(0xFF0A111F)
-    val bg1 = Color(0xFF16233A)
+    val bg0: Color
+        @Composable get() = auraPanel(true)
+    val bg1: Color
+        @Composable get() = auraPanel(false)
     val text = Color(0xFFF1F5F9)
-    val sub = Color(0xFF9FB0C7)
+    val sub: Color
+        @Composable get() = auraSubOnDark()
     val green = Color(0xFF34D399)
     val amber = Color(0xFFFBBF24)
     val red = Color(0xFFF87171)
@@ -92,7 +98,7 @@ private fun SvPanel(title: String, subtitle: String, content: @Composable Column
             .padding(vertical = 8.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(Brush.verticalGradient(listOf(SvColor.bg1, SvColor.bg0)))
-            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(24.dp))
+            .border(1.dp, auraOnDark(0).copy(alpha = 0.35f), RoundedCornerShape(24.dp))
             .padding(18.dp)
     ) {
         Box(
@@ -100,7 +106,7 @@ private fun SvPanel(title: String, subtitle: String, content: @Composable Column
                 .width(38.dp)
                 .height(4.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(Brush.horizontalGradient(listOf(SvColor.teal, SvColor.blue)))
+                .background(Brush.horizontalGradient(listOf(svThemed(SvColor.teal), svThemed(SvColor.blue))))
         )
         Spacer(Modifier.height(10.dp))
         FitSvText(title, 17, SvColor.text, FontWeight.Bold, 10)
@@ -120,7 +126,10 @@ private fun LegendDot(color: Color, label: String) {
     }
 }
 
-class SvStat(val value: String, val label: String, val color: Color)
+class SvStat(val value: String, val label: String, private val raw: Color) {
+    val color: Color
+        @Composable get() = svThemed(raw)
+}
 
 @Composable
 private fun StatGrid(stats: List<SvStat>, valueSize: Int) {
@@ -136,11 +145,12 @@ private fun StatGrid(stats: List<SvStat>, valueSize: Int) {
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color(0x14FFFFFF))
-                        .padding(14.dp)
+                        .padding(14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    SvText(s.value, valueSize, s.color, FontWeight.ExtraBold)
+                    SvText(s.value, valueSize, s.color, FontWeight.ExtraBold, align = TextAlign.Center)
                     Spacer(Modifier.height(3.dp))
-                    SvText(s.label, 11, SvColor.sub)
+                    SvText(s.label, 11, SvColor.sub, align = TextAlign.Center)
                 }
             }
             if (row.size == 1) Spacer(Modifier.weight(1f))
@@ -250,7 +260,7 @@ fun durationVisual(
                     Modifier
                         .fillMaxWidth((d.now.toFloat() / maxDays).coerceIn(0.05f, 1f))
                         .height(9.dp)
-                        .background(Brush.horizontalGradient(listOf(SvColor.teal, SvColor.green)))
+                        .background(Brush.horizontalGradient(listOf(svThemed(SvColor.teal), SvColor.green)))
                 )
             }
             Spacer(Modifier.height(3.dp))
@@ -268,7 +278,10 @@ fun durationVisual(
     }
 }
 
-class SvStep(val title: String, val detail: String, val color: Color)
+class SvStep(val title: String, val detail: String, private val raw: Color) {
+    val color: Color
+        @Composable get() = svThemed(raw)
+}
 
 fun flowVisual(title: String, subtitle: String, steps: List<SvStep>): VisualBlock = VisualBlock {
     SvPanel(title, subtitle) {
@@ -301,7 +314,10 @@ fun flowVisual(title: String, subtitle: String, steps: List<SvStep>): VisualBloc
     }
 }
 
-class SvSeg(val label: String, val pct: Float, val pctLabel: String, val color: Color, val examples: String)
+class SvSeg(val label: String, val pct: Float, val pctLabel: String, private val raw: Color, val examples: String) {
+    val color: Color
+        @Composable get() = svThemed(raw)
+}
 
 fun awareVisual(
     title: String,
@@ -355,6 +371,7 @@ fun awareVisual(
 fun pkpdVisual(title: String, subtitle: String, caption: String, chips: List<SvStat>): VisualBlock =
     VisualBlock {
         SvPanel(title, subtitle) {
+            val pkTeal = svThemed(SvColor.teal)
             Canvas(Modifier.fillMaxWidth().height(160.dp)) {
                 val w = size.width
                 val h = size.height
@@ -403,7 +420,7 @@ fun pkpdVisual(title: String, subtitle: String, caption: String, chips: List<SvS
                 }
                 drawPath(
                     path = path,
-                    color = SvColor.teal,
+                    color = pkTeal,
                     style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
                 )
             }
@@ -414,7 +431,7 @@ fun pkpdVisual(title: String, subtitle: String, caption: String, chips: List<SvS
             }
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                LegendDot(SvColor.teal, "Free drug level")
+                LegendDot(svThemed(SvColor.teal), "Free drug level")
                 LegendDot(SvColor.amber, "MIC")
                 LegendDot(SvColor.green, "Time above MIC")
             }
@@ -425,7 +442,10 @@ fun pkpdVisual(title: String, subtitle: String, caption: String, chips: List<SvS
         }
     }
 
-class SvScore(val score: String, val risk: String, val action: String, val color: Color)
+class SvScore(val score: String, val risk: String, val action: String, private val raw: Color) {
+    val color: Color
+        @Composable get() = svThemed(raw)
+}
 
 fun scoreVisual(title: String, subtitle: String, items: List<SvScore>, foot: String = ""): VisualBlock =
     VisualBlock {
@@ -443,12 +463,13 @@ fun scoreVisual(title: String, subtitle: String, items: List<SvScore>, foot: Str
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(s.color.copy(alpha = 0.14f))
                                 .border(1.dp, s.color.copy(alpha = 0.55f), RoundedCornerShape(16.dp))
-                                .padding(14.dp)
+                                .padding(14.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            SvText("Score " + s.score, 12, SvColor.sub, FontWeight.SemiBold)
-                            SvText(s.risk, 22, s.color, FontWeight.ExtraBold)
+                            SvText("Score " + s.score, 12, SvColor.sub, FontWeight.SemiBold, align = TextAlign.Center)
+                            SvText(s.risk, 22, s.color, FontWeight.ExtraBold, align = TextAlign.Center)
                             Spacer(Modifier.height(4.dp))
-                            SvText(s.action, 12, SvColor.text)
+                            SvText(s.action, 12, SvColor.text, align = TextAlign.Center)
                         }
                     }
                 }
@@ -485,4 +506,15 @@ private fun FitSvText(
             lineHeight = (sp + 5f).sp
         )
     )
+}
+
+
+// Turns the original accent label into the theme colour (only readable while drawing)
+@Composable
+fun svThemed(c: Color): Color = when (c) {
+    SvColor.blue -> auraOnDark(0)
+    SvColor.teal -> auraOnDark(1)
+    SvColor.violet -> auraOnDark(3)
+    SvColor.rose -> auraOnDark(4)
+    else -> c
 }

@@ -50,3 +50,29 @@ fun pubmedHeroBrush(): Brush {
     val cs = MaterialTheme.colorScheme
     return Brush.linearGradient(listOf(deep(cs.primary, 0.12f), deep(cs.primary, 0.55f)))
 }
+
+
+// Dark panel shades for diagram cards (always dark with light text), built from the theme
+@Composable
+fun auraPanel(deepest: Boolean): Color {
+    val cs = MaterialTheme.colorScheme
+    // top of the panel: deep teal from primary; bottom: dark slate from secondary
+    return if (deepest) lerp(cs.secondary, Color.Black, 0.72f) else lerp(cs.primary, Color.Black, 0.50f)
+}
+
+// Theme accents lightened so they stay readable on dark panels
+@Composable
+fun auraOnDark(slot: Int): Color {
+    val dark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    return lerp(auraAccent(slot), Color.White, if (dark) 0.10f else 0.45f)
+}
+
+@Composable
+fun auraSubOnDark(): Color = lerp(MaterialTheme.colorScheme.secondary, Color.White, 0.55f)
+
+
+@Composable
+fun stewardshipHeroBrush(): Brush {
+    val cs = MaterialTheme.colorScheme
+    return Brush.linearGradient(listOf(deep(cs.tertiary, 0.35f), deep(cs.secondary, 0.45f)))
+}

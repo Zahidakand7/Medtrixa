@@ -235,7 +235,7 @@ private fun RxCard(item: RxItem) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (item.category.isNotBlank()) RxPill(item.category, tint)
-                    Text(item.title, color = ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(item.title, color = ink, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     if (item.subtitle.isNotBlank()) {
                         Text(item.subtitle, color = tint, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
@@ -263,7 +263,7 @@ private fun RxCard(item: RxItem) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.width(4.dp).height(16.dp).clip(RoundedCornerShape(2.dp)).background(tint))
                         Spacer(Modifier.width(10.dp))
-                        Text(s.title, color = ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                        Text(s.title, color = ink, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Spacer(Modifier.height(10.dp))
                     RxText(s.text, tint, ink)
@@ -301,14 +301,14 @@ private fun RxText(text: String, tint: Color, ink: Color) {
                     Text(
                         line.removePrefix("\u2022 "),
                         color = ink,
-                        fontSize = 14.sp,
-                        lineHeight = 21.sp,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier.weight(1f)
                     )
                 }
             } else {
-                Text(line, color = ink, fontSize = 14.sp, lineHeight = 21.sp, textAlign = TextAlign.Justify)
+                Text(line, color = ink, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Justify)
             }
         }
     }

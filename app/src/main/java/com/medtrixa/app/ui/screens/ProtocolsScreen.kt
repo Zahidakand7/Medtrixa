@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -26,7 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.medtrixa.app.ui.components.PremiumBackButton
 
 private val comingNext = listOf(
-    "Lab Interpreter", "SBAR Handover",
+    "SBAR Handover",
     "Anaphylaxis", "Stroke", "DKA", "Status epilepticus"
 )
 
@@ -36,7 +37,8 @@ fun ProtocolsScreen(
     onBackClick: () -> Unit,
     onCardiacArrestClick: () -> Unit,
     onAbgClick: () -> Unit,
-    onSepsisClick: () -> Unit
+    onSepsisClick: () -> Unit,
+    onLabClick: () -> Unit
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val background = MaterialTheme.colorScheme.background
@@ -149,6 +151,16 @@ fun ProtocolsScreen(
                         source = "SSC 2026",
                         icon = Icons.Outlined.Warning,
                         onClick = onSepsisClick
+                    )
+                }
+
+                item {
+                    ProtocolRow(
+                        title = "Lab Interpreter",
+                        subtitle = "Check results against reference ranges",
+                        source = "ABIM 2026",
+                        icon = Icons.Outlined.Info,
+                        onClick = onLabClick
                     )
                 }
 

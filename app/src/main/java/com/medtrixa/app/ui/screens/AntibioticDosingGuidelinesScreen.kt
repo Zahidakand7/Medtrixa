@@ -345,7 +345,7 @@ private fun HeroBanner(count: Int) {
                 Text(
                     "$count regimens",
                     color = Color.White,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -463,7 +463,7 @@ private fun GuidelineCard(guideline: AntibioticDosingGuideline) {
                     Text(
                         guideline.group.ifBlank { "Guideline" },
                         color = Color.White,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
@@ -538,7 +538,7 @@ private fun GuidelineCard(guideline: AntibioticDosingGuideline) {
                 ) {
                     Text(
                         if (expanded) "Hide details" else "Tap for details",
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         color = accent
                     )
@@ -616,7 +616,7 @@ private fun DetailRow(label: String, value: String, justify: Boolean = false) {
         Text(
             label.uppercase(),
             fontWeight = FontWeight.Bold,
-            fontSize = 10.sp,
+            fontSize = 11.sp,
             letterSpacing = 1.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
