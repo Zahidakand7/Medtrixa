@@ -1,6 +1,10 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -55,7 +59,7 @@ private fun rangeText(low: Double?, high: Double?, unit: String): String = when 
 private fun judge(v: Double, low: Double?, high: Double?): LabVerdict {
     if (low != null && v < low) {
         val pct = if (low != 0.0) (low - v) / low * 100.0 else 0.0
-        return LabVerdict("Below range (${fmtNum(Math.round(pct * 10.0) / 10.0)}% under the lower limit)", 1)
+        return LabVerdict("Below range (${fmtNum(Math.round(pct * 10.0) / 10.0)}% under the lower limit)", 3)
     }
     if (high != null && v > high) {
         val pct = if (high != 0.0) (v - high) / high * 100.0 else 0.0
@@ -70,7 +74,12 @@ private fun judgeBands(v: Double, bands: String): LabVerdict {
         if (bits.size == 2) {
             val upper = if (bits[0] == "INF") Double.POSITIVE_INFINITY else bits[0].toDoubleOrNull()
             if (upper != null && v < upper) {
-                val level = if (bits[1] == "Optimal" || bits[1] == "Desirable" || bits[1] == "Normal" || bits[1] == "Near-optimal") 0 else 1
+                val level = when (bits[1]) {
+                    "Optimal", "Desirable", "Normal", "Near-optimal" -> 0
+                    "Borderline high" -> 4
+                    "Very high" -> 5
+                    else -> 1
+                }
                 return LabVerdict(bits[1], level)
             }
         }
@@ -93,7 +102,7 @@ private fun judgeNtProBnp(v: Double, age: Double?, lowEgfr: Boolean): LabVerdict
     return when {
         v <= 300.0 -> LabVerdict("Heart failure unlikely (300 pg/mL or less)", 0)
         v >= high -> LabVerdict("High probability of heart failure (${fmtNum(high)} pg/mL or more for this age)", 1)
-        else -> LabVerdict("Between the thresholds: indeterminate. Use clinical assessment.", 2)
+        else -> LabVerdict("Between the thresholds: indeterminate. Use clinical assessment.", 4)
     }
 }
 
@@ -240,6 +249,8 @@ fun LabInterpreterScreen(onBackClick: () -> Unit) {
                             }
                         }
 
+                        item { LegendRow() }
+
                         items(shown, key = { it.index }) { (idx, t) ->
                             LabCard(
                                 t = t,
@@ -316,7 +327,10 @@ private fun LabCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = if (verdict != null && verdict.text.isNotEmpty() && verdict.level != 2)
+            BorderStroke(1.5.dp, levelColor(verdict.level).copy(alpha = 0.55f))
+        else null
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(t.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -352,11 +366,7 @@ private fun LabCard(
                 }
             }
             if (verdict != null && verdict.text.isNotEmpty()) {
-                val color = when (verdict.level) {
-                    0 -> primary
-                    1 -> MaterialTheme.colorScheme.error
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                }
+                val color = levelColor(verdict.level)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -375,5 +385,51 @@ private fun LabCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun levelColor(level: Int): Color = when (level) {
+    0 -> Color(0xFF2E7D32)
+    1 -> Color(0xFFD84315)
+    3 -> Color(0xFF1565C0)
+    4 -> Color(0xFFB26A00)
+    5 -> Color(0xFFB71C1C)
+    else -> MaterialTheme.colorScheme.onSurfaceVariant
+}
+
+@Composable
+private fun LegendRow() {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            listOf(
+                0 to "Within range",
+                3 to "Below",
+                1 to "Above / high",
+                4 to "Borderline or indeterminate",
+                5 to "Very high"
+            ).forEach { (lvl, label) ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .background(levelColor(lvl), CircleShape)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+        Text(
+            "Colour shows the direction from the reference range and, for lipids and NT-proBNP, the guideline category. " +
+                "It does not rate clinical urgency.",
+            fontSize = 11.sp,
+            lineHeight = 16.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
