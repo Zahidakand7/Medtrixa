@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.ShowChart
 import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.outlined.Info
@@ -36,6 +37,7 @@ private val comingNext = listOf(
 fun ProtocolsScreen(
     onBackClick: () -> Unit,
     onCardiacArrestClick: () -> Unit,
+    onPulseClick: () -> Unit,
     onAbgClick: () -> Unit,
     onSepsisClick: () -> Unit,
     onLabClick: () -> Unit
@@ -132,6 +134,16 @@ fun ProtocolsScreen(
                             }
                         }
                     }
+                }
+
+                item {
+                    ProtocolRow(
+                        title = "Pulse Assessment",
+                        subtitle = "Camera-based pulse estimate, waveform and signal quality",
+                        source = "RESEARCH USE ONLY",
+                        icon = Icons.Outlined.ShowChart,
+                        onClick = onPulseClick
+                    )
                 }
 
                 item {

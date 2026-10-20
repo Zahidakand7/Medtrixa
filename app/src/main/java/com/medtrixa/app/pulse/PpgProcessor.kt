@@ -35,19 +35,30 @@ object PpgProcessor {
     private const val SATURATED_RED = 250f
 
     fun process(red: FloatArray, fps: Float): PpgResult {
-        if (fps <= 0f || red.size < (MIN_SECONDS * fps).toInt()) {
+        if (fps <= 0f || red.isEmpty()) {
             return PpgResult(PpgStatus.TOO_SHORT)
         }
+
         val mean = red.average().toFloat()
         if (mean < FINGER_MIN_RED) return PpgResult(PpgStatus.NO_FINGER)
         if (mean > SATURATED_RED) return PpgResult(PpgStatus.SATURATED)
 
-        val filtered = bandpass(red, fps)
+        // Show the waveform before the full measurement window is available.
+        val enoughForTrace = red.size >= max(12, (2f * fps).toInt())
+        val filtered = if (enoughForTrace) bandpass(red, fps) else FloatArray(0)
+
+        if (red.size < (MIN_SECONDS * fps).toInt()) {
+            return PpgResult(
+                status = PpgStatus.TOO_SHORT,
+                filtered = filtered
+            )
+        }
+
         val peaks = detectPeaks(filtered, fps)
         val allIbi = intervalsMs(peaks, fps)
         val ibi = cleanIntervals(allIbi)
         if (ibi.size < 5) {
-            return PpgResult(PpgStatus.LOW_QUALITY, 0f, filtered = filtered, peakIndices = peaks)
+            return PpgResult(PpgStatus.LOW_QUALITY, quality = 0f, filtered = filtered, peakIndices = peaks)
         }
 
         val medianIbi = median(ibi)

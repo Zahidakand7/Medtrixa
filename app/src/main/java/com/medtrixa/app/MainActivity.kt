@@ -53,6 +53,7 @@ import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.AiInsightsScreen
 import com.medtrixa.app.ui.screens.ToolsScreen
 import com.medtrixa.app.ui.screens.ProtocolsScreen
+import com.medtrixa.app.ui.screens.pulse.PulseScreen
 import com.medtrixa.app.ui.screens.CardiacArrestScreen
 import com.medtrixa.app.ui.screens.AbgInterpreterScreen
 import com.medtrixa.app.ui.screens.SepsisScreen
@@ -153,7 +154,8 @@ private fun MedtrixaRoot() {
                 backFromScore("clinical_scores")
             "cha2ds2vasc", "hasbled", "wells_dvt", "wells_pe", "perc" ->
                 backFromScore("risk_assessment")
-            "cardiac_arrest", "abg_interpreter", "sepsis", "lab_interpreter" -> currentScreen = "tools"
+            "cardiac_arrest", "abg_interpreter", "sepsis", "lab_interpreter",
+            "pulse_assessment" -> currentScreen = "tools"
             "calculator" -> currentScreen = "calculators"
             "ai_insights" -> {
                 aiResume = false
@@ -173,6 +175,7 @@ private fun MedtrixaRoot() {
             ProtocolsScreen(
                 onBackClick = { currentScreen = "home" },
                 onCardiacArrestClick = { currentScreen = "cardiac_arrest" },
+                onPulseClick = { currentScreen = "pulse_assessment" },
                 onAbgClick = { currentScreen = "abg_interpreter" },
                 onSepsisClick = { currentScreen = "sepsis" },
                 onLabClick = { currentScreen = "lab_interpreter" }
@@ -193,6 +196,10 @@ private fun MedtrixaRoot() {
 
         "cardiac_arrest" -> {
             CardiacArrestScreen(onBackClick = { currentScreen = "tools" })
+        }
+
+        "pulse_assessment" -> {
+            PulseScreen(onBackClick = { currentScreen = "tools" })
         }
 
         "drug_detail" -> {
