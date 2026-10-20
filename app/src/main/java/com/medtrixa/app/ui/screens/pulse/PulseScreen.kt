@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.graphics.graphicsLayer
@@ -878,7 +879,7 @@ private fun HeartbeatIcon(bpm: Int?, modifier: Modifier = Modifier) {
             }
     ) {
         val k = size.width / 24f
-        val stroke = Stroke(1.75f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        val stroke = Stroke(1.5f, cap = StrokeCap.Round, join = StrokeJoin.Round)
         withTransform({ scale(k, k, Offset.Zero) }) {
             drawPath(heartPath, color, style = stroke)
             drawPath(linePath, color, style = stroke)
