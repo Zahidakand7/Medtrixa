@@ -47,6 +47,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -300,14 +314,20 @@ fun PulseScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        "Your Pulse, Visualised",
+                    Row(
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            "Your Pulse, Visualised",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        HeartbeatIcon(bpm = displayBpm)
+                    }
                     Surface(
                         color = primary.copy(alpha = 0.10f),
                         shape = RoundedCornerShape(50)
@@ -814,5 +834,61 @@ private fun VariabilityMetric(
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold
         )
+    }
+}
+
+@Composable
+private fun HeartbeatIcon(bpm: Int?, modifier: Modifier = Modifier) {
+    val color = Color(0xFFE24B4A)
+    val beat = remember { Animatable(1f) }
+    val current by rememberUpdatedState(bpm)
+
+    LaunchedEffect(bpm != null) {
+        if (bpm == null) {
+            beat.snapTo(1f)
+            return@LaunchedEffect
+        }
+        while (true) {
+            val period = 60_000f / (current ?: 72).coerceIn(40, 200)
+            beat.animateTo(1.25f, tween((period * 0.12f).toInt()))
+            beat.animateTo(1f, tween((period * 0.14f).toInt()))
+            beat.animateTo(1.15f, tween((period * 0.10f).toInt()))
+            beat.animateTo(1f, tween((period * 0.18f).toInt()))
+            delay((period * 0.46f).toLong())
+        }
+    }
+
+    Canvas(
+        modifier
+            .size(22.dp)
+            .graphicsLayer {
+                scaleX = beat.value
+                scaleY = beat.value
+            }
+    ) {
+        val w = size.width
+        val h = size.height
+        val stroke = Stroke(1.8.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+        val heart = Path().apply {
+            moveTo(0.50f * w, 0.88f * h)
+            cubicTo(0.15f * w, 0.62f * h, 0.05f * w, 0.42f * h, 0.05f * w, 0.30f * h)
+            cubicTo(0.05f * w, 0.14f * h, 0.18f * w, 0.08f * h, 0.28f * w, 0.08f * h)
+            cubicTo(0.40f * w, 0.08f * h, 0.47f * w, 0.16f * h, 0.50f * w, 0.24f * h)
+            cubicTo(0.53f * w, 0.16f * h, 0.60f * w, 0.08f * h, 0.72f * w, 0.08f * h)
+            cubicTo(0.82f * w, 0.08f * h, 0.95f * w, 0.14f * h, 0.95f * w, 0.30f * h)
+            cubicTo(0.95f * w, 0.42f * h, 0.85f * w, 0.62f * h, 0.50f * w, 0.88f * h)
+            close()
+        }
+        drawPath(heart, color, style = stroke)
+        val line = Path().apply {
+            moveTo(0.14f * w, 0.52f * h)
+            lineTo(0.30f * w, 0.52f * h)
+            lineTo(0.38f * w, 0.32f * h)
+            lineTo(0.50f * w, 0.70f * h)
+            lineTo(0.60f * w, 0.44f * h)
+            lineTo(0.66f * w, 0.52f * h)
+            lineTo(0.86f * w, 0.52f * h)
+        }
+        drawPath(line, color, style = stroke)
     }
 }
