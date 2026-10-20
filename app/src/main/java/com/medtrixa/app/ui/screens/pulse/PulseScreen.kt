@@ -27,6 +27,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -82,6 +83,8 @@ fun PulseScreen(
 
     val result by capture.result.collectAsStateWithLifecycle()
     val progress by capture.progress.collectAsStateWithLifecycle()
+    val lensCount by capture.lensCount.collectAsStateWithLifecycle()
+    val lensIndex by capture.lensIndex.collectAsStateWithLifecycle()
 
     var granted by remember {
         mutableStateOf(
@@ -123,8 +126,8 @@ fun PulseScreen(
     val surface = MaterialTheme.colorScheme.surface
     val cardShape = RoundedCornerShape(22.dp)
 
-    // No finger / negligible quality: show nothing instead of auto-scaled noise
-    val hasContact = result.status != PpgStatus.NO_FINGER && result.quality >= 0.10f
+    // Capture now reports NO_FINGER reliably; show nothing instead of auto-scaled noise
+    val hasContact = result.status != PpgStatus.NO_FINGER
 
     val shown = if (hasContact) minOf(result.filtered.size, 150) else 0
     val from = result.filtered.size - shown
@@ -134,7 +137,7 @@ fun PulseScreen(
     } else emptyList()
 
     val qualityColor = when {
-        !hasContact -> Color(0xFF94A3B8)
+        !hasContact || result.status == PpgStatus.TOO_SHORT -> Color(0xFF94A3B8)
         result.quality >= 0.55f -> PulseGreen
         result.quality >= 0.35f -> PulseAmber
         else -> PulseRed
@@ -142,6 +145,7 @@ fun PulseScreen(
 
     val qualityLabel = when {
         !hasContact -> "No finger detected"
+        result.status == PpgStatus.TOO_SHORT -> "Measuring…"
         result.quality >= 0.55f -> "Good signal"
         result.quality >= 0.35f -> "Fair signal"
         else -> "Weak signal"
@@ -445,6 +449,17 @@ fun PulseScreen(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = muted
                             )
+                            if (lensCount > 1) {
+                                OutlinedButton(
+                                    onClick = {
+                                        waitedSec = 0
+                                        capture.nextLens()
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Try another lens (${lensIndex + 1} of $lensCount)")
+                                }
+                            }
                             if (waitedSec >= 30) {
                                 Button(
                                     onClick = { attempt++ },

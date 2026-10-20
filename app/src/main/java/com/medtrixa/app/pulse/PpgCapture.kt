@@ -36,6 +36,17 @@ class PpgCapture(private val context: Context) {
 
     private var provider: ProcessCameraProvider? = null
     private var camera: Camera? = null
+    private var lifecycleOwner: LifecycleOwner? = null
+
+    // Rear lenses that have a flash unit. Phones with several rear cameras may
+    // expose more than one; the user can cycle through them with nextLens().
+    private val _lensCount = MutableStateFlow(1)
+    val lensCount: StateFlow<Int> = _lensCount
+    private val _lensIndex = MutableStateFlow(0)
+    val lensIndex: StateFlow<Int> = _lensIndex
+
+    // Frame counters used by the finger gate (touched only on the analyzer thread)
+    private var missFrames = 0
 
     @Volatile private var active = false
     @Volatile private var lastFrameElapsedMs = 0L
@@ -45,6 +56,8 @@ class PpgCapture(private val context: Context) {
         if (active) return
 
         active = true
+        lifecycleOwner = owner
+        missFrames = 0
         val token = generation.incrementAndGet()
         lastFrameElapsedMs = SystemClock.elapsedRealtime()
         clearSamples(PpgStatus.TOO_SHORT)
@@ -83,10 +96,31 @@ class PpgCapture(private val context: Context) {
                     return@addListener
                 }
 
+                val flashLenses = CameraSelector.DEFAULT_BACK_CAMERA
+                    .filter(p.availableCameraInfos)
+                    .filter { it.hasFlashUnit() }
+                val count = maxOf(1, flashLenses.size)
+                _lensCount.value = count
+                val idx = _lensIndex.value % count
+                _lensIndex.value = idx
+
+                val selector = if (flashLenses.size > 1) {
+                    CameraSelector.Builder()
+                        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                        .addCameraFilter { infos ->
+                            val withFlash = infos.filter { it.hasFlashUnit() }
+                            if (withFlash.isEmpty()) infos
+                            else listOf(withFlash[idx % withFlash.size])
+                        }
+                        .build()
+                } else {
+                    CameraSelector.DEFAULT_BACK_CAMERA
+                }
+
                 p.unbindAll()
                 camera = p.bindToLifecycle(
                     owner,
-                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    selector,
                     analysis
                 )
 
@@ -103,6 +137,15 @@ class PpgCapture(private val context: Context) {
                 }
             }
         }, ContextCompat.getMainExecutor(context))
+    }
+
+    /** Switch to the next rear lens that has a flash, then restart capture. */
+    fun nextLens() {
+        val owner = lifecycleOwner ?: return
+        if (!active) return
+        stop()
+        _lensIndex.value = _lensIndex.value + 1
+        start(owner)
     }
 
     fun stop() {
@@ -171,24 +214,33 @@ class PpgCapture(private val context: Context) {
             val timestampNs = image.imageInfo.timestamp
             lastFrameElapsedMs = SystemClock.elapsedRealtime()
 
-            // A fingertip usually produces a red-dominant image.
-            // Brightness alone can mistake ordinary room light for contact.
+            // A fingertip lit by the torch is strongly red: red far above green and
+            // blue. Loose ratios let a warm room, a palm or a pale surface pass as
+            // a finger, so the trace appeared with nothing on the lens.
+            val redOverGreen = meanR / (meanG + 1f)
+            val redOverBlue = meanR / (meanB + 1f)
             val fingerLike =
-                meanR >= 90f &&
-                meanR < 250f &&
-                meanR - meanG >= 7f &&
-                meanR >= meanG * 1.06f &&
-                meanR >= meanB * 1.10f
+                meanR >= 100f &&
+                redOverGreen >= 1.8f &&
+                redOverBlue >= 2.2f
 
             if (!fingerLike) {
-                if (active && generation.get() == token) {
+                // Tolerate a few bad frames, then clear once (not on every frame)
+                missFrames++
+                if (missFrames >= 6 &&
+                    active && generation.get() == token &&
+                    _result.value.status != PpgStatus.NO_FINGER
+                ) {
                     clearSamples(PpgStatus.NO_FINGER)
                 }
                 return
             }
+            missFrames = 0
 
             if (meanR >= 250f) {
-                if (active && generation.get() == token) {
+                if (active && generation.get() == token &&
+                    _result.value.status != PpgStatus.SATURATED
+                ) {
                     clearSamples(PpgStatus.SATURATED)
                 }
                 return
