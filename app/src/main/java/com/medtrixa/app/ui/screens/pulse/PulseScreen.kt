@@ -39,6 +39,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,10 +63,27 @@ import com.medtrixa.app.pulse.PpgCapture
 import com.medtrixa.app.pulse.PpgStatus
 import com.medtrixa.app.ui.components.PremiumBackButton
 import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
 private val PulseGreen = Color(0xFF2EB67D)
 private val PulseAmber = Color(0xFFE8A33D)
 private val PulseRed = Color(0xFFD9534F)
+
+// Clinical pulse counts use 30 s (x2) for a regular rhythm and a full 60 s when the
+// rhythm is irregular. The same windows are used here. The 8 bpm spread limit is a
+// practical app heuristic, not a published guideline value.
+private const val FINAL_SECONDS = 30
+private const val EXTENDED_SECONDS = 60
+private const val MAX_SPREAD_BPM = 8
+
+private data class FinalReading(
+    val bpm: Int,
+    val seconds: Int,
+    val varied: Boolean,
+    val quality: Float,
+    val sdnnMs: Double?,
+    val rmssdMs: Double?
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,8 +167,64 @@ fun PulseScreen(
     val surface = MaterialTheme.colorScheme.surface
     val cardShape = RoundedCornerShape(22.dp)
 
+    // Stable reading: mean of per-second estimates over a 30 s window (60 s if they vary)
+    var finalReading by remember { mutableStateOf<FinalReading?>(null) }
+    var goodSec by remember { mutableIntStateOf(0) }
+    val samples = remember { mutableStateListOf<Int>() }
+    val latest by rememberUpdatedState(result)
+
+    LaunchedEffect(measuring, attempt) {
+        if (!measuring) return@LaunchedEffect
+        var badSec = 0
+        while (true) {
+            delay(1000)
+            val r = latest
+            val b = r.bpm
+            if (r.status == PpgStatus.OK && b != null) {
+                badSec = 0
+                samples.add(b)
+                goodSec++
+            } else {
+                badSec++
+                if (badSec >= 5) {
+                    // Contact lost for too long: restart the window
+                    samples.clear()
+                    goodSec = 0
+                }
+            }
+            if (goodSec >= FINAL_SECONDS) {
+                val spread = (samples.maxOrNull() ?: 0) - (samples.minOrNull() ?: 0)
+                val varied = spread > MAX_SPREAD_BPM
+                if (!varied || goodSec >= EXTENDED_SECONDS) {
+                    finalReading = FinalReading(
+                        bpm = samples.average().roundToInt(),
+                        seconds = goodSec,
+                        varied = varied,
+                        quality = r.quality,
+                        sdnnMs = r.sdnnMs,
+                        rmssdMs = r.rmssdMs
+                    )
+                    measuring = false
+                    break
+                }
+            }
+        }
+    }
+
+    val fr = finalReading
+    val liveBpm: Int? = if (measuring && samples.size >= 3) {
+        samples.takeLast(8).sorted().let { it[it.size / 2] }
+    } else null
+    val displayBpm: Int? = fr?.bpm ?: liveBpm
+    val done = fr != null && !measuring
+
     // Capture now reports NO_FINGER reliably; show nothing instead of auto-scaled noise
     val hasContact = measuring && result.status != PpgStatus.NO_FINGER
+    val shownQuality = when {
+        !measuring -> fr?.quality ?: 0f
+        hasContact -> result.quality
+        else -> 0f
+    }
 
     val shown = if (hasContact) minOf(result.filtered.size, 150) else 0
     val from = result.filtered.size - shown
@@ -159,6 +234,7 @@ fun PulseScreen(
     } else emptyList()
 
     val qualityColor = when {
+        done -> PulseGreen
         !measuring || result.status == PpgStatus.TOO_SHORT -> Color(0xFF94A3B8)
         !hasContact -> PulseRed
         result.quality >= 0.55f -> PulseGreen
@@ -167,12 +243,13 @@ fun PulseScreen(
     }
 
     val qualityLabel = when {
+        done -> "Reading Complete"
         !measuring -> "Ready"
         !hasContact -> "No Finger Detected"
         result.status == PpgStatus.TOO_SHORT -> "Measuring…"
-        result.quality >= 0.55f -> "Good signal"
-        result.quality >= 0.35f -> "Fair signal"
-        else -> "Weak signal"
+        result.quality >= 0.55f -> "Good Signal"
+        result.quality >= 0.35f -> "Fair Signal"
+        else -> "Weak Signal"
     }
 
     Scaffold(
@@ -187,7 +264,7 @@ fun PulseScreen(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            "Camera-based pulse estimate",
+                            "Camera-Based Pulse Estimate",
                             style = MaterialTheme.typography.labelSmall,
                             color = muted
                         )
@@ -219,11 +296,15 @@ fun PulseScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         "Your Pulse, Visualised",
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -269,7 +350,7 @@ fun PulseScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            "Camera access required",
+                            "Camera Access Required",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -286,7 +367,7 @@ fun PulseScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Allow camera access")
+                            Text("Allow Camera Access")
                         }
                     }
                 }
@@ -309,10 +390,10 @@ fun PulseScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            if (result.status == PpgStatus.OK && result.bpm != null) {
-                                "ESTIMATED PULSE RATE"
-                            } else {
-                                "PULSE RATE"
+                            when {
+                                fr != null -> "ESTIMATED PULSE RATE · ${fr.seconds} S MEAN"
+                                displayBpm != null -> "LIVE ESTIMATE"
+                                else -> "PULSE RATE"
                             },
                             style = MaterialTheme.typography.labelMedium,
                             color = muted,
@@ -325,11 +406,7 @@ fun PulseScreen(
                             verticalAlignment = Alignment.Bottom
                         ) {
                             Text(
-                                if (result.status == PpgStatus.OK) {
-                                    result.bpm?.toString() ?: "—"
-                                } else {
-                                    "—"
-                                },
+                                displayBpm?.toString() ?: "—",
                                 style = MaterialTheme.typography.displayLarge,
                                 color = primary,
                                 fontWeight = FontWeight.Bold,
@@ -377,12 +454,21 @@ fun PulseScreen(
 
                         if (!measuring) {
                             Text(
-                                if (timedOut) {
-                                    "Couldn't get a stable reading. Check finger placement, " +
-                                        "rest your hand and try again."
-                                } else {
-                                    "Press Start, then cover the flash and the camera beside it. " +
-                                        "The flashlight turns on when you start."
+                                when {
+                                    fr != null ->
+                                        "Mean of ${fr.seconds} seconds of stable signal." +
+                                            if (fr.varied) {
+                                                " Readings varied, so the window was extended to " +
+                                                    "60 seconds. Rest and repeat if needed."
+                                            } else {
+                                                " Rest and measure again whenever you like."
+                                            }
+                                    timedOut ->
+                                        "Couldn't get a stable reading. Check finger placement, " +
+                                            "rest your hand and try again."
+                                    else ->
+                                        "Press Start, then cover the flash and the camera beside it. " +
+                                            "The flashlight turns on when you start."
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -395,13 +481,22 @@ fun PulseScreen(
                                 onClick = {
                                     timedOut = false
                                     waitedSec = 0
+                                    goodSec = 0
+                                    samples.clear()
+                                    finalReading = null
                                     measuring = true
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 4.dp)
                             ) {
-                                Text(if (timedOut) "Try Again" else "Start")
+                                Text(
+                                    when {
+                                        fr != null -> "Measure Again"
+                                        timedOut -> "Try Again"
+                                        else -> "Start"
+                                    }
+                                )
                             }
                         } else if (result.status != PpgStatus.OK) {
                             Text(
@@ -421,6 +516,19 @@ fun PulseScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 6.dp)
+                            )
+                        }
+
+                        if (measuring && goodSec > 0) {
+                            val target = if (goodSec >= FINAL_SECONDS) EXTENDED_SECONDS else FINAL_SECONDS
+                            Text(
+                                "Stabilising: $goodSec / $target s",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = muted
+                            )
+                            LinearProgressIndicator(
+                                progress = { (goodSec.toFloat() / target).coerceIn(0f, 1f) },
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
 
@@ -459,7 +567,7 @@ fun PulseScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "Pulse waveform",
+                                "Pulse Waveform",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -480,6 +588,8 @@ fun PulseScreen(
                             peaks = peaks,
                             idleMessage = if (measuring) {
                                 "Place your fingertip over the flash and the camera next to it"
+                            } else if (fr != null) {
+                                "Measurement complete"
                             } else {
                                 "Press Start when you are ready"
                             }
@@ -528,7 +638,7 @@ fun PulseScreen(
                                     },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text("Try another lens (${lensIndex + 1} of $lensCount)")
+                                    Text("Try Another Lens (${lensIndex + 1} of $lensCount)")
                                 }
                             }
                             if (waitedSec >= 30) {
@@ -536,7 +646,7 @@ fun PulseScreen(
                                     onClick = { attempt++ },
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text("Try again")
+                                    Text("Try Again")
                                 }
                             }
                         }
@@ -560,19 +670,19 @@ fun PulseScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        SignalQualityRing(if (hasContact) result.quality else 0f)
+                        SignalQualityRing(shownQuality)
 
                         Column(
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             Text(
-                                "Signal quality",
+                                "Signal Quality",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "Quality score: ${((if (hasContact) result.quality else 0f).coerceIn(0f, 1f) * 100).toInt()} / 100",
+                                "Quality Score: ${(shownQuality.coerceIn(0f, 1f) * 100).toInt()} / 100",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = muted
                             )
@@ -586,9 +696,9 @@ fun PulseScreen(
                 }
 
                 if (
-                    result.status == PpgStatus.OK &&
-                    result.sdnnMs != null &&
-                    result.rmssdMs != null
+                    fr != null &&
+                    fr.sdnnMs != null &&
+                    fr.rmssdMs != null
                 ) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -602,7 +712,7 @@ fun PulseScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                "Experimental variability metrics",
+                                "Experimental Variability Metrics",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -612,12 +722,12 @@ fun PulseScreen(
                             ) {
                                 VariabilityMetric(
                                     title = "SDNN",
-                                    value = "${result.sdnnMs!!.toInt()} ms",
+                                    value = "${fr.sdnnMs!!.toInt()} ms",
                                     modifier = Modifier.weight(1f)
                                 )
                                 VariabilityMetric(
                                     title = "RMSSD",
-                                    value = "${result.rmssdMs!!.toInt()} ms",
+                                    value = "${fr.rmssdMs!!.toInt()} ms",
                                     modifier = Modifier.weight(1f)
                                 )
                             }
