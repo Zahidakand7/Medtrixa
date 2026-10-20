@@ -52,6 +52,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.rememberCoroutineScope
@@ -99,24 +101,44 @@ fun PulseScreen(
         ActivityResultContracts.RequestPermission()
     ) { granted = it }
 
+    // The camera and flashlight run only while a measurement is active.
+    var measuring by remember { mutableStateOf(false) }
+    var timedOut by remember { mutableStateOf(false) }
+
     // Bumped by "Try again" to restart capture and the wait timer
     var attempt by remember { mutableIntStateOf(0) }
 
-    DisposableEffect(granted, attempt) {
-        if (granted) capture.start(owner)
+    DisposableEffect(granted, measuring, attempt) {
+        if (granted && measuring) capture.start(owner)
         onDispose { capture.stop() }
+    }
+
+    // Leaving the app (Home, recents, screen off) ends the measurement
+    DisposableEffect(owner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) measuring = false
+        }
+        owner.lifecycle.addObserver(observer)
+        onDispose { owner.lifecycle.removeObserver(observer) }
     }
 
     // Seconds spent without a stable estimate; drives the "taking longer" hints
     var waitedSec by remember { mutableIntStateOf(0) }
-    LaunchedEffect(granted, attempt, result.status) {
-        if (!granted || result.status == PpgStatus.OK) {
+    LaunchedEffect(granted, measuring, attempt, result.status) {
+        if (!granted || !measuring || result.status == PpgStatus.OK) {
             waitedSec = 0
             return@LaunchedEffect
         }
         while (true) {
             delay(1000)
             waitedSec++
+            if (waitedSec >= 60) {
+                // Give up: turn the flashlight off instead of waiting forever
+                timedOut = true
+                measuring = false
+                waitedSec = 0
+                break
+            }
         }
     }
 
@@ -127,7 +149,7 @@ fun PulseScreen(
     val cardShape = RoundedCornerShape(22.dp)
 
     // Capture now reports NO_FINGER reliably; show nothing instead of auto-scaled noise
-    val hasContact = result.status != PpgStatus.NO_FINGER
+    val hasContact = measuring && result.status != PpgStatus.NO_FINGER
 
     val shown = if (hasContact) minOf(result.filtered.size, 150) else 0
     val from = result.filtered.size - shown
@@ -137,14 +159,16 @@ fun PulseScreen(
     } else emptyList()
 
     val qualityColor = when {
-        !hasContact || result.status == PpgStatus.TOO_SHORT -> Color(0xFF94A3B8)
+        !measuring || result.status == PpgStatus.TOO_SHORT -> Color(0xFF94A3B8)
+        !hasContact -> PulseRed
         result.quality >= 0.55f -> PulseGreen
         result.quality >= 0.35f -> PulseAmber
         else -> PulseRed
     }
 
     val qualityLabel = when {
-        !hasContact -> "No finger detected"
+        !measuring -> "Ready"
+        !hasContact -> "No Finger Detected"
         result.status == PpgStatus.TOO_SHORT -> "Measuring…"
         result.quality >= 0.55f -> "Good signal"
         result.quality >= 0.35f -> "Fair signal"
@@ -190,42 +214,40 @@ fun PulseScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        "Your pulse, visualised",
+                        "Your Pulse, Visualised",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
-                    Text(
-                        "Cover the flash and the camera beside it. Two fingers side by side works best.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = muted
-                    )
+                    Surface(
+                        color = primary.copy(alpha = 0.10f),
+                        shape = RoundedCornerShape(50)
+                    ) {
+                        Text(
+                            "Research",
+                            modifier = Modifier.padding(
+                                horizontal = 10.dp,
+                                vertical = 4.dp
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
-
-                Surface(
-                    color = primary.copy(alpha = 0.10f),
-                    shape = RoundedCornerShape(50)
-                ) {
-                    Text(
-                        "RESEARCH",
-                        modifier = Modifier.padding(
-                            horizontal = 10.dp,
-                            vertical = 7.dp
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    "Cover the flash and the camera beside it. Two fingers side by side works best.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = muted
+                )
             }
 
             if (!granted) {
@@ -353,7 +375,35 @@ fun PulseScreen(
                             }
                         }
 
-                        if (result.status != PpgStatus.OK) {
+                        if (!measuring) {
+                            Text(
+                                if (timedOut) {
+                                    "Couldn't get a stable reading. Check finger placement, " +
+                                        "rest your hand and try again."
+                                } else {
+                                    "Press Start, then cover the flash and the camera beside it. " +
+                                        "The flashlight turns on when you start."
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = muted,
+                                textAlign = TextAlign.Center
+                            )
+                            Button(
+                                onClick = {
+                                    timedOut = false
+                                    waitedSec = 0
+                                    measuring = true
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp)
+                            ) {
+                                Text(if (timedOut) "Try Again" else "Start")
+                            }
+                        } else if (result.status != PpgStatus.OK) {
                             Text(
                                 result.status.userMessage(),
                                 modifier = Modifier
@@ -365,13 +415,24 @@ fun PulseScreen(
                             )
                         }
 
-                        if (result.status == PpgStatus.TOO_SHORT && progress > 0f) {
+                        if (measuring && result.status == PpgStatus.TOO_SHORT && progress > 0f) {
                             LinearProgressIndicator(
                                 progress = { progress },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(top = 6.dp)
                             )
+                        }
+
+                        if (measuring) {
+                            OutlinedButton(
+                                onClick = { measuring = false },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp)
+                            ) {
+                                Text("Stop")
+                            }
                         }
                     }
                 }
@@ -403,7 +464,11 @@ fun PulseScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                if (hasContact && signal.size >= 2) "LIVE SIGNAL" else "WAITING FOR CONTACT",
+                                when {
+                                    hasContact && signal.size >= 2 -> "LIVE SIGNAL"
+                                    !measuring -> "READY"
+                                    else -> "WAITING FOR CONTACT"
+                                },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color(0xFF38BDF8),
                                 fontWeight = FontWeight.Bold
@@ -413,7 +478,11 @@ fun PulseScreen(
                         PulseWaveform(
                             signal = signal,
                             peaks = peaks,
-                            idleMessage = "Place your fingertip over the flash and the camera next to it"
+                            idleMessage = if (measuring) {
+                                "Place your fingertip over the flash and the camera next to it"
+                            } else {
+                                "Press Start when you are ready"
+                            }
                         )
 
                         Text(
@@ -425,7 +494,7 @@ fun PulseScreen(
                     }
                 }
 
-                if (result.status != PpgStatus.OK && waitedSec >= 10) {
+                if (measuring && result.status != PpgStatus.OK && waitedSec >= 10) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
@@ -438,7 +507,7 @@ fun PulseScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                "Taking longer than usual",
+                                "Taking Longer than Usual",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -446,8 +515,10 @@ fun PulseScreen(
                                 "Phones have several rear lenses and the flash sits beside them. " +
                                     "Cover the flash and the lens next to it together, using two " +
                                     "fingers side by side. Rest your hand, press gently and stay still.",
+                                modifier = Modifier.fillMaxWidth(),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = muted
+                                color = muted,
+                                textAlign = TextAlign.Justify
                             )
                             if (lensCount > 1) {
                                 OutlinedButton(
@@ -577,7 +648,7 @@ fun PulseScreen(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
-                        "Important clinical limitation",
+                        "Important Clinical Limitation",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -586,8 +657,10 @@ fun PulseScreen(
                             "It does not measure blood pressure, diagnose arrhythmias, " +
                             "or replace a validated pulse oximeter or clinical assessment. " +
                             "Use a validated cuff to measure blood pressure.",
+                        modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.bodySmall,
-                        color = muted
+                        color = muted,
+                        textAlign = TextAlign.Justify
                     )
                 }
             }
