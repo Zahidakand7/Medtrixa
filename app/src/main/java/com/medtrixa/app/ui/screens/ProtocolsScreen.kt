@@ -139,7 +139,7 @@ fun ProtocolsScreen(
                 item {
                     ProtocolRow(
                         title = "Pulse Assessment",
-                        subtitle = "Camera-based pulse estimate, waveform and signal quality",
+                        subtitle = "Camera-based pulse estimate and waveform",
                         source = "RESEARCH USE ONLY",
                         icon = Icons.Outlined.ShowChart,
                         onClick = onPulseClick
