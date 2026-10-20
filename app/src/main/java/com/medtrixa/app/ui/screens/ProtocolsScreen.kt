@@ -140,7 +140,7 @@ fun ProtocolsScreen(
                     ProtocolRow(
                         title = "Pulse Assessment",
                         subtitle = "Camera-based pulse estimate and waveform",
-                        source = "RESEARCH USE ONLY",
+                        source = "Research Use Only",
                         icon = Icons.Outlined.ShowChart,
                         onClick = onPulseClick
                     )
@@ -150,7 +150,7 @@ fun ProtocolsScreen(
                     ProtocolRow(
                         title = "ABG Interpreter",
                         subtitle = "Primary disorder, compensation, anion gap",
-                        source = "Physiological approach",
+                        source = "Physiological Approach",
                         icon = Icons.Outlined.Science,
                         onClick = onAbgClick
                     )

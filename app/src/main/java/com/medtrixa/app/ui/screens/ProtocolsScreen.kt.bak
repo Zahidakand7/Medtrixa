@@ -138,7 +138,7 @@ fun ProtocolsScreen(
                     ProtocolRow(
                         title = "ABG Interpreter",
                         subtitle = "Primary disorder, compensation, anion gap",
-                        source = "Physiological approach",
+                        source = "Physiological Approach",
                         icon = Icons.Outlined.Science,
                         onClick = onAbgClick
                     )

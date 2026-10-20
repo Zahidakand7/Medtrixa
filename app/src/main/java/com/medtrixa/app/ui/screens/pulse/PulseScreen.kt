@@ -331,21 +331,6 @@ fun PulseScreen(
                         )
                         HeartbeatIcon(bpm = displayBpm)
                     }
-                    Surface(
-                        color = primary.copy(alpha = 0.10f),
-                        shape = RoundedCornerShape(50)
-                    ) {
-                        Text(
-                            "Research",
-                            modifier = Modifier.padding(
-                                horizontal = 10.dp,
-                                vertical = 4.dp
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
                 }
                 Text(
                     "Cover the flash and the camera beside it. Two fingers side by side works best.",
