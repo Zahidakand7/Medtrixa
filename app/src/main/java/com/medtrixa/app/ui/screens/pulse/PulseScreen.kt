@@ -47,6 +47,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.Animatable
@@ -858,6 +860,15 @@ private fun HeartbeatIcon(bpm: Int?, modifier: Modifier = Modifier) {
         }
     }
 
+    val heartPath = remember {
+        PathParser().parsePathString(
+            "M19.5 13.572l-7.5 7.428l-2.896 -2.868m-6.117 -8.104a5 5 0 0 1 9.013 -3.022a5 5 0 1 1 7.5 6.572"
+        ).toPath()
+    }
+    val linePath = remember {
+        PathParser().parsePathString("M3 13h2l2 3l2 -6l1 3h3").toPath()
+    }
+
     Canvas(
         modifier
             .size(22.dp)
@@ -866,29 +877,11 @@ private fun HeartbeatIcon(bpm: Int?, modifier: Modifier = Modifier) {
                 scaleY = beat.value
             }
     ) {
-        val w = size.width
-        val h = size.height
-        val stroke = Stroke(1.8.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
-        val heart = Path().apply {
-            moveTo(0.50f * w, 0.88f * h)
-            cubicTo(0.15f * w, 0.62f * h, 0.05f * w, 0.42f * h, 0.05f * w, 0.30f * h)
-            cubicTo(0.05f * w, 0.14f * h, 0.18f * w, 0.08f * h, 0.28f * w, 0.08f * h)
-            cubicTo(0.40f * w, 0.08f * h, 0.47f * w, 0.16f * h, 0.50f * w, 0.24f * h)
-            cubicTo(0.53f * w, 0.16f * h, 0.60f * w, 0.08f * h, 0.72f * w, 0.08f * h)
-            cubicTo(0.82f * w, 0.08f * h, 0.95f * w, 0.14f * h, 0.95f * w, 0.30f * h)
-            cubicTo(0.95f * w, 0.42f * h, 0.85f * w, 0.62f * h, 0.50f * w, 0.88f * h)
-            close()
+        val k = size.width / 24f
+        val stroke = Stroke(1.75f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        withTransform({ scale(k, k, Offset.Zero) }) {
+            drawPath(heartPath, color, style = stroke)
+            drawPath(linePath, color, style = stroke)
         }
-        drawPath(heart, color, style = stroke)
-        val line = Path().apply {
-            moveTo(0.14f * w, 0.52f * h)
-            lineTo(0.30f * w, 0.52f * h)
-            lineTo(0.38f * w, 0.32f * h)
-            lineTo(0.50f * w, 0.70f * h)
-            lineTo(0.60f * w, 0.44f * h)
-            lineTo(0.66f * w, 0.52f * h)
-            lineTo(0.86f * w, 0.52f * h)
-        }
-        drawPath(line, color, style = stroke)
     }
 }
