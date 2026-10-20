@@ -391,7 +391,7 @@ fun PulseScreen(
                     ) {
                         Text(
                             when {
-                                fr != null -> "ESTIMATED PULSE RATE · ${fr.seconds} S MEAN"
+                                fr != null -> "ESTIMATED PULSE RATE · ${fr.seconds} SEC MEAN"
                                 displayBpm != null -> "LIVE ESTIMATE"
                                 else -> "PULSE RATE"
                             },
@@ -528,9 +528,9 @@ fun PulseScreen(
                             val phaseTotal = if (extending) phaseLen else FINAL_SECONDS
                             Text(
                                 if (extending) {
-                                    "Readings varied. Extending: $phaseSec / $phaseTotal s"
+                                    "Readings varied. Extending: $phaseSec / $phaseTotal sec"
                                 } else {
-                                    "Stabilising: $phaseSec / $phaseTotal s"
+                                    "Stabilising: $phaseSec / $phaseTotal sec"
                                 },
                                 style = MaterialTheme.typography.labelMedium,
                                 color = if (extending) PulseAmber else muted
