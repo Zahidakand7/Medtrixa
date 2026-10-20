@@ -520,14 +520,23 @@ fun PulseScreen(
                         }
 
                         if (measuring && goodSec > 0) {
-                            val target = if (goodSec >= FINAL_SECONDS) EXTENDED_SECONDS else FINAL_SECONDS
+                            // Two clear phases so the bar never jumps backwards:
+                            // 0-30 s, then (only if readings varied) a fresh 30 s extension.
+                            val extending = goodSec >= FINAL_SECONDS
+                            val phaseLen = EXTENDED_SECONDS - FINAL_SECONDS
+                            val phaseSec = if (extending) goodSec - FINAL_SECONDS else goodSec
+                            val phaseTotal = if (extending) phaseLen else FINAL_SECONDS
                             Text(
-                                "Stabilising: $goodSec / $target s",
+                                if (extending) {
+                                    "Readings varied. Extending: $phaseSec / $phaseTotal s"
+                                } else {
+                                    "Stabilising: $phaseSec / $phaseTotal s"
+                                },
                                 style = MaterialTheme.typography.labelMedium,
-                                color = muted
+                                color = if (extending) PulseAmber else muted
                             )
                             LinearProgressIndicator(
-                                progress = { (goodSec.toFloat() / target).coerceIn(0f, 1f) },
+                                progress = { (phaseSec.toFloat() / phaseTotal).coerceIn(0f, 1f) },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
