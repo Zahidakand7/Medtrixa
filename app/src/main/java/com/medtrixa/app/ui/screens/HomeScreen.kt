@@ -153,6 +153,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
         ) {
 
             LazyColumn(
