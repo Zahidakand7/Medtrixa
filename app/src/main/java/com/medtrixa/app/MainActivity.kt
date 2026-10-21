@@ -57,7 +57,6 @@ import com.medtrixa.app.ui.screens.assess.CentorScoreScreen
 import com.medtrixa.app.ui.screens.AppBottomNavigation
 import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.AiInsightsScreen
-import com.medtrixa.app.ui.screens.ToolsScreen
 import com.medtrixa.app.ui.screens.ProtocolsScreen
 import com.medtrixa.app.ui.screens.pulse.PulseScreen
 import com.medtrixa.app.ui.screens.CardiacArrestScreen
