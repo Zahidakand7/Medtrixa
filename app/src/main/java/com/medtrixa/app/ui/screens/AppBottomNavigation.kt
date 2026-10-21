@@ -18,9 +18,9 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.MedicalServices
-import androidx.compose.material.icons.outlined.Topic
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,7 +33,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -53,7 +55,7 @@ fun AppBottomNavigation(
         ) {
             NavItem(selected == "home", "Toolkit", Icons.Outlined.Dashboard, onHomeClick)
             NavItem(selected == "tools", "Protocols", Icons.Outlined.MedicalServices, onToolsClick)
-            NavItem(selected == "more", "Topics", Icons.Outlined.Topic, onMoreClick)
+            NavItem(selected == "more", "Topics", Icons.Outlined.Article, onMoreClick)
         }
     }
 }
@@ -91,9 +93,16 @@ private fun RowScope.NavItem(
         Text(
             label,
             fontSize = 11.sp,
+            lineHeight = 13.sp,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
             color = tint,
-            maxLines = 1
+            maxLines = 1,
+            style = TextStyle(
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.Both
+                )
+            )
         )
     }
 }
