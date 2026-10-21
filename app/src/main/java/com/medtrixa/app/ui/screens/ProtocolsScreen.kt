@@ -1,7 +1,13 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.MedicalServices
+import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,9 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medtrixa.app.ui.components.PremiumBackButton
 
-private val comingNext = listOf(
-    "SBAR Handover",
-    "Anaphylaxis", "Stroke", "DKA", "Status epilepticus"
+private val comingNext = listOf( "DKA", "Status epilepticus"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +44,10 @@ fun ProtocolsScreen(
     onPulseClick: () -> Unit,
     onAbgClick: () -> Unit,
     onSepsisClick: () -> Unit,
-    onLabClick: () -> Unit
+    onLabClick: () -> Unit,
+    onSbarClick: () -> Unit,
+    onAnaphylaxisClick: () -> Unit,
+    onStrokeClick: () -> Unit
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val background = MaterialTheme.colorScheme.background
@@ -60,7 +67,7 @@ fun ProtocolsScreen(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text("Protocols", fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Emergency Protocols", fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.SemiBold)
                     },
                     navigationIcon = { PremiumBackButton(onClick = onBackClick, edgeInset = 12.dp) },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -86,10 +93,11 @@ fun ProtocolsScreen(
                     ) {
                         Text("Act fast. Follow current guidelines.", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(6.dp))
-                        Text(
-                            "Every protocol shows its guideline source and review date.",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        BasicText(
+                            "Every clinical protocol shows its source and review date.",
+                            maxLines = 1,
+                            autoSize = TextAutoSize.StepBased(minFontSize = 10.sp, maxFontSize = 12.sp),
+                            style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                     }
                 }
@@ -150,7 +158,7 @@ fun ProtocolsScreen(
                     ProtocolRow(
                         title = "ABG Interpreter",
                         subtitle = "Primary disorder, compensation, anion gap",
-                        source = "Physiological Approach",
+                        source = "Berend et al., NEJM 2014",
                         icon = Icons.Outlined.Science,
                         onClick = onAbgClick
                     )
@@ -173,6 +181,36 @@ fun ProtocolsScreen(
                         source = "ABIM 2026",
                         icon = Icons.Outlined.Info,
                         onClick = onLabClick
+                    )
+                }
+
+                item {
+                    ProtocolRow(
+                        title = "Stroke",
+                        subtitle = "Last-known-well clock, thrombolysis dose, checklist",
+                        source = STROKE_SOURCE,
+                        icon = Icons.Outlined.Timer,
+                        onClick = onStrokeClick
+                    )
+                }
+
+                item {
+                    ProtocolRow(
+                        title = "Anaphylaxis",
+                        subtitle = "Recognition, epinephrine dose and timer, checklist",
+                        source = ANAPHYLAXIS_SOURCE,
+                        icon = Icons.Outlined.MedicalServices,
+                        onClick = onAnaphylaxisClick
+                    )
+                }
+
+                item {
+                    ProtocolRow(
+                        title = "SBAR Handover",
+                        subtitle = "Structured handover and escalation summary",
+                        source = SBAR_SOURCE,
+                        icon = Icons.Outlined.Forum,
+                        onClick = onSbarClick
                     )
                 }
 

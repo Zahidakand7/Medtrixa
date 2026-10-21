@@ -51,6 +51,7 @@ private val clinicalScores = listOf(
     ClinicalScoreItem("meld30", "MELD 3.0", "End-stage liver disease assessment"),
     ClinicalScoreItem("apgar", "APGAR", "Newborn assessment"),
     ClinicalScoreItem("gcs", "GCS", "Glasgow Coma Scale"),
+    ClinicalScoreItem("nihss", "NIHSS", "NIH Stroke Scale"),
     ClinicalScoreItem("qsofa", "qSOFA", "Bedside sepsis assessment")
 )
 

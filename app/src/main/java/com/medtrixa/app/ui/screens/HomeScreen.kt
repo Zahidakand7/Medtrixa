@@ -447,11 +447,6 @@ fun HomeScreen(
                 }
             }
 
-            HomeBottomNavigation(
-                onHomeClick = onHomeClick,
-                onToolsClick = onToolsClick,
-                onMoreClick = onMoreClick
-            )
         }
     }
 }
@@ -557,50 +552,6 @@ private fun EmptyStateCard(text: String) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun HomeBottomNavigation(
-    onHomeClick: () -> Unit,
-    onToolsClick: () -> Unit,
-    onMoreClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        tonalElevation = 3.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Home",
-                modifier = Modifier.clickable { onHomeClick() },
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-
-            Text(
-                text = "Protocols",
-                modifier = Modifier.clickable { onToolsClick() },
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = "More",
-                modifier = Modifier.clickable { onMoreClick() },
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

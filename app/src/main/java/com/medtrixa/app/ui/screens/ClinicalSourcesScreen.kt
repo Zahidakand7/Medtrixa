@@ -137,6 +137,47 @@ private val clinicalReferences = listOf(
         color = Color(0xFF5B5FD6)
     ),
     ClinicalReference(
+        tool = "SBAR Handover",
+        area = "Communication",
+        citations = listOf(
+            "Agency for Healthcare Research and Quality. TeamSTEPPS 3.0, Module 1: Communication. Tool: SBAR. ahrq.gov. Page last reviewed November 2019."
+        ),
+        icon = Icons.Outlined.MedicalServices,
+        color = Color(0xFF00A8A8)
+    ),
+    ClinicalReference(
+        tool = "ABG Interpreter",
+        area = "Acid-base",
+        citations = listOf(
+            "Berend K, de Vries APJ, Gans ROB. N Engl J Med 2014;371:1434-1445.",
+            "Albert MS, Dell RB, Winters RW. Ann Intern Med 1967;66:312-322."
+        ),
+        icon = Icons.Outlined.MedicalServices,
+        color = Color(0xFF00A8A8)
+    ),
+    ClinicalReference(
+        tool = "Anaphylaxis",
+        area = "Emergency",
+        citations = listOf(
+            "Cardona V et al. World Allergy Organ J 2020;13:100472.",
+            "Golden DBK et al. Ann Allergy Asthma Immunol 2024;132:124-176.",
+            "Shaker MS et al. J Allergy Clin Immunol 2020. doi:10.1016/j.jaci.2020.01.017"
+        ),
+        icon = Icons.Outlined.MedicalServices,
+        color = Color(0xFFD64545)
+    ),
+    ClinicalReference(
+        tool = "Stroke",
+        area = "Neurology",
+        citations = listOf(
+            "Prabhakaran S et al. Stroke 2026. doi:10.1161/STR.0000000000000513",
+            "Powers WJ et al. Stroke 2019;50:e344-e418.",
+            "Aroor S et al. Stroke 2017;48:479-481."
+        ),
+        icon = Icons.Outlined.MedicalServices,
+        color = Color(0xFF5B5FD6)
+    ),
+    ClinicalReference(
         tool = "MELD 3.0",
         area = "Hepatology",
         citations = listOf(

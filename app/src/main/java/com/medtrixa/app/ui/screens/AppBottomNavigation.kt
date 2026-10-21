@@ -1,16 +1,15 @@
 package com.medtrixa.app.ui.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.MedicalServices
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 
 @Composable
 fun AppBottomNavigation(
@@ -19,32 +18,38 @@ fun AppBottomNavigation(
     onToolsClick: () -> Unit,
     onMoreClick: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
-        tonalElevation = 3.dp
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            NavLabel("Home", selected == "home", onHomeClick)
-            NavLabel("Tools", selected == "tools", onToolsClick)
-            NavLabel("More", selected == "more", onMoreClick)
-        }
+        NavigationBarItem(
+            selected = selected == "home",
+            onClick = onHomeClick,
+            icon = {
+                Icon(Icons.Outlined.Home, contentDescription = "Home")
+            },
+            label = { Text("Home") },
+            alwaysShowLabel = true
+        )
+        NavigationBarItem(
+            selected = selected == "tools",
+            onClick = onToolsClick,
+            icon = {
+                Icon(
+                    Icons.Outlined.MedicalServices,
+                    contentDescription = "Protocols"
+                )
+            },
+            label = { Text("Protocols") },
+            alwaysShowLabel = true
+        )
+        NavigationBarItem(
+            selected = selected == "more",
+            onClick = onMoreClick,
+            icon = {
+                Icon(Icons.Outlined.MoreHoriz, contentDescription = "More")
+            },
+            label = { Text("More") },
+            alwaysShowLabel = true
+        )
     }
-}
-
-@Composable
-private fun NavLabel(text: String, active: Boolean, onClick: () -> Unit) {
-    val color: Color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-    Text(
-        text = text,
-        modifier = Modifier.clickable { onClick() },
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-        color = color
-    )
 }

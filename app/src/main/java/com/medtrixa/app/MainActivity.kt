@@ -9,6 +9,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +54,7 @@ import com.medtrixa.app.ui.screens.assess.HeartScoreScreen
 import com.medtrixa.app.ui.screens.assess.Meld30Screen
 import com.medtrixa.app.ui.screens.assess.ChildPughScreen
 import com.medtrixa.app.ui.screens.assess.CentorScoreScreen
+import com.medtrixa.app.ui.screens.AppBottomNavigation
 import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.AiInsightsScreen
 import com.medtrixa.app.ui.screens.ToolsScreen
@@ -56,6 +62,11 @@ import com.medtrixa.app.ui.screens.ProtocolsScreen
 import com.medtrixa.app.ui.screens.pulse.PulseScreen
 import com.medtrixa.app.ui.screens.CardiacArrestScreen
 import com.medtrixa.app.ui.screens.AbgInterpreterScreen
+import com.medtrixa.app.ui.screens.AnaphylaxisScreen
+import com.medtrixa.app.ui.screens.StrokeScreen
+import com.medtrixa.app.ui.screens.NihssScreen
+import com.medtrixa.app.ui.screens.ProtocolsHubScreen
+import com.medtrixa.app.ui.screens.SbarHandoverScreen
 import com.medtrixa.app.ui.screens.SepsisScreen
 import com.medtrixa.app.ui.screens.LabInterpreterScreen
 import com.medtrixa.app.ui.screens.ReferenceScreen
@@ -150,12 +161,13 @@ private fun MedtrixaRoot() {
             "antibiotic_dosing_guidelines" -> currentScreen = antibioticGuidelinesReturnTo
             "bacterial_atlas" -> currentScreen = bacterialAtlasReturnTo
             "clinical_scores", "risk_assessment" -> currentScreen = "assess"
-            "curb65", "heart_score", "child_pugh", "centor", "meld30", "apgar", "gcs", "qsofa" ->
+            "curb65", "heart_score", "child_pugh", "centor", "meld30", "apgar", "gcs", "qsofa", "nihss" ->
                 backFromScore("clinical_scores")
             "cha2ds2vasc", "hasbled", "wells_dvt", "wells_pe", "perc" ->
                 backFromScore("risk_assessment")
             "cardiac_arrest", "abg_interpreter", "sepsis", "lab_interpreter",
-            "pulse_assessment" -> currentScreen = "tools"
+            "pulse_assessment", "sbar_handover", "anaphylaxis", "stroke" -> currentScreen = "emergency_protocols"
+            "emergency_protocols", "primary_protocols" -> currentScreen = "tools"
             "calculator" -> currentScreen = "calculators"
             "ai_insights" -> {
                 aiResume = false
@@ -169,37 +181,90 @@ private fun MedtrixaRoot() {
         CalculatorRepository()
     }
 
-    when (currentScreen) {
+    val showBottomNavigation = currentScreen in setOf(
+        "home", "tools", "primary_protocols", "emergency_protocols", "more"
+    )
+    val selectedDestination = when (currentScreen) {
+        "home" -> "home"
+        "more" -> "more"
+        else -> "tools"
+    }
+
+    Scaffold(
+        bottomBar = {
+            if (showBottomNavigation) {
+                AppBottomNavigation(
+                    selected = selectedDestination,
+                    onHomeClick = { currentScreen = "home" },
+                    onToolsClick = { currentScreen = "tools" },
+                    onMoreClick = { currentScreen = "more" }
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            when (currentScreen) {
 
         "tools" -> {
-            ProtocolsScreen(
+            ProtocolsHubScreen(
                 onBackClick = { currentScreen = "home" },
+                onPrimaryClick = { currentScreen = "primary_protocols" },
+                onEmergencyClick = { currentScreen = "emergency_protocols" }
+            )
+        }
+
+        "primary_protocols" -> {
+            ComingSoonScreen(title = "Primary Protocols", onBackClick = { currentScreen = "tools" })
+        }
+
+        "emergency_protocols" -> {
+            ProtocolsScreen(
+                onBackClick = { currentScreen = "tools" },
                 onCardiacArrestClick = { currentScreen = "cardiac_arrest" },
                 onPulseClick = { currentScreen = "pulse_assessment" },
                 onAbgClick = { currentScreen = "abg_interpreter" },
                 onSepsisClick = { currentScreen = "sepsis" },
-                onLabClick = { currentScreen = "lab_interpreter" }
+                onLabClick = { currentScreen = "lab_interpreter" },
+                onSbarClick = { currentScreen = "sbar_handover" },
+                onAnaphylaxisClick = { currentScreen = "anaphylaxis" },
+                onStrokeClick = { currentScreen = "stroke" }
             )
         }
 
         "lab_interpreter" -> {
-            LabInterpreterScreen(onBackClick = { currentScreen = "tools" })
+            LabInterpreterScreen(onBackClick = { currentScreen = "emergency_protocols" })
+        }
+
+        "stroke" -> {
+            StrokeScreen(onBackClick = { currentScreen = "emergency_protocols" }, onNihssClick = { scoreReturnTo = "stroke"; currentScreen = "nihss" })
+        }
+
+        "anaphylaxis" -> {
+            AnaphylaxisScreen(onBackClick = { currentScreen = "emergency_protocols" })
+        }
+
+        "sbar_handover" -> {
+            SbarHandoverScreen(onBackClick = { currentScreen = "emergency_protocols" })
         }
 
         "sepsis" -> {
-            SepsisScreen(onBackClick = { currentScreen = "tools" })
+            SepsisScreen(onBackClick = { currentScreen = "emergency_protocols" })
         }
 
         "abg_interpreter" -> {
-            AbgInterpreterScreen(onBackClick = { currentScreen = "tools" })
+            AbgInterpreterScreen(onBackClick = { currentScreen = "emergency_protocols" })
         }
 
         "cardiac_arrest" -> {
-            CardiacArrestScreen(onBackClick = { currentScreen = "tools" })
+            CardiacArrestScreen(onBackClick = { currentScreen = "emergency_protocols" })
         }
 
         "pulse_assessment" -> {
-            PulseScreen(onBackClick = { currentScreen = "tools" })
+            PulseScreen(onBackClick = { currentScreen = "emergency_protocols" })
         }
 
         "drug_detail" -> {
@@ -358,6 +423,7 @@ private fun MedtrixaRoot() {
         "centor" -> { CentorScoreScreen(onBackClick = { backFromScore("clinical_scores") }) }
         "meld30" -> { Meld30Screen(onBackClick = { backFromScore("clinical_scores") }) }
         "apgar" -> { ApgarScreen(onBackClick = { backFromScore("clinical_scores") }) }
+        "nihss" -> { NihssScreen(onBackClick = { backFromScore("clinical_scores") }) }
         "gcs" -> { GcsScreen(onBackClick = { backFromScore("clinical_scores") }) }
         "qsofa" -> { QsofaScreen(onBackClick = { backFromScore("clinical_scores") }) }
 
@@ -441,6 +507,8 @@ private fun MedtrixaRoot() {
                     currentScreen = "ai_insights"
                 }
             )
+        }
+            }
         }
     }
 }
