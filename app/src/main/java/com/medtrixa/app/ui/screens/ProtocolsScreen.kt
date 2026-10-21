@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material.icons.outlined.Forum
@@ -33,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medtrixa.app.ui.components.PremiumBackButton
 
-private val comingNext = listOf( "DKA", "Status epilepticus"
+private val comingNext = listOf( "Status epilepticus"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,7 +48,8 @@ fun ProtocolsScreen(
     onLabClick: () -> Unit,
     onSbarClick: () -> Unit,
     onAnaphylaxisClick: () -> Unit,
-    onStrokeClick: () -> Unit
+    onStrokeClick: () -> Unit,
+    onDkaClick: () -> Unit
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val background = MaterialTheme.colorScheme.background
@@ -211,6 +213,16 @@ fun ProtocolsScreen(
                         source = SBAR_SOURCE,
                         icon = Icons.Outlined.Forum,
                         onClick = onSbarClick
+                    )
+                }
+
+                item {
+                    ProtocolRow(
+                        title = "DKA",
+                        subtitle = "Diabetic ketoacidosis protocol",
+                        source = "2024 consensus",
+                        icon = Icons.Outlined.WaterDrop,
+                        onClick = onDkaClick
                     )
                 }
 
