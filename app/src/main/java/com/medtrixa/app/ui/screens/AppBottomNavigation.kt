@@ -34,7 +34,7 @@ fun AppBottomNavigation(
         unselectedTextColor = scheme.onSurfaceVariant
     )
     NavigationBar(
-        modifier = Modifier.height(72.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+        modifier = Modifier.height(64.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
         containerColor = scheme.surface
     ) {
         NavigationBarItem(
