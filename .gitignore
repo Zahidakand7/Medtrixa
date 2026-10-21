@@ -8,3 +8,4 @@ local.properties
 .externalNativeBuild/
 .cxx/
 __pycache__/
+*.bak*
