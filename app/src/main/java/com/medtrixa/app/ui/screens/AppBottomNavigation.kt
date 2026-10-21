@@ -51,7 +51,7 @@ fun AppBottomNavigation(
             Modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.navigationBars)
-                .height(64.dp)
+                .height(60.dp)
         ) {
             NavItem(selected == "home", "Toolkit", Icons.Outlined.Dashboard, onHomeClick)
             NavItem(selected == "tools", "Protocols", Icons.Outlined.MedicalServices, onToolsClick)
