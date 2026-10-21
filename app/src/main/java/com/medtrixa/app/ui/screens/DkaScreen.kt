@@ -1,5 +1,8 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -234,20 +237,23 @@ fun DkaScreen(onBackClick: () -> Unit) {
                                     2 -> "Suggested setting: a step-down or intermediate care unit."
                                     else -> "Suggested setting: an intensive care unit."
                                 },
-                                fontSize = 14.sp, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp
+                                fontSize = 14.sp, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp,
+                                textAlign = TextAlign.Justify
                             )
                             Text(
                                 "Severity bands: mild is pH above 7.25, bicarbonate 15 or higher, normal mental status. Moderate is pH 7.0 to 7.25, " +
                                     "bicarbonate 10 to under 15, normal or drowsy. Severe is beta-hydroxybutyrate above 6, pH below 7.0, bicarbonate below 10, " +
                                     "stupor or coma. Not all criteria must be met. Clinical judgment and resources decide. " +
                                     "A concomitant critical illness or HHS also calls for intensive care.",
-                                fontSize = 11.sp, lineHeight = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                                fontSize = 11.sp, lineHeight = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Justify
                             )
                         }
                         Text(
                             "Euglycemic DKA is covered by the history-of-diabetes option, and is more common with SGLT2 inhibitors. " +
                                 "Anion gap is no longer a diagnostic or severity criterion.",
-                            fontSize = 11.sp, lineHeight = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 11.sp, lineHeight = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Justify
                         )
                     }
                 }
@@ -260,21 +266,25 @@ fun DkaScreen(onBackClick: () -> Unit) {
                             when {
                                 kV < 3.5 -> {
                                     Pill("HOLD INSULIN", DkaRed, Color.White)
-                                    Text("Potassium below 3.5: give 10 to 20 mmol/hour and postpone insulin until potassium is above 3.5 mmol/L.", fontSize = 14.sp, lineHeight = 20.sp)
+                                    Text("Potassium below 3.5: give 10 to 20 mmol/hour and postpone insulin until potassium is above 3.5 mmol/L.", fontSize = 14.sp, lineHeight = 20.sp,
+                                        textAlign = TextAlign.Justify)
                                 }
                                 kV <= 5.0 -> {
                                     Pill("REPLACE AS PART OF FLUIDS", DkaGreen, Color.White)
-                                    Text("Potassium 3.5 to 5.0: give 10 to 20 mmol in each liter of IV fluid to keep potassium at 4 to 5 mmol/L.", fontSize = 14.sp, lineHeight = 20.sp)
+                                    Text("Potassium 3.5 to 5.0: give 10 to 20 mmol in each liter of IV fluid to keep potassium at 4 to 5 mmol/L.", fontSize = 14.sp, lineHeight = 20.sp,
+                                        textAlign = TextAlign.Justify)
                                 }
                                 else -> {
                                     Pill("NO POTASSIUM YET", DkaOrange, Color.White)
-                                    Text("Potassium above 5.0: do not give potassium. Check potassium every 2 hours.", fontSize = 14.sp, lineHeight = 20.sp)
+                                    Text("Potassium above 5.0: do not give potassium. Check potassium every 2 hours.", fontSize = 14.sp, lineHeight = 20.sp,
+                                        textAlign = TextAlign.Justify)
                                 }
                             }
                         }
                         Text(
                             "Measure potassium at baseline, 2 hours after starting insulin, then every 4 hours until DKA resolves.",
-                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Justify
                         )
                     }
                 }
@@ -292,18 +302,24 @@ fun DkaScreen(onBackClick: () -> Unit) {
                         Text(
                             if (frail) "Isotonic saline or a balanced crystalloid in smaller boluses (for example 250 mL), guided by hemodynamics and fluid balance."
                             else "Isotonic saline or a balanced crystalloid at 500 to 1,000 mL per hour for the first 2 to 4 hours, then adjust to hemodynamics, fluid balance and sodium.",
-                            fontSize = 14.sp, lineHeight = 20.sp
+                            fontSize = 14.sp, lineHeight = 20.sp,
+                            textAlign = TextAlign.Justify
                         )
                         Text(
                             "Replace the estimated fluid deficit over 24 to 48 hours, about half of it in the first 8 to 12 hours.",
-                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Justify
                         )
                         Text("Insulin", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = primary)
                         if (w != null) {
-                            Text("Moderate or severe DKA: fixed-rate IV infusion 0.1 units/kg/hour = ${fU(0.1 * w)} units/hour (or a nurse-driven variable-rate protocol).", fontSize = 14.sp, lineHeight = 20.sp)
-                            Text("After dextrose is added: reduce to 0.05 units/kg/hour = ${fU(0.05 * w)} units/hour until resolution.", fontSize = 14.sp, lineHeight = 20.sp)
-                            Text("Mild or uncomplicated moderate DKA (non-critical setting, close nursing supervision): subcutaneous rapid-acting analogue 0.1 units/kg every hour = ${fU(0.1 * w)} units, or 0.2 units/kg every 2 hours = ${fU(0.2 * w)} units.", fontSize = 14.sp, lineHeight = 20.sp)
-                            Text("To transition to subcutaneous insulin: estimate a total daily dose of 0.3 to 0.6 units/kg/day = ${fU(0.3 * w)} to ${fU(0.6 * w)} units/day, or use the pre-admission dose.", fontSize = 14.sp, lineHeight = 20.sp)
+                            Text("Moderate or severe DKA: fixed-rate IV infusion 0.1 units/kg/hour = ${fU(0.1 * w)} units/hour (or a nurse-driven variable-rate protocol).", fontSize = 14.sp, lineHeight = 20.sp,
+                                textAlign = TextAlign.Justify)
+                            Text("After dextrose is added: reduce to 0.05 units/kg/hour = ${fU(0.05 * w)} units/hour until resolution.", fontSize = 14.sp, lineHeight = 20.sp,
+                                textAlign = TextAlign.Justify)
+                            Text("Mild or uncomplicated moderate DKA (non-critical setting, close nursing supervision): subcutaneous rapid-acting analogue 0.1 units/kg every hour = ${fU(0.1 * w)} units, or 0.2 units/kg every 2 hours = ${fU(0.2 * w)} units.", fontSize = 14.sp, lineHeight = 20.sp,
+                                textAlign = TextAlign.Justify)
+                            Text("To transition to subcutaneous insulin: estimate a total daily dose of 0.3 to 0.6 units/kg/day = ${fU(0.3 * w)} to ${fU(0.6 * w)} units/day, or use the pre-admission dose.", fontSize = 14.sp, lineHeight = 20.sp,
+                                textAlign = TextAlign.Justify)
                         } else {
                             Text("Enter the weight to see the doses.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -311,7 +327,8 @@ fun DkaScreen(onBackClick: () -> Unit) {
                             "Start insulin as soon as possible once potassium is above 3.5 mmol/L. Consider a 0.1 units/kg IV bolus only if IV access is delayed. " +
                                 "If the patient takes basal insulin, it can be continued at the usual dose alongside the infusion. " +
                                 "Start basal insulin at least 1 to 2 hours before stopping the infusion.",
-                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Justify
                         )
                     }
                 }
@@ -326,16 +343,19 @@ fun DkaScreen(onBackClick: () -> Unit) {
                                 Text(
                                     "Glucose is below " + gl(250.0) + ": add dextrose 5% to 10% to the IV fluids and keep insulin running until ketonemia resolves" +
                                         (if (w != null) " (fixed rate " + fU(0.05 * w) + " units/hour)." else " (fixed rate 0.05 units/kg/hour)."),
-                                    fontSize = 14.sp, lineHeight = 20.sp
+                                    fontSize = 14.sp, lineHeight = 20.sp,
+                                    textAlign = TextAlign.Justify
                                 )
                             } else {
                                 Pill("NO DEXTROSE YET", DkaGreen, Color.White)
-                                Text("Glucose is " + gl(250.0) + " or higher: continue fluids and insulin as above.", fontSize = 14.sp, lineHeight = 20.sp)
+                                Text("Glucose is " + gl(250.0) + " or higher: continue fluids and insulin as above.", fontSize = 14.sp, lineHeight = 20.sp,
+                                    textAlign = TextAlign.Justify)
                             }
                         }
                         Text(
                             "Glucose goal until resolution: " + gl(150.0) + " to " + gl(200.0) + ". Check capillary glucose every 1 to 2 hours.",
-                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Justify
                         )
                     }
                 }
@@ -353,20 +373,23 @@ fun DkaScreen(onBackClick: () -> Unit) {
                             val acidOk = (rP != null && rP >= 7.3) || (rH != null && rH >= 18.0)
                             if (ketoneOk && acidOk) {
                                 Pill("RESOLUTION CRITERIA MET", DkaGreen, Color.White)
-                                Text("Beta-hydroxybutyrate is below 0.6 mmol/L and pH is 7.3 or higher, or bicarbonate is 18 mmol/L or higher.", fontSize = 14.sp, lineHeight = 20.sp)
+                                Text("Beta-hydroxybutyrate is below 0.6 mmol/L and pH is 7.3 or higher, or bicarbonate is 18 mmol/L or higher.", fontSize = 14.sp, lineHeight = 20.sp,
+                                    textAlign = TextAlign.Justify)
                             } else {
                                 Pill("NOT YET RESOLVED", DkaOrange, Color.White)
                                 Text(
                                     (if (!ketoneOk) "Beta-hydroxybutyrate is not yet below 0.6 mmol/L. " else "") +
                                         (if (!acidOk) "Neither venous pH 7.3 or higher nor bicarbonate 18 mmol/L or higher is reached." else ""),
-                                    fontSize = 14.sp, lineHeight = 20.sp
+                                    fontSize = 14.sp, lineHeight = 20.sp,
+                                    textAlign = TextAlign.Justify
                                 )
                             }
                         }
                         Text(
                             "Both parts are needed: beta-hydroxybutyrate below 0.6 mmol/L AND (venous pH 7.3 or higher OR bicarbonate 18 mmol/L or higher). " +
                                 "Where beta-hydroxybutyrate cannot be measured, a normal anion gap is a reasonable substitute.",
-                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 12.sp, lineHeight = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Justify
                         )
                     }
                 }
@@ -402,7 +425,8 @@ fun DkaScreen(onBackClick: () -> Unit) {
                         fontSize = 11.sp,
                         lineHeight = 16.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 4.dp)
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                        textAlign = TextAlign.Justify
                     )
                 }
             }
@@ -428,7 +452,24 @@ private fun DkaCard(title: String, content: @Composable ColumnScope.() -> Unit) 
 @Composable
 private fun DkaInfo(title: String, lines: List<String>) {
     DkaCard(title) {
-        lines.forEach { Text("\u2022 $it", fontSize = 13.sp, lineHeight = 19.sp) }
+        lines.forEach {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 7.dp)
+                        .size(6.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                )
+                Text(
+                    it,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp,
+                    textAlign = TextAlign.Justify,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
     }
 }
 
