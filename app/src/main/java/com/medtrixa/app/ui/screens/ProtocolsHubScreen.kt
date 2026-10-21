@@ -38,7 +38,7 @@ fun ProtocolsHubScreen(
                 )
             )
     ) {
-        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+        Column(Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

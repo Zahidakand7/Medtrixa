@@ -31,7 +31,7 @@ fun MoreTopicsScreen(
     val count = MoreTopicRegistry.all.size
 
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+        Column(Modifier.fillMaxSize()) {
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -39,9 +39,9 @@ fun MoreTopicsScreen(
                 PremiumBackButton(onClick = onHomeClick)
                 Spacer(Modifier.width(12.dp))
                 Column {
-                    Text("More", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Text("Topics", fontSize = 22.sp, fontWeight = FontWeight.Bold)
                     Text(
-                        count.toString() + (if (count == 1) " Topic" else " Topics"),
+                        count.toString() + (if (count == 1) " quick reference" else " quick references"),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
