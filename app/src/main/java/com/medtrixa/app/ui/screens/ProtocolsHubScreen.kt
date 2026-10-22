@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Colorize
 import androidx.compose.material.icons.outlined.LocalHospital
 import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material3.*
@@ -24,7 +25,8 @@ import com.medtrixa.app.ui.components.PremiumBackButton
 fun ProtocolsHubScreen(
     onBackClick: () -> Unit,
     onPrimaryClick: () -> Unit,
-    onEmergencyClick: () -> Unit
+    onEmergencyClick: () -> Unit,
+    onInsulinClick: () -> Unit
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val background = MaterialTheme.colorScheme.background
@@ -68,6 +70,21 @@ fun ProtocolsHubScreen(
                     icon = Icons.Outlined.LocalHospital,
                     onClick = onEmergencyClick
                 )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ProtocolHubTile(
+                    modifier = Modifier.weight(1f),
+                    title = "Insulin Dosing",
+                    subtitle = "Coming soon",
+                    icon = Icons.Outlined.Colorize,
+                    onClick = onInsulinClick
+                )
+                Spacer(modifier = Modifier.weight(1f))
             }
         }
     }

@@ -170,7 +170,7 @@ private fun MedtrixaRoot() {
                 backFromScore("risk_assessment")
             "cardiac_arrest", "abg_interpreter", "sepsis", "lab_interpreter",
             "pulse_assessment", "sbar_handover", "anaphylaxis", "stroke", "dka", "status_epilepticus" -> currentScreen = "emergency_protocols"
-            "emergency_protocols", "primary_protocols" -> currentScreen = "tools"
+            "emergency_protocols", "primary_protocols", "insulin_dosing" -> currentScreen = "tools"
             "calculator" -> currentScreen = "calculators"
             "ai_insights" -> {
                 aiResume = false
@@ -185,7 +185,7 @@ private fun MedtrixaRoot() {
     }
 
     val showBottomNavigation = currentScreen in setOf(
-        "home", "tools", "primary_protocols", "emergency_protocols", "more"
+        "home", "tools", "primary_protocols", "insulin_dosing", "emergency_protocols", "more"
     )
     val selectedDestination = when (currentScreen) {
         "home" -> "home"
@@ -218,12 +218,17 @@ private fun MedtrixaRoot() {
             ProtocolsHubScreen(
                 onBackClick = { currentScreen = "home" },
                 onPrimaryClick = { currentScreen = "primary_protocols" },
-                onEmergencyClick = { currentScreen = "emergency_protocols" }
+                onEmergencyClick = { currentScreen = "emergency_protocols" },
+                onInsulinClick = { currentScreen = "insulin_dosing" }
             )
         }
 
         "primary_protocols" -> {
             ComingSoonScreen(title = "Primary Protocols", onBackClick = { currentScreen = "tools" })
+        }
+
+        "insulin_dosing" -> {
+            ComingSoonScreen(title = "Insulin Dosing", onBackClick = { currentScreen = "tools" })
         }
 
         "emergency_protocols" -> {
