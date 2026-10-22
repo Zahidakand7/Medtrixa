@@ -201,7 +201,7 @@ fun DkaScreen(onBackClick: () -> Unit) {
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             DkaField("Venous pH", ph, { ph = cleanD(it) }, Modifier.weight(1f))
-                            DkaField("HCO3 (mmol/L)", hco3, { hco3 = cleanD(it) }, Modifier.weight(1f))
+                            DkaField("Bicarbonate (mmol/L)", hco3, { hco3 = cleanD(it) }, Modifier.weight(1f))
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Switch(checked = knownDm, onCheckedChange = { knownDm = it })
@@ -374,7 +374,7 @@ fun DkaScreen(onBackClick: () -> Unit) {
                             DkaField("Beta-hydroxybutyrate (mmol/L)", rBhb, { rBhb = cleanD(it) }, Modifier.weight(1f))
                             DkaField("Venous pH", rPh, { rPh = cleanD(it) }, Modifier.weight(1f))
                         }
-                        DkaField("HCO3 (mmol/L)", rHco3, { rHco3 = cleanD(it) }, Modifier.fillMaxWidth())
+                        DkaField("Bicarbonate (mmol/L)", rHco3, { rHco3 = cleanD(it) }, Modifier.fillMaxWidth())
                         if (rB != null && (rP != null || rH != null)) {
                             val ketoneOk = rB < 0.6
                             val acidOk = (rP != null && rP >= 7.3) || (rH != null && rH >= 18.0)
@@ -467,12 +467,24 @@ private fun DkaInfo(title: String, lines: List<String>) {
 
 @Composable
 private fun DkaField(label: String, value: String, onChange: (String) -> Unit, modifier: Modifier) {
+    var labelScale by remember { mutableStateOf(1f) }
     val focus = LocalFocusManager.current
     OutlinedTextField(
         value = value,
         onValueChange = onChange,
         modifier = modifier,
-        label = { Text(label, fontSize = 12.sp, maxLines = 1) },
+        label = {
+            val base = LocalTextStyle.current.fontSize.takeIf { it.value.isFinite() } ?: 14.sp
+            Text(
+                label,
+                fontSize = base * labelScale,
+                maxLines = 1,
+                softWrap = false,
+                onTextLayout = { r ->
+                    if (r.didOverflowWidth && labelScale > 0.6f) labelScale *= 0.92f
+                }
+            )
+        },
         singleLine = true,
         shape = RoundedCornerShape(14.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
