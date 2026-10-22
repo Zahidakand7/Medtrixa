@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import com.medtrixa.app.ui.components.BulletDot
 import android.os.SystemClock
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -74,7 +75,7 @@ private fun AnaCard(title: String, accent: Color, content: @Composable ColumnSco
 @Composable
 private fun AnaBullet(text: String) {
     Row(Modifier.padding(vertical = 2.dp)) {
-        Text("•", fontSize = 13.sp, modifier = Modifier.width(14.dp))
+        BulletDot()
         Text(
             text,
             fontSize = 13.sp,

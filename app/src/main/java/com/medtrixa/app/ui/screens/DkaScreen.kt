@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import com.medtrixa.app.ui.components.BulletText
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
@@ -453,22 +454,7 @@ private fun DkaCard(title: String, content: @Composable ColumnScope.() -> Unit) 
 private fun DkaInfo(title: String, lines: List<String>) {
     DkaCard(title) {
         lines.forEach {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Box(
-                    modifier = Modifier
-                        .padding(top = 7.dp)
-                        .size(6.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-                Text(
-                    it,
-                    fontSize = 13.sp,
-                    lineHeight = 19.sp,
-                    textAlign = TextAlign.Justify,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            BulletText(it)
         }
     }
 }

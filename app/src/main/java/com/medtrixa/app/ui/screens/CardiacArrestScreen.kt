@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import com.medtrixa.app.ui.components.BulletText
 import android.os.SystemClock
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -352,7 +353,7 @@ private fun InfoCard(title: String, lines: List<String>) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
             lines.forEach { line ->
-                Text("\u2022 $line", fontSize = 13.sp, lineHeight = 19.sp)
+                BulletText(line)
             }
         }
     }
