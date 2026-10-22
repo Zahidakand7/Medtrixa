@@ -471,17 +471,25 @@ private fun DkaField(label: String, value: String, onChange: (String) -> Unit, m
     val fieldName = unitMatch?.groupValues?.get(1) ?: label
     val fieldUnit = unitMatch?.groupValues?.get(2)
     val focus = LocalFocusManager.current
-    OutlinedTextField(
+    Column(modifier = modifier) {
+        Text(
+            fieldName,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(bottom = 5.dp)
+        )
+        OutlinedTextField(
         value = value,
         onValueChange = onChange,
-        modifier = modifier,
-        label = { Text(fieldName, maxLines = 1) },
-        supportingText = fieldUnit?.let { u -> { Text(u, fontSize = 12.sp) } },
+        modifier = Modifier.fillMaxWidth(),
         singleLine = true,
         shape = RoundedCornerShape(14.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { focus.clearFocus() })
+        keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
+        placeholder = { Text("Enter value") },
+        trailingIcon = fieldUnit?.let { u -> { DkaUnitChip(u) } }
     )
+    }
 }
 
 @Composable
@@ -510,5 +518,21 @@ private fun CriterionRow(text: String, ok: Boolean?) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(mark, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = color)
         Text(text, fontSize = 13.sp, lineHeight = 18.sp)
+    }
+}
+
+@Composable
+private fun DkaUnitChip(text: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.padding(end = 8.dp)
+    ) {
+        Text(
+            text,
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+        )
     }
 }
