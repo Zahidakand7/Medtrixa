@@ -467,24 +467,16 @@ private fun DkaInfo(title: String, lines: List<String>) {
 
 @Composable
 private fun DkaField(label: String, value: String, onChange: (String) -> Unit, modifier: Modifier) {
-    var labelScale by remember { mutableStateOf(1f) }
+    val unitMatch = Regex("""(.*?)\s*\(([^()]*)\)""").matchEntire(label.trim())
+    val fieldName = unitMatch?.groupValues?.get(1) ?: label
+    val fieldUnit = unitMatch?.groupValues?.get(2)
     val focus = LocalFocusManager.current
     OutlinedTextField(
         value = value,
         onValueChange = onChange,
         modifier = modifier,
-        label = {
-            val base = LocalTextStyle.current.fontSize.takeIf { it.value.isFinite() } ?: 14.sp
-            Text(
-                label,
-                fontSize = base * labelScale,
-                maxLines = 1,
-                softWrap = false,
-                onTextLayout = { r ->
-                    if (r.didOverflowWidth && labelScale > 0.6f) labelScale *= 0.92f
-                }
-            )
-        },
+        label = { Text(fieldName, maxLines = 1) },
+        supportingText = fieldUnit?.let { u -> { Text(u, fontSize = 12.sp) } },
         singleLine = true,
         shape = RoundedCornerShape(14.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
