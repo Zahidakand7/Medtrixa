@@ -160,10 +160,16 @@ fun DkaScreen(onBackClick: () -> Unit) {
                     ) {
                         Text("Diabetic ketoacidosis in adults", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                         Spacer(Modifier.height(4.dp))
+                        var dkaSubSize by remember { mutableStateOf(12.sp) }
                         Text(
                             "ADA, EASD, JBDS, AACE and DTS consensus report, 2024.",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = dkaSubSize,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            onTextLayout = { r ->
+                                if (r.didOverflowWidth && dkaSubSize > 8.sp) dkaSubSize = dkaSubSize * 0.92f
+                            }
                         )
                     }
                 }
@@ -195,7 +201,7 @@ fun DkaScreen(onBackClick: () -> Unit) {
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             DkaField("Venous pH", ph, { ph = cleanD(it) }, Modifier.weight(1f))
-                            DkaField("Bicarbonate (mmol/L)", hco3, { hco3 = cleanD(it) }, Modifier.weight(1f))
+                            DkaField("HCO3 (mmol/L)", hco3, { hco3 = cleanD(it) }, Modifier.weight(1f))
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Switch(checked = knownDm, onCheckedChange = { knownDm = it })
@@ -368,7 +374,7 @@ fun DkaScreen(onBackClick: () -> Unit) {
                             DkaField("Beta-hydroxybutyrate (mmol/L)", rBhb, { rBhb = cleanD(it) }, Modifier.weight(1f))
                             DkaField("Venous pH", rPh, { rPh = cleanD(it) }, Modifier.weight(1f))
                         }
-                        DkaField("Bicarbonate (mmol/L)", rHco3, { rHco3 = cleanD(it) }, Modifier.fillMaxWidth())
+                        DkaField("HCO3 (mmol/L)", rHco3, { rHco3 = cleanD(it) }, Modifier.fillMaxWidth())
                         if (rB != null && (rP != null || rH != null)) {
                             val ketoneOk = rB < 0.6
                             val acidOk = (rP != null && rP >= 7.3) || (rH != null && rH >= 18.0)
