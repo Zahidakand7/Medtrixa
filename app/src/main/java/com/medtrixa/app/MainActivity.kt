@@ -1,5 +1,6 @@
 package com.medtrixa.app
 
+import com.medtrixa.app.ui.screens.StatusEpilepticusScreen
 import com.medtrixa.app.ui.screens.DkaScreen
 import com.medtrixa.app.ui.screens.more.MoreTopicsScreen
 import com.medtrixa.app.ui.screens.more.MoreTopicDetailScreen
@@ -168,7 +169,7 @@ private fun MedtrixaRoot() {
             "cha2ds2vasc", "hasbled", "wells_dvt", "wells_pe", "perc" ->
                 backFromScore("risk_assessment")
             "cardiac_arrest", "abg_interpreter", "sepsis", "lab_interpreter",
-            "pulse_assessment", "sbar_handover", "anaphylaxis", "stroke", "dka" -> currentScreen = "emergency_protocols"
+            "pulse_assessment", "sbar_handover", "anaphylaxis", "stroke", "dka", "status_epilepticus" -> currentScreen = "emergency_protocols"
             "emergency_protocols", "primary_protocols" -> currentScreen = "tools"
             "calculator" -> currentScreen = "calculators"
             "ai_insights" -> {
@@ -236,7 +237,8 @@ private fun MedtrixaRoot() {
                 onSbarClick = { currentScreen = "sbar_handover" },
                 onAnaphylaxisClick = { currentScreen = "anaphylaxis" },
                 onStrokeClick = { currentScreen = "stroke" },
-                onDkaClick = { currentScreen = "dka" }
+                onDkaClick = { currentScreen = "dka" },
+                onStatusEpilepticusClick = { currentScreen = "status_epilepticus" }
             )
         }
 
@@ -254,6 +256,10 @@ private fun MedtrixaRoot() {
 
         "sbar_handover" -> {
             SbarHandoverScreen(onBackClick = { currentScreen = "emergency_protocols" })
+        }
+
+        "status_epilepticus" -> {
+            StatusEpilepticusScreen(onBackClick = { currentScreen = "emergency_protocols" })
         }
 
         "dka" -> {

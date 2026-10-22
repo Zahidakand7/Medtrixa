@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.MedicalServices
@@ -34,8 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medtrixa.app.ui.components.PremiumBackButton
 
-private val comingNext = listOf( "Status epilepticus"
-)
+private val comingNext = emptyList<String>()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,7 +49,8 @@ fun ProtocolsScreen(
     onSbarClick: () -> Unit,
     onAnaphylaxisClick: () -> Unit,
     onStrokeClick: () -> Unit,
-    onDkaClick: () -> Unit
+    onDkaClick: () -> Unit,
+    onStatusEpilepticusClick: () -> Unit
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val background = MaterialTheme.colorScheme.background
@@ -227,7 +228,19 @@ fun ProtocolsScreen(
                 }
 
                 item {
+                    ProtocolRow(
+                        title = "Status Epilepticus",
+                        subtitle = "Seizure clock, benzodiazepine and second-line doses, checklist",
+                        source = STATUS_EPILEPTICUS_SOURCE,
+                        icon = Icons.Outlined.Bolt,
+                        onClick = onStatusEpilepticusClick
+                    )
+                }
+
+                if (comingNext.isNotEmpty()) {
+                    item {
                     Text("Coming next", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                }
                 }
 
                 items(comingNext.chunked(2)) { pair ->
