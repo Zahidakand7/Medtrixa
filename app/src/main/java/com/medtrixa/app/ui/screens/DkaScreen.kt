@@ -196,12 +196,12 @@ fun DkaScreen(onBackClick: () -> Unit) {
                 item {
                     DkaCard("1. Diagnose and grade") {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            DkaField("Glucose ($unitG)", glucose, { glucose = cleanD(it) }, Modifier.weight(1f))
-                            DkaField("Beta-hydroxybutyrate (mmol/L)", bhb, { bhb = cleanD(it) }, Modifier.weight(1f))
+                            DkaField("Glucose ($unitG)", glucose, { glucose = cleanD(it) }, Modifier.weight(0.9f))
+                            DkaField("Beta-hydroxybutyrate (mmol/L)", bhb, { bhb = cleanD(it) }, Modifier.weight(1.1f))
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            DkaField("Venous pH", ph, { ph = cleanD(it) }, Modifier.weight(1f))
-                            DkaField("Bicarbonate (mmol/L)", hco3, { hco3 = cleanD(it) }, Modifier.weight(1f))
+                            DkaField("Venous pH", ph, { ph = cleanD(it) }, Modifier.weight(0.9f))
+                            DkaField("Bicarbonate (mmol/L)", hco3, { hco3 = cleanD(it) }, Modifier.weight(1.1f))
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Switch(checked = knownDm, onCheckedChange = { knownDm = it })
@@ -371,8 +371,8 @@ fun DkaScreen(onBackClick: () -> Unit) {
                 item {
                     DkaCard("5. Has DKA resolved?") {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            DkaField("Beta-hydroxybutyrate (mmol/L)", rBhb, { rBhb = cleanD(it) }, Modifier.weight(1f))
-                            DkaField("Venous pH", rPh, { rPh = cleanD(it) }, Modifier.weight(1f))
+                            DkaField("Beta-hydroxybutyrate (mmol/L)", rBhb, { rBhb = cleanD(it) }, Modifier.weight(1.1f))
+                            DkaField("Venous pH", rPh, { rPh = cleanD(it) }, Modifier.weight(0.9f))
                         }
                         DkaField("Bicarbonate (mmol/L)", rHco3, { rHco3 = cleanD(it) }, Modifier.fillMaxWidth())
                         if (rB != null && (rP != null || rH != null)) {
@@ -467,29 +467,17 @@ private fun DkaInfo(title: String, lines: List<String>) {
 
 @Composable
 private fun DkaField(label: String, value: String, onChange: (String) -> Unit, modifier: Modifier) {
-    val unitMatch = Regex("""(.*?)\s*\(([^()]*)\)""").matchEntire(label.trim())
-    val fieldName = unitMatch?.groupValues?.get(1) ?: label
-    val fieldUnit = unitMatch?.groupValues?.get(2)
     val focus = LocalFocusManager.current
-    Column(modifier = modifier) {
-        Text(
-            fieldName,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(bottom = 5.dp)
-        )
-        OutlinedTextField(
+    OutlinedTextField(
         value = value,
         onValueChange = onChange,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
+        label = { Text(label, fontSize = 12.sp, maxLines = 1) },
         singleLine = true,
         shape = RoundedCornerShape(14.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
-        placeholder = { Text("Enter value") },
-        trailingIcon = fieldUnit?.let { u -> { DkaUnitChip(u) } }
+        keyboardActions = KeyboardActions(onDone = { focus.clearFocus() })
     )
-    }
 }
 
 @Composable
@@ -518,21 +506,5 @@ private fun CriterionRow(text: String, ok: Boolean?) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(mark, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = color)
         Text(text, fontSize = 13.sp, lineHeight = 18.sp)
-    }
-}
-
-@Composable
-private fun DkaUnitChip(text: String) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(8.dp),
-        modifier = Modifier.padding(end = 8.dp)
-    ) {
-        Text(
-            text,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-        )
     }
 }
