@@ -91,6 +91,7 @@ fun HomeScreen(
     onDrugToolsClick: () -> Unit = {},
     onReferenceClick: () -> Unit = {},
     onAiInsightsClick: () -> Unit = {},
+    onHealthcareInsightsClick: () -> Unit = {},
     onThemesClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     onPremiumClick: () -> Unit = {},
@@ -420,7 +421,8 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             title = "Healthcare Insights",
                             subtitle = "Facts & Pearls",
-                            icon = Icons.Outlined.Lightbulb
+                            icon = Icons.Outlined.Lightbulb,
+                            onClick = onHealthcareInsightsClick
                         )
                     }
                 }

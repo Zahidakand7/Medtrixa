@@ -562,6 +562,7 @@ private fun MedtrixaRoot() {
                     currentScreen = "drug_detail"
                 },
                 onReferenceClick = { currentScreen = "reference" },
+                onHealthcareInsightsClick = { currentScreen = "more" },
                 onAiInsightsClick = {
                     aiResume = false
                     currentScreen = "ai_insights"

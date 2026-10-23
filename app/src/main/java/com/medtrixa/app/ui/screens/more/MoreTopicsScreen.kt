@@ -39,7 +39,7 @@ fun MoreTopicsScreen(
                 PremiumBackButton(onClick = onHomeClick)
                 Spacer(Modifier.width(12.dp))
                 Column {
-                    Text("Topics", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Text("Healthcare Insights", fontSize = 22.sp, fontWeight = FontWeight.Bold)
                     Text(
                         count.toString() + (if (count == 1) " quick reference" else " quick references"),
                         fontSize = 12.sp,
