@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Colorize
 import androidx.compose.material.icons.outlined.LocalHospital
 import androidx.compose.material.icons.outlined.MedicalServices
+import androidx.compose.material.icons.outlined.Biotech
+import androidx.compose.material.icons.outlined.Healing
+import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material.icons.outlined.PregnantWoman
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,13 +25,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.medtrixa.app.ui.components.PremiumBackButton
+import com.medtrixa.app.ui.components.AutoSizeText
 
 @Composable
 fun ProtocolsHubScreen(
     onBackClick: () -> Unit,
     onPrimaryClick: () -> Unit,
     onEmergencyClick: () -> Unit,
-    onInsulinClick: () -> Unit
+    onInsulinClick: () -> Unit,
+    onPregnancyClick: () -> Unit,
+    onHypertensionClick: () -> Unit,
+    onPancreatitisClick: () -> Unit,
+    onThyroidClick: () -> Unit,
+    onHeartFailureClick: () -> Unit
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val background = MaterialTheme.colorScheme.background
@@ -59,7 +70,7 @@ fun ProtocolsHubScreen(
                 ProtocolHubTile(
                     modifier = Modifier.weight(1f),
                     title = "Primary Protocols",
-                    subtitle = "Coming soon",
+                    subtitle = "Insulin Dosing",
                     icon = Icons.Outlined.MedicalServices,
                     onClick = onPrimaryClick
                 )
@@ -79,12 +90,60 @@ fun ProtocolsHubScreen(
             ) {
                 ProtocolHubTile(
                     modifier = Modifier.weight(1f),
-                    title = "Insulin Dosing",
-                    subtitle = "Coming soon",
+                    title = "Diabetes",
+                    subtitle = "Insulin Dosing",
                     icon = Icons.Outlined.Colorize,
                     onClick = onInsulinClick
                 )
-                Spacer(modifier = Modifier.weight(1f))
+                ProtocolHubTile(
+                    modifier = Modifier.weight(1f),
+                    title = "Thyroid Disorders",
+                    subtitle = "Diagnostic Interpretation & Treatment",
+                    icon = Icons.Outlined.Biotech,
+                    onClick = onThyroidClick
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ProtocolHubTile(
+                    modifier = Modifier.weight(1f),
+                    title = "Hypertension",
+                    subtitle = "Coming soon",
+                    icon = Icons.Outlined.MonitorHeart,
+                    onClick = onHypertensionClick
+                )
+                ProtocolHubTile(
+                    modifier = Modifier.weight(1f),
+                    title = "Heart Failure",
+                    subtitle = "Coming soon",
+                    icon = Icons.Outlined.Favorite,
+                    onClick = onHeartFailureClick
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ProtocolHubTile(
+                    modifier = Modifier.weight(1f),
+                    title = "Pancreatitis",
+                    subtitle = "Coming soon",
+                    icon = Icons.Outlined.Healing,
+                    onClick = onPancreatitisClick
+                )
+                ProtocolHubTile(
+                    modifier = Modifier.weight(1f),
+                    title = "Pregnancy",
+                    subtitle = "Coming soon",
+                    icon = Icons.Outlined.PregnantWoman,
+                    onClick = onPregnancyClick
+                )
             }
         }
     }
@@ -100,14 +159,14 @@ private fun ProtocolHubTile(
 ) {
     Card(
         modifier = modifier
-            .height(132.dp)
+            .height(144.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp).fillMaxSize(),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 14.dp).fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -127,21 +186,24 @@ private fun ProtocolHubTile(
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
+            AutoSizeText(
+                text = title,
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.titleSmall.copy(
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
+                ),
+                minFontSize = 10.sp
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                lineHeight = 15.sp,
+                maxLines = 2
+            )
         }
     }
 }

@@ -1,5 +1,8 @@
 package com.medtrixa.app
 
+import com.medtrixa.app.ui.screens.InsulinDosingScreen
+import com.medtrixa.app.ui.screens.InsulinDosing2Screen
+import com.medtrixa.app.ui.screens.DiabetesScreen
 import com.medtrixa.app.ui.screens.StatusEpilepticusScreen
 import com.medtrixa.app.ui.screens.DkaScreen
 import com.medtrixa.app.ui.screens.more.MoreTopicsScreen
@@ -170,7 +173,8 @@ private fun MedtrixaRoot() {
                 backFromScore("risk_assessment")
             "cardiac_arrest", "abg_interpreter", "sepsis", "lab_interpreter",
             "pulse_assessment", "sbar_handover", "anaphylaxis", "stroke", "dka", "status_epilepticus" -> currentScreen = "emergency_protocols"
-            "emergency_protocols", "primary_protocols", "insulin_dosing" -> currentScreen = "tools"
+            "emergency_protocols", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure" -> currentScreen = "tools"
+            "insulin_dosing", "insulin_dosing_2" -> currentScreen = "diabetes"
             "calculator" -> currentScreen = "calculators"
             "ai_insights" -> {
                 aiResume = false
@@ -185,7 +189,7 @@ private fun MedtrixaRoot() {
     }
 
     val showBottomNavigation = currentScreen in setOf(
-        "home", "tools", "primary_protocols", "insulin_dosing", "emergency_protocols", "more"
+        "home", "tools", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure", "insulin_dosing", "insulin_dosing_2", "emergency_protocols", "more"
     )
     val selectedDestination = when (currentScreen) {
         "home" -> "home"
@@ -219,7 +223,12 @@ private fun MedtrixaRoot() {
                 onBackClick = { currentScreen = "home" },
                 onPrimaryClick = { currentScreen = "primary_protocols" },
                 onEmergencyClick = { currentScreen = "emergency_protocols" },
-                onInsulinClick = { currentScreen = "insulin_dosing" }
+                onInsulinClick = { currentScreen = "diabetes" },
+                onPregnancyClick = { currentScreen = "pregnancy" },
+                onHypertensionClick = { currentScreen = "hypertension" },
+                onPancreatitisClick = { currentScreen = "pancreatitis" },
+                onThyroidClick = { currentScreen = "thyroid" },
+                onHeartFailureClick = { currentScreen = "heart_failure" }
             )
         }
 
@@ -227,8 +236,39 @@ private fun MedtrixaRoot() {
             ComingSoonScreen(title = "Primary Protocols", onBackClick = { currentScreen = "tools" })
         }
 
+        "thyroid" -> {
+            ComingSoonScreen(title = "Thyroid Disorders", onBackClick = { currentScreen = "tools" })
+        }
+
+        "pancreatitis" -> {
+            ComingSoonScreen(title = "Pancreatitis", onBackClick = { currentScreen = "tools" })
+        }
+
+        "hypertension" -> {
+            ComingSoonScreen(title = "Hypertension", onBackClick = { currentScreen = "tools" })
+        }
+
+        "heart_failure" -> {
+            ComingSoonScreen(title = "Heart Failure", onBackClick = { currentScreen = "tools" })
+        }
+
+        "pregnancy" -> {
+            ComingSoonScreen(title = "Pregnancy", onBackClick = { currentScreen = "tools" })
+        }
+
+        "diabetes" -> {
+            DiabetesScreen(
+                onBackClick = { currentScreen = "tools" },
+                onInsulinClick = { currentScreen = "insulin_dosing" },
+                onInsulin2Click = { currentScreen = "insulin_dosing_2" }
+            )
+        }
+
         "insulin_dosing" -> {
-            ComingSoonScreen(title = "Insulin Dosing", onBackClick = { currentScreen = "tools" })
+            InsulinDosingScreen(onBackClick = { currentScreen = "diabetes" })
+        }
+        "insulin_dosing_2" -> {
+            InsulinDosing2Screen(onBackClick = { currentScreen = "diabetes" })
         }
 
         "emergency_protocols" -> {
