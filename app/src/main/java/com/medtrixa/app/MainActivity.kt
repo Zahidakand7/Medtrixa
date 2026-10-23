@@ -175,6 +175,7 @@ private fun MedtrixaRoot() {
             "pulse_assessment", "sbar_handover", "anaphylaxis", "stroke", "dka", "status_epilepticus" -> currentScreen = "emergency_protocols"
             "emergency_protocols", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure" -> currentScreen = "tools"
             "insulin_dosing", "insulin_dosing_2" -> currentScreen = "diabetes"
+            "more_topic" -> currentScreen = "healthcare_insights"
             "calculator" -> currentScreen = "calculators"
             "ai_insights" -> {
                 aiResume = false
@@ -189,10 +190,11 @@ private fun MedtrixaRoot() {
     }
 
     val showBottomNavigation = currentScreen in setOf(
-        "home", "tools", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure", "insulin_dosing", "insulin_dosing_2", "emergency_protocols", "more"
+        "home", "tools", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure", "insulin_dosing", "insulin_dosing_2", "emergency_protocols", "more", "healthcare_insights"
     )
     val selectedDestination = when (currentScreen) {
         "home" -> "home"
+        "healthcare_insights" -> "home"
         "more" -> "more"
         else -> "tools"
     }
@@ -526,7 +528,7 @@ private fun MedtrixaRoot() {
             )
         }
 
-        "more" -> {
+        "healthcare_insights" -> {
             MoreTopicsScreen(
                 onHomeClick = { currentScreen = "home" },
                 onToolsClick = { currentScreen = "tools" },
@@ -537,10 +539,14 @@ private fun MedtrixaRoot() {
             )
         }
 
+        "more" -> {
+            ComingSoonScreen(title = "Conditions", onBackClick = { currentScreen = "home" })
+        }
+
         "more_topic" -> {
             MoreTopicDetailScreen(
                 topicId = moreTopicId,
-                onBackClick = { currentScreen = "more" }
+                onBackClick = { currentScreen = "healthcare_insights" }
             )
         }
 
@@ -562,7 +568,7 @@ private fun MedtrixaRoot() {
                     currentScreen = "drug_detail"
                 },
                 onReferenceClick = { currentScreen = "reference" },
-                onHealthcareInsightsClick = { currentScreen = "more" },
+                onHealthcareInsightsClick = { currentScreen = "healthcare_insights" },
                 onAiInsightsClick = {
                     aiResume = false
                     currentScreen = "ai_insights"

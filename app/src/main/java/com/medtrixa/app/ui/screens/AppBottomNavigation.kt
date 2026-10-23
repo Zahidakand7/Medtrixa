@@ -57,7 +57,7 @@ fun AppBottomNavigation(
         ) {
             NavItem(selected == "home", "Toolkit", Icons.Outlined.Dashboard, onHomeClick)
             NavItem(selected == "tools", "Protocols", Icons.Outlined.MedicalServices, onToolsClick)
-            NavItem(selected == "more", "Topics", Icons.Outlined.Article, onMoreClick)
+            NavItem(selected == "more", "Conditions", Icons.Outlined.Article, onMoreClick)
         }
     }
 }
