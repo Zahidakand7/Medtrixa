@@ -50,7 +50,7 @@ private val tierFilters = listOf("All", "Preferred", "Alternative", "Step-down",
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
+fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit, idsaOnly: Boolean = false) {
     BackHandler { onBackClick() }
     val context = LocalContext.current
 
@@ -62,7 +62,7 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
         }
     }
 
-    var selectedTab by rememberSaveable { mutableStateOf(0) }
+    var selectedTab by rememberSaveable(idsaOnly) { mutableStateOf(if (idsaOnly) 0 else 1) }
     var query by rememberSaveable { mutableStateOf("") }
     var selectedGroup by rememberSaveable { mutableStateOf("All") }
     var selectedTier by rememberSaveable { mutableStateOf("All") }
@@ -82,7 +82,7 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
         modifier = Modifier.background(MaterialTheme.colorScheme.surface).statusBarsPadding(),
         topBar = {
             TopAppBar(
-                title = { AutoSizeText("Antibiotic Dosing Guidelines", TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold)) },
+                title = { AutoSizeText(if (idsaOnly) "IDSA AMR Guidance" else "Antibiotic Dosing Guidelines", TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold)) },
                 navigationIcon = {
                     PremiumBackButton(onClick = onBackClick, edgeInset = 12.dp)
                 }
@@ -94,9 +94,7 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit) {
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            ScrollableTabRow(selectedTabIndex = selectedTab, edgePadding = 8.dp) {
-                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 },
-                    text = { Text("IDSA AMR", fontWeight = FontWeight.SemiBold) })
+            if (!idsaOnly) ScrollableTabRow(selectedTabIndex = selectedTab - 1, edgePadding = 8.dp) {
                 Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 },
                     text = { Text("Drugs", fontWeight = FontWeight.SemiBold) })
                 Tab(selected = selectedTab == 2, onClick = { selectedTab = 2 },

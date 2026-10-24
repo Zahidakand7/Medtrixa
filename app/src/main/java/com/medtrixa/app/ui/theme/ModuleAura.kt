@@ -76,3 +76,9 @@ fun stewardshipHeroBrush(): Brush {
     val cs = MaterialTheme.colorScheme
     return Brush.linearGradient(listOf(deep(cs.tertiary, 0.35f), deep(cs.secondary, 0.45f)))
 }
+
+@Composable
+fun essentialsHeroBrush(): Brush {
+    val cs = MaterialTheme.colorScheme
+    return Brush.linearGradient(listOf(deep(cs.primary, 0.20f), deep(cs.secondary, 0.50f)))
+}

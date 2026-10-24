@@ -1,5 +1,6 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.material.icons.outlined.LocalPharmacy
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,8 +21,11 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Article
+import androidx.compose.material.icons.outlined.MedicalServices
+import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.MedicalServices
+import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -46,7 +50,8 @@ fun AppBottomNavigation(
     selected: String,
     onHomeClick: () -> Unit,
     onToolsClick: () -> Unit,
-    onMoreClick: () -> Unit
+    onMoreClick: () -> Unit,
+    onToolkitClick: () -> Unit = {}
 ) {
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 3.dp) {
         Row(
@@ -55,9 +60,10 @@ fun AppBottomNavigation(
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .height(60.dp)
         ) {
-            NavItem(selected == "home", "Toolkit", Icons.Outlined.Dashboard, onHomeClick)
+            NavItem(selected == "home", "Drugs", Icons.Outlined.LocalPharmacy, onHomeClick)
+            NavItem(selected == "toolkit", "Toolkit", Icons.Outlined.Dashboard, onToolkitClick)
             NavItem(selected == "tools", "Protocols", Icons.Outlined.MedicalServices, onToolsClick)
-            NavItem(selected == "more", "Conditions", Icons.Outlined.Article, onMoreClick)
+            NavItem(selected == "more", "Chronic Care", Icons.Outlined.MonitorHeart, onMoreClick)
         }
     }
 }

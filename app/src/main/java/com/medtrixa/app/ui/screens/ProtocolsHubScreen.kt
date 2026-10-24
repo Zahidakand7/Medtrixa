@@ -150,7 +150,7 @@ fun ProtocolsHubScreen(
 }
 
 @Composable
-private fun ProtocolHubTile(
+fun ProtocolHubTile(
     modifier: Modifier,
     title: String,
     subtitle: String,

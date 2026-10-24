@@ -81,8 +81,11 @@ import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Lock
 
+enum class HomePage { Drugs, Toolkit }
+
 @Composable
 fun HomeScreen(
+    page: HomePage = HomePage.Drugs,
     onHomeClick: () -> Unit = {},
     onToolsClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
@@ -122,15 +125,10 @@ fun HomeScreen(
 
     LaunchedEffect(q) {
         hits = if (q.isNotEmpty()) {
-            val found = AppDatabase.getInstance(context).drugDao().search(q)
-            if (q.length == 1) {
-                // Single letter: only names starting with it, in alphabetical order
-                found
-                    .filter { it.name.startsWith(q, ignoreCase = true) }
-                    .sortedBy { it.name.lowercase() }
-            } else {
-                found
-            }
+            AppDatabase.getInstance(context).drugDao().search(q)
+                .filter { it.name.startsWith(q, ignoreCase = true) }
+                .distinctBy { it.rxcui }
+                .sortedBy { it.name.lowercase() }
         } else {
             emptyList()
         }
@@ -168,7 +166,8 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
 
-                item {
+                if (page == HomePage.Drugs) {
+item {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -338,7 +337,7 @@ fun HomeScreen(
                     if (hits.isEmpty()) {
                         item {
                             Text(
-                                text = "No matches. Try a generic or brand name.",
+                                text = "No matching generic names found.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -349,11 +348,13 @@ fun HomeScreen(
                         }
                     }
                 }
+}
 
-                item {
+if (page == HomePage.Toolkit) {
+item {
                     Text(
-                        text = "Quick Access",
-                        style = MaterialTheme.typography.titleMedium,
+                        text = "Toolkit",
+                        style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -419,8 +420,8 @@ fun HomeScreen(
 
                         QuickAccessCard(
                             modifier = Modifier.weight(1f),
-                            title = "Healthcare Insights",
-                            subtitle = "Facts & Pearls",
+                            title = "Clinical Essentials",
+                            subtitle = "Ranges, Doses & Tables",
                             icon = Icons.Outlined.Lightbulb,
                             onClick = onHealthcareInsightsClick
                         )
@@ -446,7 +447,8 @@ fun HomeScreen(
                         text = "Save your frequently used tools here"
                     )
                 }
-            }
+}
+}
 
         }
     }

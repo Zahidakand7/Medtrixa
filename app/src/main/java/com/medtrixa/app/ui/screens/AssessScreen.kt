@@ -109,7 +109,7 @@ fun AssessScreen(
 
                 item {
                     AssessCategoryCard(
-                        title = "Risk Assessment Tools",
+                        title = "Risk Assessment",
                         subtitle = "Clinical risk and probability tools",
                         icon = Icons.Outlined.HealthAndSafety,
                         onClick = onRiskAssessmentClick

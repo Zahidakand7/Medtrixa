@@ -8,7 +8,7 @@ val PrescriptionTerminologyTopic = MoreTopic(
     subtitle = "Decode and verify prescriptions with precision",
     badge = "Rx",
     accent = TopicAccent.TEAL,
-    category = "Dosage",
+    category = "Terminology",
     keywords = listOf("bid", "tid", "qid", "qd", "prn", "stat", "sig", "abbreviations", "dosage abbreviations", "frequency", "route", "latin", "do not use", "ismp", "joint commission", "dosage guide"),
     sections = listOf(
         TopicSection("Prescription Instructions", listOf(

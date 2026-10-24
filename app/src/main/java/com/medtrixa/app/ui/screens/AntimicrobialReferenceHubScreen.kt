@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Biotech
 import androidx.compose.material.icons.outlined.Medication
+import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,7 +47,8 @@ import androidx.compose.ui.text.style.TextOverflow
 fun AntimicrobialReferenceHubScreen(
     onBackClick: () -> Unit,
     onGuidelinesClick: () -> Unit,
-    onBacterialAtlasClick: () -> Unit
+    onBacterialAtlasClick: () -> Unit,
+    onIdsaAmrClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -101,6 +103,14 @@ fun AntimicrobialReferenceHubScreen(
                         onClick = onBacterialAtlasClick
                     )
                 }
+            item {
+                ReferenceCategoryTile(
+                    icon = Icons.Outlined.Policy,
+                    title = "IDSA AMR Guidance",
+                    subtitle = "IDSA 2026 guidance for resistant Gram-negative infections",
+                    onClick = onIdsaAmrClick
+                )
+            }
                 item {
                     ReferenceCategoryTile(
                         icon = Icons.Outlined.Medication,

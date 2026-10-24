@@ -43,7 +43,7 @@ data class RiskAssessmentItem(
     val subtitle: String
 )
 
-private val riskAssessmentTools = listOf(
+private val riskAssessment = listOf(
     RiskAssessmentItem(
         "cha2ds2vasc",
         "CHA₂DS₂-VASc",
@@ -125,7 +125,7 @@ fun RiskAssessmentScreen(
                     )
                 }
 
-                items(riskAssessmentTools) { tool ->
+                items(riskAssessment) { tool ->
                     Card(
                         onClick = { onToolClick(tool.id) },
                         modifier = Modifier.fillMaxWidth(),

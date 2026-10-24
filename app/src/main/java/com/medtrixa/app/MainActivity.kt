@@ -1,5 +1,6 @@
 package com.medtrixa.app
 
+import com.medtrixa.app.ui.screens.HomePage
 import com.medtrixa.app.ui.screens.InsulinDosingScreen
 import com.medtrixa.app.ui.screens.InsulinDosing2Screen
 import com.medtrixa.app.ui.screens.DiabetesScreen
@@ -62,6 +63,7 @@ import com.medtrixa.app.ui.screens.assess.Meld30Screen
 import com.medtrixa.app.ui.screens.assess.ChildPughScreen
 import com.medtrixa.app.ui.screens.assess.CentorScoreScreen
 import com.medtrixa.app.ui.screens.AppBottomNavigation
+import com.medtrixa.app.ui.screens.ConditionsScreen
 import com.medtrixa.app.ui.screens.HomeScreen
 import com.medtrixa.app.ui.screens.AiInsightsScreen
 import com.medtrixa.app.ui.screens.ProtocolsScreen
@@ -164,6 +166,7 @@ private fun MedtrixaRoot() {
             }
             "drug_tool_detail" -> currentScreen = "drug_tools"
             "pubmed", "antibiotic_stewardship", "antibiotic_dosing" -> currentScreen = "reference"
+            "idsa_amr_guidance" -> currentScreen = "antibiotic_dosing"
             "antibiotic_dosing_guidelines" -> currentScreen = antibioticGuidelinesReturnTo
             "bacterial_atlas" -> currentScreen = bacterialAtlasReturnTo
             "clinical_scores", "risk_assessment" -> currentScreen = "assess"
@@ -175,11 +178,13 @@ private fun MedtrixaRoot() {
             "pulse_assessment", "sbar_handover", "anaphylaxis", "stroke", "dka", "status_epilepticus" -> currentScreen = "emergency_protocols"
             "emergency_protocols", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure" -> currentScreen = "tools"
             "insulin_dosing", "insulin_dosing_2" -> currentScreen = "diabetes"
+        "ckd", "chronic_liver_disease", "mental_health", "autoimmune_disease", "coronary_artery_disease", "neurological_disease", "copd_asthma", "gout" -> currentScreen = "more"
             "more_topic" -> currentScreen = "healthcare_insights"
+            "drug_tools", "reference", "assess", "calculators", "healthcare_insights" -> currentScreen = "toolkit"
             "calculator" -> currentScreen = "calculators"
             "ai_insights" -> {
                 aiResume = false
-                currentScreen = "home"
+                currentScreen = "toolkit"
             }
             else -> currentScreen = "home"
         }
@@ -190,12 +195,13 @@ private fun MedtrixaRoot() {
     }
 
     val showBottomNavigation = currentScreen in setOf(
-        "home", "tools", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure", "insulin_dosing", "insulin_dosing_2", "emergency_protocols", "more", "healthcare_insights"
+        "home", "toolkit", "tools", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure", "insulin_dosing", "insulin_dosing_2", "emergency_protocols", "more", "ckd", "chronic_liver_disease", "mental_health", "autoimmune_disease", "coronary_artery_disease", "neurological_disease", "copd_asthma", "gout", "healthcare_insights"
     )
     val selectedDestination = when (currentScreen) {
         "home" -> "home"
-        "healthcare_insights" -> "home"
-        "more" -> "more"
+        "toolkit" -> "toolkit"
+        "healthcare_insights" -> "toolkit"
+        "more", "ckd", "chronic_liver_disease", "mental_health", "autoimmune_disease", "coronary_artery_disease", "neurological_disease", "copd_asthma", "gout" -> "more"
         else -> "tools"
     }
 
@@ -206,6 +212,7 @@ private fun MedtrixaRoot() {
                 AppBottomNavigation(
                     selected = selectedDestination,
                     onHomeClick = { currentScreen = "home" },
+                    onToolkitClick = { currentScreen = "toolkit" },
                     onToolsClick = { currentScreen = "tools" },
                     onMoreClick = { currentScreen = "more" }
                 )
@@ -347,7 +354,7 @@ private fun MedtrixaRoot() {
 
         "drug_tools" -> {
             DrugToolsScreen(
-                onBackClick = { currentScreen = "home" },
+                onBackClick = { currentScreen = "toolkit" },
                 onToolClick = { tool ->
                     selectedDrugToolTitle = tool.title
                     currentScreen = "drug_tool_detail"
@@ -405,7 +412,7 @@ private fun MedtrixaRoot() {
 
         "reference" -> {
             ReferenceScreen(
-                onBackClick = { currentScreen = "home" },
+                onBackClick = { currentScreen = "toolkit" },
                 onReferenceClick = { referenceId ->
                     if (referenceId == "antibiotic_dosing") {
                         currentScreen = "antibiotic_dosing"
@@ -434,6 +441,7 @@ private fun MedtrixaRoot() {
             AntimicrobialReferenceHubScreen(
                 onBackClick = { currentScreen = "reference" },
                 onBacterialAtlasClick = { currentScreen = "bacterial_atlas" },
+                onIdsaAmrClick = { currentScreen = "idsa_amr_guidance" },
                 onGuidelinesClick = {
                     antibioticGuidelinesReturnTo = "antibiotic_dosing"
                     currentScreen = "antibiotic_dosing_guidelines"
@@ -447,6 +455,13 @@ private fun MedtrixaRoot() {
             )
         }
 
+        "idsa_amr_guidance" -> {
+            AntibioticDosingGuidelinesScreen(
+                onBackClick = { currentScreen = "antibiotic_dosing" },
+                idsaOnly = true
+            )
+        }
+
         "bacterial_atlas" -> {
             BacterialAtlasScreen(
                 onBackClick = { currentScreen = bacterialAtlasReturnTo }
@@ -455,7 +470,7 @@ private fun MedtrixaRoot() {
 
         "assess" -> {
             AssessScreen(
-                onBackClick = { currentScreen = "home" },
+                onBackClick = { currentScreen = "toolkit" },
                 onClinicalScoresClick = { currentScreen = "clinical_scores" },
                 onRiskAssessmentClick = { currentScreen = "risk_assessment" }
             )
@@ -498,7 +513,7 @@ private fun MedtrixaRoot() {
         "calculators" -> {
             CalculatorLibraryScreen(
                 repository = calculatorRepository,
-                onBackClick = { currentScreen = "home" },
+                onBackClick = { currentScreen = "toolkit" },
                 onCalculatorClick = { calculator ->
                     selectedCalculatorId = calculator.id
                     currentScreen = "calculator"
@@ -517,7 +532,7 @@ private fun MedtrixaRoot() {
             AiInsightsScreen(
                 onBackClick = {
                     aiResume = false
-                    currentScreen = "home"
+                    currentScreen = "toolkit"
                 },
                 resumeLast = aiResume,
                 onOpenScore = { id ->
@@ -530,7 +545,7 @@ private fun MedtrixaRoot() {
 
         "healthcare_insights" -> {
             MoreTopicsScreen(
-                onHomeClick = { currentScreen = "home" },
+                onHomeClick = { currentScreen = "toolkit" },
                 onToolsClick = { currentScreen = "tools" },
                 onTopicClick = { id ->
                     moreTopicId = id
@@ -540,7 +555,49 @@ private fun MedtrixaRoot() {
         }
 
         "more" -> {
-            ComingSoonScreen(title = "Conditions", onBackClick = { currentScreen = "home" })
+            ConditionsScreen(
+                onBackClick = { currentScreen = "home" },
+                onCkdClick = { currentScreen = "ckd" },
+                onChronicLiverDiseaseClick = { currentScreen = "chronic_liver_disease" },
+                onMentalHealthClick = { currentScreen = "mental_health" },
+                onCopdAsthmaClick = { currentScreen = "copd_asthma" },
+                onCadClick = { currentScreen = "coronary_artery_disease" },
+                onGoutClick = { currentScreen = "gout" },
+                onNeuroClick = { currentScreen = "neurological_disease" },
+                onAutoimmuneClick = { currentScreen = "autoimmune_disease" }
+            )
+        }
+
+        "chronic_liver_disease" -> {
+            ComingSoonScreen(title = "Chronic Liver Disease", onBackClick = { currentScreen = "more" })
+        }
+
+            "mental_health" -> {
+                ComingSoonScreen(title = "Mental Health Conditions", onBackClick = { currentScreen = "more" })
+            }
+
+            "copd_asthma" -> {
+                ComingSoonScreen(title = "COPD & Asthma", onBackClick = { currentScreen = "more" })
+            }
+
+            "coronary_artery_disease" -> {
+                ComingSoonScreen(title = "Coronary Artery Disease", onBackClick = { currentScreen = "more" })
+            }
+
+            "gout" -> {
+                ComingSoonScreen(title = "Gout", onBackClick = { currentScreen = "more" })
+            }
+
+            "neurological_disease" -> {
+                ComingSoonScreen(title = "Neurological Disease", onBackClick = { currentScreen = "more" })
+            }
+
+            "autoimmune_disease" -> {
+                ComingSoonScreen(title = "Autoimmune Disease", onBackClick = { currentScreen = "more" })
+            }
+
+        "ckd" -> {
+            ComingSoonScreen(title = "Chronic Kidney Disease", onBackClick = { currentScreen = "more" })
         }
 
         "more_topic" -> {
@@ -556,6 +613,7 @@ private fun MedtrixaRoot() {
 
         else -> {
             HomeScreen(
+                page = if (currentScreen == "toolkit") HomePage.Toolkit else HomePage.Drugs,
                 onToolsClick = { currentScreen = "tools" },
                 onMoreClick = { currentScreen = "more" },
                 onClinicalSourcesClick = { currentScreen = "clinical_sources" },

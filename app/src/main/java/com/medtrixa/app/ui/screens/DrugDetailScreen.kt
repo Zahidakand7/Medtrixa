@@ -55,6 +55,7 @@ import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -264,6 +265,7 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                             name = ing.name,
                             drugClass = ing.drugClass,
                             rxcui = ing.rxcui.toString(),
+                            facts = facts,
                             halfLife = label?.halfLife ?: ing.halfLifeText?.takeIf { it.length <= 40 },
                             eliminationRoute = label?.eliminationRoute,
                             brands = brands,
@@ -274,7 +276,6 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
                             onToggleStrengths = { showAllStrengths = !showAllStrengths }
                         )
                     }
-                    item { DrugFactsGrid(facts) }
 
                     if (sections.isEmpty()) {
                         item {
@@ -352,106 +353,148 @@ private fun DrugHeroCard(
     showAllBrands: Boolean,
     onToggleBrands: () -> Unit,
     showAllStrengths: Boolean,
-    onToggleStrengths: () -> Unit
+    onToggleStrengths: () -> Unit,
+    facts: List<DrugFact> = emptyList()
 ) {
+    val shape = RoundedCornerShape(24.dp)
+    fun fact(label: String) = facts.firstOrNull { it.label == label }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Brush.linearGradient(listOf(HeroStart, HeroEnd)), RoundedCornerShape(24.dp))
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape)
             .padding(18.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .background(Color.White.copy(alpha = 0.18f), RoundedCornerShape(16.dp)),
+                    .size(52.dp)
+                    .background(Brush.linearGradient(listOf(HeroStart, HeroEnd)), RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Outlined.Medication, contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
+                Icon(Icons.Outlined.Medication, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
             }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
                 Text(
                     name,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (!drugClass.isNullOrBlank()) {
-                    Text(drugClass, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f))
+                    Text(drugClass, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
 
-        DrugHeroDivider()
-
-        // Horizontal centre of each header column, used to line up the strength chips beneath them
-        val colCenters = remember { mutableStateMapOf<Int, Float>() }
-        val rxCol = if (brands.isNotEmpty()) 1 else 0
-        val halfLifeCol = rxCol + 1
-        val eliminationCol = halfLifeCol + (if (!halfLife.isNullOrBlank()) 1 else 0)
-        fun track(col: Int): Modifier = Modifier.onGloballyPositioned { c ->
-            colCenters[col] = c.positionInParent().x + c.size.width / 2f
+        FlowRow(
+            modifier = Modifier.padding(top = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val shownBrands = if (showAllBrands) brands else brands.take(3)
+            shownBrands.forEach { DrugSpecChip(it, tinted = true) }
+            if (brands.size > 3) {
+                DrugSpecChip(if (showAllBrands) "Show less" else "+${brands.size - 3} more", tinted = false, onClick = onToggleBrands)
+            }
+            DrugSpecChip("RxCUI $rxcui", tinted = false)
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            if (brands.isNotEmpty()) {
-                Column(Modifier.weight(1f, fill = false).then(track(0)), horizontalAlignment = Alignment.CenterHorizontally) {
-                    DrugHeroLabel(if (brands.size == 1) "BRAND NAME" else "BRAND NAMES")
-                    val shownBrands = if (showAllBrands) brands else brands.take(8)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        shownBrands.forEach { DrugHeroChip(it, filled = true) }
-                        if (brands.size > 8) {
-                            DrugHeroChip(
-                                if (showAllBrands) "Show less" else "+${brands.size - 8} more",
-                                filled = false,
-                                onClick = onToggleBrands
-                            )
-                        }
-                    }
-                }
-            }
-            Column(track(rxCol), horizontalAlignment = Alignment.CenterHorizontally) {
-                DrugHeroLabel("RXCUI")
-                DrugHeroChip(rxcui, filled = true)
-            }
-            if (!halfLife.isNullOrBlank()) {
-                Column(track(halfLifeCol), horizontalAlignment = Alignment.CenterHorizontally) {
-                    DrugHeroLabel("HALF-LIFE")
-                    DrugHeroChip(halfLife, filled = true)
-                }
-            }
-            if (!eliminationRoute.isNullOrBlank()) {
-                Column(track(eliminationCol), horizontalAlignment = Alignment.CenterHorizontally) {
-                    DrugHeroLabel("ELIMINATION")
-                    DrugHeroChip(eliminationRoute, filled = true)
-                }
-            }
-        }
+        Text(
+            "DRUG FACTS",
+            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.6.sp, fontSize = 11.sp),
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 16.dp, bottom = 6.dp)
+        )
 
-        if (strengths.isNotEmpty()) {
-            DrugHeroDivider()
-            DrugHeroLabel("STRENGTHS")
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
-                Layout(content = { strengths.forEach { DrugHeroChip(it, filled = true, glass = true) } }) { measurables, _ ->
-                    val gap = 6.dp.roundToPx()
-                    val placeables = measurables.map { it.measure(Constraints()) }
-                    val xs = IntArray(placeables.size)
-                    var prevEnd = -gap
-                            var lastGap = gap
-                    placeables.forEachIndexed { i, pl ->
-                        val wanted = colCenters[i]?.let { (it - pl.width / 2f).toInt() }
-                            xs[i] = if (wanted != null) maxOf(wanted, prevEnd + gap, 0) else prevEnd + lastGap
-                            if (i > 0) lastGap = maxOf(xs[i] - prevEnd, gap)
-                            prevEnd = xs[i] + pl.width
-                    }
-                    layout(maxOf(prevEnd, 0), placeables.maxOfOrNull { it.height } ?: 0) {
-                        placeables.forEachIndexed { i, pl -> pl.placeRelative(xs[i], 0) }
-                    }
-                }
+        val shownStrengths = if (showAllStrengths) strengths else strengths.take(3)
+        DrugSpecRow(
+            "Strengths",
+            shownStrengths.takeIf { it.isNotEmpty() }?.joinToString(", "),
+            if (strengths.size > 3) (if (showAllStrengths) "Show less" else "+${strengths.size - 3} more") else null,
+            onToggleStrengths
+        )
+        DrugFactSpecRow("Form", fact("FORM"))
+        DrugFactSpecRow("Route", fact("ROUTE"))
+        DrugSpecRow("Half-life", halfLife?.takeIf { it.isNotBlank() })
+        DrugSpecRow("Elimination", eliminationRoute?.takeIf { it.isNotBlank() })
+        DrugFactSpecRow("Manufacturer", fact("MANUFACTURER"))
+        DrugFactSpecRow("FDA approved", fact("FDA APPROVED"))
+    }
+}
+
+@Composable
+private fun DrugSpecChip(text: String, tinted: Boolean, onClick: (() -> Unit)? = null) {
+    val shape = RoundedCornerShape(20.dp)
+    var m = Modifier.clip(shape)
+    m = if (tinted) m.background(HeroStart.copy(alpha = 0.10f))
+        else m.border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
+    if (onClick != null) m = m.clickable { onClick() }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = if (tinted) FontWeight.Bold else FontWeight.Medium,
+        color = if (tinted) HeroStart else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = m.padding(horizontal = 12.dp, vertical = 4.dp)
+    )
+}
+
+@Composable
+private fun DrugSpecRow(label: String, value: String?, moreLabel: String? = null, onMore: (() -> Unit)? = null) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 9.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+            if (value.isNullOrBlank()) {
+                Text(
+                    "Not in database",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontStyle = FontStyle.Italic,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    textAlign = TextAlign.End
+                )
+            } else {
+                Text(
+                    value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End
+                )
+            }
+            if (moreLabel != null && onMore != null) {
+                Text(
+                    moreLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable { onMore() }.padding(top = 3.dp)
+                )
             }
         }
     }
+}
+
+@Composable
+private fun DrugFactSpecRow(label: String, fact: DrugFact?) {
+    var open by remember { mutableStateOf(false) }
+    val value = if (fact == null) null
+        else if (open) (listOf(fact.value) + fact.extras).joinToString(", ")
+        else fact.value
+    val more = if (fact != null && fact.extras.isNotEmpty())
+        (if (open) "Show less" else "+${fact.extras.size} more") else null
+    DrugSpecRow(label, value, more) { open = open.not() }
 }
 
 @Composable

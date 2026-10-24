@@ -32,6 +32,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.compositeOver
+import com.medtrixa.app.ui.components.PremiumBackButton
 import kotlinx.coroutines.launch
 
 private val SafeGreen = Color(0xFF2E9E5B)
@@ -44,6 +46,7 @@ fun MoreTopicDetailScreen(topicId: String, onBackClick: () -> Unit) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val chipScroll = rememberScrollState()
+    val accents = TopicAccent.values().associateWith { topicAccentColor(it) }
 
     val navTitles = remember(topicId) {
         (topic?.sections?.map { it.title } ?: emptyList()) + "References"
@@ -67,14 +70,13 @@ fun MoreTopicDetailScreen(topicId: String, onBackClick: () -> Unit) {
         }
     }
 
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.06f).compositeOver(MaterialTheme.colorScheme.background), MaterialTheme.colorScheme.background)))) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                Modifier.fillMaxWidth().padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PremiumBackButton(onClick = onBackClick)
-                Spacer(Modifier.width(12.dp))
+                PremiumBackButton(onClick = onBackClick, edgeInset = 16.dp)
                 Column {
                     FitHeaderText(topic?.title ?: "Topic Not Found", fontSize = 20.sp, fontWeight = FontWeight.Bold)
                     if (topic != null) {
@@ -105,7 +107,7 @@ fun MoreTopicDetailScreen(topicId: String, onBackClick: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     topic.sections.forEach { section ->
-                        val accent = topicAccentColor(section.accent)
+                        val accent = accents.getValue(section.accent)
                         val entryCount = section.blocks.sumOf { b ->
                             when (b) {
                                 is TopicBlock.Abbreviations -> b.rows.size
@@ -127,7 +129,7 @@ fun MoreTopicDetailScreen(topicId: String, onBackClick: () -> Unit) {
                     }
                     item { SectionBanner("References", topicAccentColor(TopicAccent.BLUE), 0) }
                     item {
-                        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+                        Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
                             Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 topic.references.forEachIndexed { i, r ->
                                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { Text((i + 1).toString() + ".", modifier = Modifier.width(18.dp), fontSize = 11.sp, lineHeight = 15.sp); Text(r, modifier = Modifier.fillMaxWidth(), fontSize = 11.sp, lineHeight = 15.sp) }
@@ -146,7 +148,7 @@ fun MoreTopicDetailScreen(topicId: String, onBackClick: () -> Unit) {
 private fun NavChip(title: String, color: Color, active: Boolean, onClick: () -> Unit) {
     Box(
         Modifier.clip(RoundedCornerShape(20.dp))
-            .background(if (active) color else color.copy(alpha = 0.12f))
+            .background(if (active) androidx.compose.ui.graphics.lerp(color, Color.Black, 0.25f) else color.copy(alpha = 0.12f))
             .clickable { onClick() }
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
@@ -164,7 +166,7 @@ private fun SectionBanner(title: String, accent: Color, count: Int) {
     Row(
         Modifier.fillMaxWidth().padding(top = 8.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(Brush.horizontalGradient(listOf(accent, accent.copy(alpha = 0.6f))))
+            .background(Brush.horizontalGradient(listOf(androidx.compose.ui.graphics.lerp(accent, Color.Black, 0.30f), accent)))
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -214,7 +216,8 @@ private fun AbbreviationTable(rows: List<AbbrevRow>, accent: Color) {
     val red = MaterialTheme.colorScheme.error
     Card(
         Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
@@ -289,7 +292,8 @@ private fun AbbreviationTable(rows: List<AbbrevRow>, accent: Color) {
 private fun DefinitionTable(items: List<TopicEntry>, accent: Color) {
     Card(
         Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
@@ -370,7 +374,8 @@ private fun PointList(text: String, dot: Color, alwaysDots: Boolean) {
 private fun ExampleCard(x: TopicBlock.Example, accent: Color) {
     Card(
         Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Row(Modifier.height(IntrinsicSize.Min)) {
             Box(Modifier.width(5.dp).fillMaxHeight().background(accent))
@@ -403,7 +408,7 @@ private fun ExampleCard(x: TopicBlock.Example, accent: Color) {
 
 @Composable
 private fun BulletsCard(items: List<String>, accent: Color) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
         Column(
             Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -556,7 +561,7 @@ private fun sectionIcon(title: String): String = when (title) {
 
 @Composable
 private fun AbbreviationBullets(rows: List<AbbrevRow>, accent: Color) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             rows.forEach { r ->
                 val lines = r.meaning.split("\n")
