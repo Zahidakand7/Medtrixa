@@ -1,5 +1,9 @@
 package com.medtrixa.app.ui.screens
 
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.material.icons.outlined.LocalPharmacy
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -60,7 +64,7 @@ fun AppBottomNavigation(
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .height(60.dp)
         ) {
-            NavItem(selected == "home", "Drugs", Icons.Outlined.LocalPharmacy, onHomeClick)
+            NavItem(selected == "home", "Drugs", PillIcon, onHomeClick)
             NavItem(selected == "toolkit", "Toolkit", Icons.Outlined.Dashboard, onToolkitClick)
             NavItem(selected == "tools", "Protocols", Icons.Outlined.MedicalServices, onToolsClick)
             NavItem(selected == "more", "Chronic Care", Icons.Outlined.MonitorHeart, onMoreClick)
@@ -114,3 +118,27 @@ private fun RowScope.NavItem(
         )
     }
 }
+
+// Tabler "pill" icon (MIT licence), drawn as strokes so it matches the other outlined tab icons
+private val PillIcon: ImageVector = ImageVector.Builder(
+    name = "Pill",
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 24f,
+    viewportHeight = 24f
+).apply {
+    addPath(
+        pathData = PathParser().parsePathString("M4.5 12.5l8 -8a4.94 4.94 0 0 1 7 7l-8 8a4.94 4.94 0 0 1 -7 -7").toNodes(),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 1.75f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round
+    )
+    addPath(
+        pathData = PathParser().parsePathString("M8.5 8.5l7 7").toNodes(),
+        stroke = SolidColor(Color.Black),
+        strokeLineWidth = 1.75f,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round
+    )
+}.build()
