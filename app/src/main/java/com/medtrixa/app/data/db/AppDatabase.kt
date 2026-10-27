@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [IngredientEntity::class, ProductEntity::class, BrandEntity::class, DrugLabelEntity::class],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,7 +26,8 @@ abstract class AppDatabase : RoomDatabase() {
                     app.deleteDatabase("drugs_v9.db")
                             app.deleteDatabase("drugs_v10.db")
                             app.deleteDatabase("drugs_v11.db")
-                    Room.databaseBuilder(app, AppDatabase::class.java, "drugs_v12.db")
+                            app.deleteDatabase("drugs_v12.db")
+                    Room.databaseBuilder(app, AppDatabase::class.java, "drugs_v13.db")
                         .createFromAsset("database/drugs.db")
                         .build()
                 }.also { INSTANCE = it }
