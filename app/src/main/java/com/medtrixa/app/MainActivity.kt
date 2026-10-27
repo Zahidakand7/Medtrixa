@@ -9,7 +9,6 @@ import com.medtrixa.app.ui.screens.DkaScreen
 import com.medtrixa.app.ui.screens.more.MoreTopicsScreen
 import com.medtrixa.app.ui.screens.more.MoreTopicDetailScreen
 import com.medtrixa.app.ui.screens.ClinicalSourcesScreen
-import com.medtrixa.app.ui.screens.preloadAntibioticGuidelines
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -96,7 +95,6 @@ class MainActivity : ComponentActivity() {
         // this, the system can additionally resize/pan the window on top of Compose's own
         // ime padding, which is what produced the gap between the keyboard and the composer.
         enableEdgeToEdge()
-        preloadAntibioticGuidelines(applicationContext)
         setContent {
             MedtrixaTheme {
                 MedtrixaRoot()
