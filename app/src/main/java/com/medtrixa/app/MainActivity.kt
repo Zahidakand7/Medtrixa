@@ -84,7 +84,6 @@ import com.medtrixa.app.ui.screens.PubMedScreen
 import com.medtrixa.app.ui.screens.AntimicrobialReferenceHubScreen
 import com.medtrixa.app.ui.screens.BacterialAtlasScreen
 import com.medtrixa.app.ui.screens.AntibioticDosingGuidelinesScreen
-import com.medtrixa.app.ui.screens.IdsaAmrGuidanceScreen
 import com.medtrixa.app.ui.theme.MedtrixaTheme
 import com.medtrixa.app.ui.screens.AntibioticStewardshipReferenceScreen
 
@@ -485,7 +484,7 @@ private fun MedtrixaRoot() {
         }
 
         "idsa_amr_guidance" -> {
-            IdsaAmrGuidanceScreen(onBackClick = { currentScreen = "antibiotic_dosing" })
+            ComingSoonScreen(title = "IDSA AMR Guidance", onBackClick = { currentScreen = "antibiotic_dosing" })
         }
 
         "bacterial_atlas" -> {

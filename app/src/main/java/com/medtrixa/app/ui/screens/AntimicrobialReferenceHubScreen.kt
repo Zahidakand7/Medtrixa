@@ -112,6 +112,7 @@ fun AntimicrobialReferenceHubScreen(
                     icon = Icons.Outlined.Policy,
                     title = "IDSA AMR Guidance",
                     subtitle = "IDSA 2026 guidance for resistant Gram-negative infections",
+                    comingSoon = true,
                     onClick = onIdsaAmrClick
                 )
             }
@@ -135,7 +136,8 @@ private fun ReferenceCategoryTile(
     icon: ImageVector,
     title: String,
     subtitle: String?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    comingSoon: Boolean = false
 ) {
     Card(
         onClick = onClick,
@@ -176,11 +178,30 @@ private fun ReferenceCategoryTile(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (comingSoon) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "COMING SOON",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.6.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .background(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                    RoundedCornerShape(50)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
 
                 if (!subtitle.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(3.dp))
