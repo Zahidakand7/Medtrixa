@@ -1,0 +1,6 @@
+{
+  "app": {"versionCode": 12, "versionName": "1.2", "notes": "New Stroke and Insulin protocols."},
+  "database": {"version": 11, "notes": "254 drugs added."},
+  "protocols": [{"id": "stroke", "title": "Stroke", "updated": "2026-10", "note": "Reviewed against AHA/ASA 2026."}],
+  "offers": {"id": "launch-1", "title": "Medtrixa Premium", "text": "Unlock the full Medtrixa experience with Premium. Tap to learn more."}
+}
