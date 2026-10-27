@@ -1,5 +1,12 @@
 package com.medtrixa.app.ui.screens
 
+import com.medtrixa.app.ui.components.AutoSizeText
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.BoxWithConstraints
 import com.medtrixa.app.data.repository.RenalHepaticRepository
 import com.medtrixa.app.data.repository.ClinicalPharmacologyRepository
 import androidx.compose.foundation.layout.Box
@@ -70,8 +77,8 @@ import com.medtrixa.app.data.db.IngredientEntity
 import com.medtrixa.app.data.db.ProductEntity
 import kotlinx.coroutines.launch
 
-private val HeroStart = Color(0xFF3B3FC4)
-private val HeroEnd = Color(0xFF7B4FE0)
+private val HeroStart = Color(0xFF176B87)
+private val HeroEnd = Color(0xFF2A8FA6)
 private const val FIRST_SECTION_INDEX = 4
 private const val CUT_MARKER = " \u2026 (continued in the full prescribing information)"
 
@@ -134,8 +141,9 @@ private fun justifiedParagraphs(text: String): AnnotatedString = buildAnnotatedS
 }
 
 private fun strengthValue(strength: String?): Double {
-    if (strength.isNullOrBlank()) return Double.MAX_VALUE
-    return Regex("\\d+(\\.\\d+)?").find(strength)?.value?.toDoubleOrNull() ?: Double.MAX_VALUE
+    val s = strength ?: return Double.MAX_VALUE
+    val m = Regex("(\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?|\\.\\d+)").find(s) ?: return Double.MAX_VALUE
+    return m.value.replace(",", "").toDoubleOrNull() ?: Double.MAX_VALUE
 }
 
 private fun labelYear(raw: String?): String? {
@@ -202,7 +210,15 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
         }
     }
     val strengths = remember(products) {
-        products.filter { it.strength != null }.sortedWith(compareBy({ formRank(it.form, it.route) }, { if ((it.strength ?: "").contains("ml", ignoreCase = true)) 1 else 0 }, { strengthValue(it.strength) })).mapNotNull { it.strength }.distinct()
+        products.mapNotNull { it.strength }
+            .distinct()
+            .sortedWith(
+                compareBy<String>(
+                    { if (it.contains("ml", ignoreCase = true)) 1 else 0 },
+                    { strengthValue(it) },
+                    { it.lowercase() }
+                )
+            )
     }
     val facts = remember(products, label) {
         buildList<DrugFact> {
@@ -341,6 +357,23 @@ fun DrugDetailScreen(genericName: String, onBackClick: () -> Unit) {
 }
 
 @OptIn(ExperimentalLayoutApi::class)
+private fun Modifier.fadeRightEdge(enabled: Boolean): Modifier = this
+    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+    .drawWithContent {
+        drawContent()
+        if (enabled) {
+            val w = 28.dp.toPx()
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    listOf(Color.Black, Color.Transparent),
+                    startX = size.width - w,
+                    endX = size.width
+                ),
+                blendMode = BlendMode.DstIn
+            )
+        }
+    }
+
 @Composable
 private fun DrugHeroCard(
     name: String,
@@ -356,73 +389,107 @@ private fun DrugHeroCard(
     onToggleStrengths: () -> Unit,
     facts: List<DrugFact> = emptyList()
 ) {
-    val shape = RoundedCornerShape(24.dp)
     fun fact(label: String) = facts.firstOrNull { it.label == label }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), shape)
-            .padding(18.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .background(Brush.linearGradient(listOf(HeroStart, HeroEnd)), RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Outlined.Medication, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
-            }
-            Spacer(modifier = Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    name,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (!drugClass.isNullOrBlank()) {
-                    Text(drugClass, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val factsShape = RoundedCornerShape(24.dp)
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(28.dp))
+                .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.16f), MaterialTheme.colorScheme.primary.copy(alpha = 0.05f))))
+                .padding(20.dp)
+        ) {
+            Row(verticalAlignment = Alignment.Top) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f), RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Outlined.Medication, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(30.dp))
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(Modifier.weight(1f)) {
+                    AutoSizeText(
+                        text = name,
+                        style = MaterialTheme.typography.headlineSmall.copy(color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold),
+                        minFontSize = 16.sp
+                    )
+                    if (!drugClass.isNullOrBlank()) {
+                        Text(
+                            drugClass,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2
+                        )
+                    }
+                    if (brands.isNotEmpty()) {
+                        val brandScroll = rememberScrollState()
+                        Row(
+                            modifier = Modifier.padding(top = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                if (brands.size > 1) "Brand Names:" else "Brand Name:",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fadeRightEdge(brandScroll.canScrollForward)
+                                    .horizontalScroll(brandScroll),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                brands.forEachIndexed { i, b ->
+                                    if (i > 0) Text("  ·  ", color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                                    Text(
+                                        b,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        FlowRow(
-            modifier = Modifier.padding(top = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(factsShape)
+                .background(MaterialTheme.colorScheme.surface)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f), factsShape)
+                .padding(18.dp)
         ) {
-            val shownBrands = if (showAllBrands) brands else brands.take(3)
-            shownBrands.forEach { DrugSpecChip(it, tinted = true) }
-            if (brands.size > 3) {
-                DrugSpecChip(if (showAllBrands) "Show less" else "+${brands.size - 3} more", tinted = false, onClick = onToggleBrands)
+            Text(
+                "DRUG FACTS",
+                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.6.sp, fontSize = 11.sp),
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            if (strengths.isEmpty()) {
+                DrugSpecRow("Strengths", null)
+            } else {
+                DrugScrollRow("Strengths") { strengths.forEach { DrugSpecChip(it, tinted = true) } }
             }
-            DrugSpecChip("RxCUI $rxcui", tinted = false)
+            DrugFactScrollRow("Form", fact("FORM"))
+            DrugFactScrollRow("Route", fact("ROUTE"))
+            DrugSpecRow("Half-life", halfLife?.takeIf { it.isNotBlank() })
+            DrugSpecRow("Elimination", eliminationRoute?.takeIf { it.isNotBlank() })
+            DrugSpecRow("RxCUI", rxcui.takeIf { it.isNotBlank() }, muted = true)
+            DrugFactScrollRow("Manufacturer", fact("MANUFACTURER"))
+            DrugFactSpecRow("FDA approved", fact("FDA APPROVED"))
         }
-
-        Text(
-            "DRUG FACTS",
-            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.6.sp, fontSize = 11.sp),
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 16.dp, bottom = 6.dp)
-        )
-
-        val shownStrengths = if (showAllStrengths) strengths else strengths.take(3)
-        DrugSpecRow(
-            "Strengths",
-            shownStrengths.takeIf { it.isNotEmpty() }?.joinToString(", "),
-            if (strengths.size > 3) (if (showAllStrengths) "Show less" else "+${strengths.size - 3} more") else null,
-            onToggleStrengths
-        )
-        DrugFactSpecRow("Form", fact("FORM"))
-        DrugFactSpecRow("Route", fact("ROUTE"))
-        DrugSpecRow("Half-life", halfLife?.takeIf { it.isNotBlank() })
-        DrugSpecRow("Elimination", eliminationRoute?.takeIf { it.isNotBlank() })
-        DrugFactSpecRow("Manufacturer", fact("MANUFACTURER"))
-        DrugFactSpecRow("FDA approved", fact("FDA APPROVED"))
     }
 }
 
@@ -438,12 +505,49 @@ private fun DrugSpecChip(text: String, tinted: Boolean, onClick: (() -> Unit)? =
         style = MaterialTheme.typography.labelLarge,
         fontWeight = if (tinted) FontWeight.Bold else FontWeight.Medium,
         color = if (tinted) HeroStart else MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        softWrap = false,
         modifier = m.padding(horizontal = 12.dp, vertical = 4.dp)
     )
 }
 
 @Composable
-private fun DrugSpecRow(label: String, value: String?, moreLabel: String? = null, onMore: (() -> Unit)? = null) {
+private fun DrugScrollRow(label: String, content: @Composable RowScope.() -> Unit) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.width(16.dp))
+        val scroll = rememberScrollState()
+        BoxWithConstraints(Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier
+                    .fadeRightEdge(scroll.canScrollForward)
+                    .horizontalScroll(scroll)
+                    .widthIn(min = maxWidth),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically,
+                content = content
+            )
+        }
+    }
+}
+
+@Composable
+private fun DrugSpecRow(
+    label: String,
+    value: String?,
+    moreLabel: String? = null,
+    muted: Boolean = false,
+    onMore: (() -> Unit)? = null
+) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -469,7 +573,8 @@ private fun DrugSpecRow(label: String, value: String?, moreLabel: String? = null
                 Text(
                     value,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = if (muted) FontWeight.Normal else FontWeight.Bold,
+                    color = if (muted) MaterialTheme.colorScheme.onSurfaceVariant else Color.Unspecified,
                     textAlign = TextAlign.End
                 )
             }
@@ -495,6 +600,23 @@ private fun DrugFactSpecRow(label: String, fact: DrugFact?) {
     val more = if (fact != null && fact.extras.isNotEmpty())
         (if (open) "Show less" else "+${fact.extras.size} more") else null
     DrugSpecRow(label, value, more) { open = open.not() }
+}
+
+@Composable
+private fun DrugFactScrollRow(label: String, fact: DrugFact?) {
+    if (fact == null || fact.value.isBlank()) {
+        DrugSpecRow(label, null)
+    } else {
+        DrugScrollRow(label) {
+            Text(
+                (listOf(fact.value) + fact.extras).joinToString(", "),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                softWrap = false
+            )
+        }
+    }
 }
 
 @Composable

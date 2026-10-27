@@ -64,7 +64,9 @@ import com.medtrixa.app.ui.screens.assess.ChildPughScreen
 import com.medtrixa.app.ui.screens.assess.CentorScoreScreen
 import com.medtrixa.app.ui.screens.AppBottomNavigation
 import com.medtrixa.app.ui.screens.ConditionsScreen
-import com.medtrixa.app.ui.screens.HomeScreen
+import com.medtrixa.app.ui.screens.ToolkitScreen
+import com.medtrixa.app.ui.screens.DrugGroup
+import com.medtrixa.app.ui.screens.DrugGroupListScreen
 import com.medtrixa.app.ui.screens.AiInsightsScreen
 import com.medtrixa.app.ui.screens.ProtocolsScreen
 import com.medtrixa.app.ui.screens.pulse.PulseScreen
@@ -120,6 +122,7 @@ private fun MedtrixaRoot() {
     }
 
     var selectedDrug by remember { mutableStateOf<String?>(null) }
+    var selectedDrugGroup by remember { mutableStateOf<DrugGroup?>(null) }
 
     var antibioticGuidelinesReturnTo by rememberSaveable {
         mutableStateOf("antibiotic_dosing")
@@ -179,6 +182,7 @@ private fun MedtrixaRoot() {
             "emergency_protocols", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure" -> currentScreen = "tools"
             "insulin_dosing", "insulin_dosing_2" -> currentScreen = "diabetes"
         "ckd", "chronic_liver_disease", "mental_health", "autoimmune_disease", "coronary_artery_disease", "neurological_disease", "copd_asthma", "gout" -> currentScreen = "more"
+            "drug_group", "drug_all" -> currentScreen = "home"
             "more_topic" -> currentScreen = "healthcare_insights"
             "drug_tools", "reference", "assess", "calculators", "healthcare_insights" -> currentScreen = "toolkit"
             "calculator" -> currentScreen = "calculators"
@@ -195,10 +199,10 @@ private fun MedtrixaRoot() {
     }
 
     val showBottomNavigation = currentScreen in setOf(
-        "home", "toolkit", "tools", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure", "insulin_dosing", "insulin_dosing_2", "emergency_protocols", "more", "ckd", "chronic_liver_disease", "mental_health", "autoimmune_disease", "coronary_artery_disease", "neurological_disease", "copd_asthma", "gout", "healthcare_insights"
+        "home", "toolkit", "tools", "primary_protocols", "diabetes", "pregnancy", "hypertension", "pancreatitis", "thyroid", "heart_failure", "insulin_dosing", "insulin_dosing_2", "emergency_protocols", "more", "drug_group", "drug_all", "ckd", "chronic_liver_disease", "mental_health", "autoimmune_disease", "coronary_artery_disease", "neurological_disease", "copd_asthma", "gout", "healthcare_insights"
     )
     val selectedDestination = when (currentScreen) {
-        "home" -> "home"
+        "home", "drug_group", "drug_all" -> "home"
         "toolkit" -> "toolkit"
         "healthcare_insights" -> "toolkit"
         "more", "ckd", "chronic_liver_disease", "mental_health", "autoimmune_disease", "coronary_artery_disease", "neurological_disease", "copd_asthma", "gout" -> "more"
@@ -334,6 +338,30 @@ private fun MedtrixaRoot() {
 
         "pulse_assessment" -> {
             PulseScreen(onBackClick = { currentScreen = "emergency_protocols" })
+        }
+
+        "drug_group" -> {
+            DrugGroupListScreen(
+                group = selectedDrugGroup,
+                onBackClick = { currentScreen = "home" },
+                onDrugClick = { name ->
+                    selectedDrug = name
+                    drugDetailReturnTo = "drug_group"
+                    currentScreen = "drug_detail"
+                }
+            )
+        }
+
+        "drug_all" -> {
+            DrugGroupListScreen(
+                group = null,
+                onBackClick = { currentScreen = "home" },
+                onDrugClick = { name ->
+                    selectedDrug = name
+                    drugDetailReturnTo = "drug_all"
+                    currentScreen = "drug_detail"
+                }
+            )
         }
 
         "drug_detail" -> {
@@ -612,7 +640,12 @@ private fun MedtrixaRoot() {
         }
 
         else -> {
-            HomeScreen(
+            ToolkitScreen(
+                onDrugGroupClick = { g ->
+                    selectedDrugGroup = g
+                    currentScreen = "drug_group"
+                },
+                onAllDrugsClick = { currentScreen = "drug_all" },
                 page = if (currentScreen == "toolkit") HomePage.Toolkit else HomePage.Drugs,
                 onToolsClick = { currentScreen = "tools" },
                 onMoreClick = { currentScreen = "more" },

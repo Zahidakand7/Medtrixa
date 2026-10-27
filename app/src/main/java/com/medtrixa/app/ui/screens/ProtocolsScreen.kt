@@ -15,6 +15,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Vibration
+import androidx.compose.material.icons.outlined.ReportProblem
+import androidx.compose.material.icons.outlined.Waves
+import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.ShowChart
 import androidx.compose.material.icons.outlined.Science
@@ -152,7 +156,7 @@ fun ProtocolsScreen(
                         title = "Pulse Assessment",
                         subtitle = "Camera-based pulse estimate and waveform",
                         source = "Research Use Only",
-                        icon = Icons.Outlined.ShowChart,
+                        icon = Icons.Outlined.GraphicEq,
                         onClick = onPulseClick
                     )
                 }
@@ -162,7 +166,7 @@ fun ProtocolsScreen(
                         title = "ABG Interpreter",
                         subtitle = "Primary disorder, compensation, anion gap",
                         source = "Berend et al., NEJM 2014",
-                        icon = Icons.Outlined.Science,
+                        icon = Icons.Outlined.Waves,
                         onClick = onAbgClick
                     )
                 }
@@ -202,7 +206,7 @@ fun ProtocolsScreen(
                         title = "Anaphylaxis",
                         subtitle = "Recognition, epinephrine dose and timer, checklist",
                         source = ANAPHYLAXIS_SOURCE,
-                        icon = Icons.Outlined.MedicalServices,
+                        icon = Icons.Outlined.ReportProblem,
                         onClick = onAnaphylaxisClick
                     )
                 }
@@ -232,7 +236,7 @@ fun ProtocolsScreen(
                         title = "Status Epilepticus",
                         subtitle = "Seizure clock, benzodiazepine and second-line doses, checklist",
                         source = STATUS_EPILEPTICUS_SOURCE,
-                        icon = Icons.Outlined.Bolt,
+                        icon = Icons.Outlined.Vibration,
                         onClick = onStatusEpilepticusClick
                     )
                 }

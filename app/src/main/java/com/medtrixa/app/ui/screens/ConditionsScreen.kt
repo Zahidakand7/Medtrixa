@@ -11,6 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DirectionsWalk
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.ShowChart
+import androidx.compose.material.icons.outlined.Vaccines
+import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.Air
 import androidx.compose.material.icons.outlined.Bloodtype
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -75,7 +80,7 @@ fun ConditionsScreen(
                     modifier = Modifier.weight(1f),
                     title = "Chronic Kidney Disease",
                     subtitle = "Coming soon",
-                    icon = Icons.Outlined.Opacity,
+                    icon = Icons.Outlined.FilterAlt,
                     onClick = onCkdClick
                 )
                 ProtocolHubTile(
@@ -96,7 +101,7 @@ fun ConditionsScreen(
                     modifier = Modifier.weight(1f),
                     title = "Autoimmune Disease",
                     subtitle = "Coming soon",
-                    icon = Icons.Outlined.Shield,
+                    icon = Icons.Outlined.Vaccines,
                     onClick = onAutoimmuneClick
                 )
                 ProtocolHubTile(
@@ -117,14 +122,14 @@ fun ConditionsScreen(
                     modifier = Modifier.weight(1f),
                     title = "Coronary Artery Disease",
                     subtitle = "Coming soon",
-                    icon = Icons.Outlined.FavoriteBorder,
+                    icon = Icons.Outlined.ShowChart,
                     onClick = onCadClick
                 )
                 ProtocolHubTile(
                     modifier = Modifier.weight(1f),
                     title = "Neurological Disease",
                     subtitle = "Coming soon",
-                    icon = Icons.Outlined.Psychology,
+                    icon = Icons.Outlined.Memory,
                     onClick = onNeuroClick
                 )
             }
@@ -145,7 +150,7 @@ fun ConditionsScreen(
                     modifier = Modifier.weight(1f),
                     title = "Gout",
                     subtitle = "Coming soon",
-                    icon = Icons.Outlined.Bloodtype,
+                    icon = Icons.Outlined.DirectionsWalk,
                     onClick = onGoutClick
                 )
             }

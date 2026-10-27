@@ -6,6 +6,8 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.speech.RecognizerIntent
 import android.widget.Toast
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -84,7 +86,7 @@ import androidx.compose.material.icons.outlined.Lock
 enum class HomePage { Drugs, Toolkit }
 
 @Composable
-fun HomeScreen(
+fun ToolkitScreen(
     page: HomePage = HomePage.Drugs,
     onHomeClick: () -> Unit = {},
     onToolsClick: () -> Unit = {},
@@ -105,7 +107,9 @@ fun HomeScreen(
     onFeedbackClick: () -> Unit = {},
     onAboutClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
-    onDrugClick: (String) -> Unit = {}
+    onDrugClick: (String) -> Unit = {},
+    onDrugGroupClick: (DrugGroup) -> Unit = {},
+    onAllDrugsClick: () -> Unit = {}
 ) {
     var searchField by remember { mutableStateOf(TextFieldValue("")) }
     val searchQuery = searchField.text
@@ -311,8 +315,9 @@ item {
                                     val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                                         putExtra(
                                             RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                                            RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                                            RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH
                                         )
+                                        putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
                                     }
                                     try {
                                         voiceLauncher.launch(intent)
@@ -346,6 +351,12 @@ item {
                         items(hits, key = { it.rxcui }) { hit ->
                             DrugResultCard(hit, q) { onDrugClick(hit.name) }
                         }
+                    }
+                }
+
+                if (q.isEmpty() && page == HomePage.Drugs) {
+                    item {
+                        DrugsBrowse(onGroupClick = onDrugGroupClick, onAllClick = onAllDrugsClick)
                     }
                 }
 }
@@ -426,26 +437,6 @@ item {
                             onClick = onHealthcareInsightsClick
                         )
                     }
-                }
-
-                item {
-                    SectionHeader("Recently Used")
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    EmptyStateCard(
-                        text = "Your recent tools will appear here"
-                    )
-                }
-
-                item {
-                    SectionHeader("Favorites")
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    EmptyStateCard(
-                        text = "Save your frequently used tools here"
-                    )
                 }
 }
 }

@@ -43,6 +43,7 @@ import com.medtrixa.app.data.model.AntibioticDosingGuideline
 import com.medtrixa.app.data.repository.AntibioticDosingRepository
 import com.medtrixa.app.ui.components.PremiumBackButton
 import com.medtrixa.app.ui.theme.dosingHeroBrush
+import com.medtrixa.app.ui.theme.medtrixaAuraBrush
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -79,9 +80,11 @@ fun AntibioticDosingGuidelinesScreen(onBackClick: () -> Unit, idsaOnly: Boolean 
     }
 
     Scaffold(
-        modifier = Modifier.background(MaterialTheme.colorScheme.surface).statusBarsPadding(),
+        modifier = Modifier.background(medtrixaAuraBrush()).statusBarsPadding(),
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                 title = { AutoSizeText(if (idsaOnly) "IDSA AMR Guidance" else "Antibiotic Dosing Guidelines", TextStyle(fontSize = 20.sp, fontWeight = FontWeight.SemiBold)) },
                 navigationIcon = {
                     PremiumBackButton(onClick = onBackClick, edgeInset = 12.dp)

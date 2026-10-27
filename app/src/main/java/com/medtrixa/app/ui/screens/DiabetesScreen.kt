@@ -3,6 +3,8 @@ package com.medtrixa.app.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Timeline
+import androidx.compose.material.icons.outlined.Opacity
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Colorize
 import androidx.compose.material3.*
@@ -43,12 +45,14 @@ fun DiabetesScreen(
 
         DiabetesCard(
             title = "Insulin Dosing",
+            icon = Icons.Outlined.Opacity,
             subtitle = "Insulin dosing support and glucose assessment",
             onClick = onInsulinClick
         )
 
         DiabetesCard(
             title = "Insulin Dosing 2",
+            icon = Icons.Outlined.Timeline,
             subtitle = "ADA 2026 injectable therapy pathway with dose calculator",
             onClick = onInsulin2Click
         )
@@ -56,7 +60,7 @@ fun DiabetesScreen(
 }
 
 @Composable
-private fun DiabetesCard(title: String, subtitle: String, onClick: () -> Unit) {
+private fun DiabetesCard(title: String, subtitle: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -73,7 +77,7 @@ private fun DiabetesCard(title: String, subtitle: String, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Outlined.Colorize,
+                imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(30.dp)

@@ -2,6 +2,8 @@ package com.medtrixa.app.ui.screens
 import com.medtrixa.app.ui.components.AutoSizeText
 import androidx.compose.ui.unit.sp
 import com.medtrixa.app.ui.components.PremiumBackButton
+import com.medtrixa.app.ui.theme.medtrixaAuraBrush
+import androidx.compose.ui.graphics.Color
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -51,8 +53,10 @@ fun AntimicrobialReferenceHubScreen(
     onIdsaAmrClick: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        modifier = Modifier
+            .fillMaxSize()
+            .background(medtrixaAuraBrush()),
+        color = Color.Transparent
     ) {
         Column(
             modifier = Modifier
@@ -136,12 +140,12 @@ private fun ReferenceCategoryTile(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
+            defaultElevation = 4.dp
         )
     ) {
         Row(

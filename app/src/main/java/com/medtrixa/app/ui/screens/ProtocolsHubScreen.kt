@@ -6,6 +6,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MonitorWeight
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.Thermostat
+import androidx.compose.material.icons.outlined.Accessibility
 import androidx.compose.material.icons.outlined.Colorize
 import androidx.compose.material.icons.outlined.LocalHospital
 import androidx.compose.material.icons.outlined.MedicalServices
@@ -71,7 +75,7 @@ fun ProtocolsHubScreen(
                     modifier = Modifier.weight(1f),
                     title = "Primary Protocols",
                     subtitle = "Insulin Dosing",
-                    icon = Icons.Outlined.MedicalServices,
+                    icon = Icons.Outlined.Accessibility,
                     onClick = onPrimaryClick
                 )
                 ProtocolHubTile(
@@ -99,7 +103,7 @@ fun ProtocolsHubScreen(
                     modifier = Modifier.weight(1f),
                     title = "Thyroid Disorders",
                     subtitle = "Diagnostic Interpretation & Treatment",
-                    icon = Icons.Outlined.Biotech,
+                    icon = Icons.Outlined.Thermostat,
                     onClick = onThyroidClick
                 )
             }
@@ -113,14 +117,14 @@ fun ProtocolsHubScreen(
                     modifier = Modifier.weight(1f),
                     title = "Hypertension",
                     subtitle = "Coming soon",
-                    icon = Icons.Outlined.MonitorHeart,
+                    icon = Icons.Outlined.Speed,
                     onClick = onHypertensionClick
                 )
                 ProtocolHubTile(
                     modifier = Modifier.weight(1f),
                     title = "Heart Failure",
                     subtitle = "Coming soon",
-                    icon = Icons.Outlined.Favorite,
+                    icon = Icons.Outlined.MonitorWeight,
                     onClick = onHeartFailureClick
                 )
             }
